@@ -18,17 +18,17 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
   return (
     <Card 
       className={cn(
-        "overflow-hidden transition-all duration-300 backdrop-blur-md border-0 group relative",
-        lesson.difficulty === "beginner" && "bg-gradient-to-br from-green-400/20 to-emerald-500/30 text-white",
-        lesson.difficulty === "intermediate" && "bg-gradient-to-br from-blue-400/20 to-purple-500/30 text-white",
-        lesson.difficulty === "advanced" && "bg-gradient-to-br from-orange-400/20 to-red-500/30 text-white",
+        "overflow-hidden transition-all duration-300 dark-glass border-0 group relative",
+        lesson.difficulty === "beginner" && "bg-gradient-to-br from-green-400/10 to-emerald-500/20 text-white",
+        lesson.difficulty === "intermediate" && "bg-gradient-to-br from-blue-400/10 to-purple-500/20 text-white",
+        lesson.difficulty === "advanced" && "bg-gradient-to-br from-orange-400/10 to-red-500/20 text-white",
         isHovered && "transform-gpu translate-y-[-8px] shadow-lg"
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {lesson.sponsored && (
-        <div className="absolute top-0 right-0 bg-white/20 backdrop-blur-sm text-white px-3 py-1 text-xs font-medium">
+        <div className="absolute top-0 right-0 bg-black/40 backdrop-blur-sm text-white px-3 py-1 text-xs font-medium">
           Sponsored
         </div>
       )}
@@ -37,9 +37,9 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
         <div className="flex justify-between items-start">
           <div className={cn(
             "p-3 rounded-lg transition-all mb-2 text-white",
-            lesson.difficulty === "beginner" && "bg-green-500/40",
-            lesson.difficulty === "intermediate" && "bg-blue-500/40",
-            lesson.difficulty === "advanced" && "bg-orange-500/40"
+            lesson.difficulty === "beginner" && "bg-green-500/30",
+            lesson.difficulty === "intermediate" && "bg-blue-500/30",
+            lesson.difficulty === "advanced" && "bg-orange-500/30"
           )}>
             {lesson.icon}
           </div>
@@ -73,7 +73,7 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
       <CardFooter className="p-0 mt-auto">
         <Button 
           variant="ghost" 
-          className="w-full bg-white/10 hover:bg-white/20 text-white rounded-none border-t border-white/10 h-12"
+          className="w-full bg-black/20 hover:bg-white/10 text-white rounded-none border-t border-white/10 h-12"
         >
           <span className="mr-auto">Start Learning</span>
           <ChevronRight size={18} className="transition-transform duration-300 group-hover:translate-x-1" />

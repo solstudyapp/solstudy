@@ -5,13 +5,13 @@
 
 @layer base {
   :root {
-    --background: 225 25% 10%;
+    --background: 0 0% 0%;
     --foreground: 210 40% 98%;
 
-    --card: 225 25% 12%;
+    --card: 0 0% 5%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 225 25% 10%;
+    --popover: 0 0% 3%;
     --popover-foreground: 210 40% 98%;
 
     --primary: 272 75% 60%;
@@ -20,7 +20,7 @@
     --secondary: 150 75% 60%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 225 25% 20%;
+    --muted: 0 0% 10%;
     --muted-foreground: 215 20% 65%;
 
     --accent: 272 75% 60%;
@@ -29,19 +29,19 @@
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 225 25% 25%;
-    --input: 225 25% 25%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
     --ring: 272 75% 60%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 225 25% 15%;
+    --sidebar-background: 0 0% 5%;
     --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 272 75% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 225 25% 20%;
+    --sidebar-accent: 0 0% 10%;
     --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 225 25% 25%;
+    --sidebar-border: 0 0% 15%;
     --sidebar-ring: 272 75% 60%;
   }
 }
@@ -63,5 +63,13 @@
   
   .text-gradient {
     @apply bg-gradient-to-r from-[#9945FF] to-[#14F195] bg-clip-text text-transparent;
+  }
+  
+  .gradient-border {
+    @apply border border-transparent bg-gradient-to-r from-[#9945FF] to-[#14F195] bg-clip-border;
+  }
+  
+  .dark-glass {
+    @apply backdrop-blur-md bg-black/40 border border-white/10;
   }
 }
