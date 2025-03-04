@@ -27,7 +27,7 @@ const Index = () => {
     <div className="min-h-screen bg-black p-6">
       <div className="max-w-7xl mx-auto">
         {/* Hero Section */}
-        <div className="relative mb-12 overflow-hidden rounded-xl dark-glass p-8 text-white">
+        <div className="relative mb-12 overflow-hidden rounded-xl dark-glass p-8 text-white bg-gradient-to-br from-[#9945FF]/5 to-[#14F195]/5">
           <div className="max-w-3xl">
             <h1 className="text-4xl font-bold mb-4 text-gradient">SolStudy</h1>
             <p className="text-xl mb-6">Learn crypto, earn rewards, and build your knowledge in the blockchain space</p>
@@ -38,7 +38,7 @@ const Index = () => {
         </div>
 
         {/* Search and Filter Section */}
-        <div className="dark-glass rounded-xl p-4 mb-8">
+        <div className="dark-glass rounded-xl p-4 mb-8 bg-gradient-to-br from-[#9945FF]/5 to-[#14F195]/5">
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
             <div className="relative w-full md:w-1/3">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60" />
