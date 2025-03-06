@@ -22,7 +22,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/*" element={<AdminDashboard />} />
                 <Route path="/lesson/:lessonId" element={<LessonView />} />
                 <Route path="/quiz/:lessonId/:sectionId" element={<QuizPage />} />
                 <Route path="*" element={<NotFound />} />
