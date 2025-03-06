@@ -1,31 +1,92 @@
-
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Apple, Facebook, Github, Mail, Wallet } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 
 const AuthPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
   
-  const handleEmailAuth = (isSignUp: boolean) => {
-    // In a real app, you would connect to an auth provider
-    toast({
-      title: isSignUp ? "Account created" : "Welcome back",
-      description: isSignUp ? "Please check your email to verify your account" : "You've been successfully signed in",
-    });
+  const handleEmailSignIn = async () => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Welcome back",
+        description: "You've been successfully signed in",
+      });
+      
+      navigate("/dashboard");
+    } catch (error: any) {
+      toast({
+        title: "Error signing in",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
   
-  const handleSocialAuth = (provider: string) => {
-    toast({
-      title: `${provider} authentication`,
-      description: `Signing in with ${provider}...`,
-    });
-    // In a real app, you would connect to the social auth provider
+  const handleEmailSignUp = async () => {
+    try {
+      setLoading(true);
+      
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            points: 100, // Bonus points for signing up
+          }
+        }
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Account created",
+        description: "Please check your email to verify your account",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error signing up",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleSocialAuth = async (provider: 'google' | 'facebook' | 'github' | 'apple') => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+      });
+      
+      if (error) throw error;
+      
+    } catch (error: any) {
+      toast({
+        title: "Authentication error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
   
   const handleWalletAuth = () => {
@@ -33,7 +94,6 @@ const AuthPage = () => {
       title: "Connect wallet",
       description: "Please connect your Solana wallet to continue",
     });
-    // In a real app, you would connect to wallet
   };
   
   return (
@@ -79,10 +139,11 @@ const AuthPage = () => {
                 </div>
                 <Button
                   className="w-full bg-[#14F195] text-[#1A1F2C] hover:bg-[#14F195]/90"
-                  onClick={() => handleEmailAuth(false)}
+                  onClick={handleEmailSignIn}
+                  disabled={loading}
                 >
                   <Mail className="mr-2 h-4 w-4" />
-                  Sign In with Email
+                  {loading ? "Signing in..." : "Sign In with Email"}
                 </Button>
                 
                 <div className="relative my-4">
@@ -98,7 +159,7 @@ const AuthPage = () => {
                   <Button
                     variant="outline"
                     className="border-white/10 text-white hover:bg-white/5 bg-white/5"
-                    onClick={() => handleSocialAuth("Google")}
+                    onClick={() => handleSocialAuth('google')}
                   >
                     <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                       <path
@@ -123,7 +184,7 @@ const AuthPage = () => {
                   <Button
                     variant="outline"
                     className="border-white/10 text-white hover:bg-white/5 bg-white/5"
-                    onClick={() => handleSocialAuth("Apple")}
+                    onClick={() => handleSocialAuth('apple')}
                   >
                     <Apple className="mr-2 h-4 w-4" />
                     Apple
@@ -131,7 +192,7 @@ const AuthPage = () => {
                   <Button
                     variant="outline"
                     className="border-white/10 text-white hover:bg-white/5 bg-white/5"
-                    onClick={() => handleSocialAuth("Facebook")}
+                    onClick={() => handleSocialAuth('facebook')}
                   >
                     <Facebook className="mr-2 h-4 w-4" />
                     Facebook
@@ -139,7 +200,7 @@ const AuthPage = () => {
                   <Button
                     variant="outline"
                     className="border-white/10 text-white hover:bg-white/5 bg-white/5"
-                    onClick={() => handleSocialAuth("GitHub")}
+                    onClick={() => handleSocialAuth('github')}
                   >
                     <Github className="mr-2 h-4 w-4" />
                     GitHub
@@ -190,10 +251,11 @@ const AuthPage = () => {
                 </div>
                 <Button
                   className="w-full bg-[#14F195] text-[#1A1F2C] hover:bg-[#14F195]/90"
-                  onClick={() => handleEmailAuth(true)}
+                  onClick={handleEmailSignUp}
+                  disabled={loading}
                 >
                   <Mail className="mr-2 h-4 w-4" />
-                  Sign Up with Email
+                  {loading ? "Signing up..." : "Sign Up with Email"}
                 </Button>
                 
                 <div className="relative my-4">
@@ -209,7 +271,7 @@ const AuthPage = () => {
                   <Button
                     variant="outline"
                     className="border-white/10 text-white hover:bg-white/5 bg-white/5"
-                    onClick={() => handleSocialAuth("Google")}
+                    onClick={() => handleSocialAuth('google')}
                   >
                     <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                       <path
@@ -234,7 +296,7 @@ const AuthPage = () => {
                   <Button
                     variant="outline"
                     className="border-white/10 text-white hover:bg-white/5 bg-white/5"
-                    onClick={() => handleSocialAuth("Apple")}
+                    onClick={() => handleSocialAuth('apple')}
                   >
                     <Apple className="mr-2 h-4 w-4" />
                     Apple
@@ -242,7 +304,7 @@ const AuthPage = () => {
                   <Button
                     variant="outline"
                     className="border-white/10 text-white hover:bg-white/5 bg-white/5"
-                    onClick={() => handleSocialAuth("Facebook")}
+                    onClick={() => handleSocialAuth('facebook')}
                   >
                     <Facebook className="mr-2 h-4 w-4" />
                     Facebook
@@ -250,7 +312,7 @@ const AuthPage = () => {
                   <Button
                     variant="outline"
                     className="border-white/10 text-white hover:bg-white/5 bg-white/5"
-                    onClick={() => handleSocialAuth("GitHub")}
+                    onClick={() => handleSocialAuth('github')}
                   >
                     <Github className="mr-2 h-4 w-4" />
                     GitHub
