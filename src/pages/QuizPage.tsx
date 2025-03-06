@@ -1,25 +1,21 @@
-
 import { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Star, Award, ChevronLeft, Trophy } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import { lessonService } from "@/services/lessonService";
 import { Quiz } from "@/types/lesson";
+import QuizQuestion from "@/components/quiz/QuizQuestion";
+import QuizResults from "@/components/quiz/QuizResults";
+import FeedbackDialog from "@/components/quiz/FeedbackDialog";
+import QuizHeader from "@/components/quiz/QuizHeader";
 
 const QuizPage = () => {
   const { lessonId, sectionId } = useParams();
   const navigate = useNavigate();
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [selectedOption, setSelectedOption] = useState<number | null>(null);
-  const [isSubmitted, setIsSubmitted] = useState(false);
   const [score, setScore] = useState(0);
   const [showResults, setShowResults] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
-  const [feedbackRating, setFeedbackRating] = useState(0);
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   
   // Load quiz data
@@ -249,44 +245,17 @@ const QuizPage = () => {
     );
   }
   
-  const currentQuestionData = quiz.questions[currentQuestion];
-  
-  const handleOptionSelect = (optionIndex: number) => {
-    if (!isSubmitted) {
-      setSelectedOption(optionIndex);
-    }
-  };
-  
-  const handleSubmit = () => {
-    if (selectedOption === null) return;
-    
-    setIsSubmitted(true);
-    
-    // Check if answer is correct
-    if (selectedOption === currentQuestionData.correctOptionIndex) {
+  const handleQuestionComplete = (isCorrect: boolean) => {
+    if (isCorrect) {
       setScore(score + 1);
-      toast({
-        title: "Correct!",
-        description: "Good job! Moving to next question soon...",
-      });
-    } else {
-      toast({
-        title: "Incorrect",
-        description: `The correct answer was: ${currentQuestionData.options[currentQuestionData.correctOptionIndex]}`,
-      });
     }
     
-    // Wait for a moment to show feedback before moving to next question
-    setTimeout(() => {
-      if (currentQuestion < quiz.questions.length - 1) {
-        setCurrentQuestion(currentQuestion + 1);
-        setSelectedOption(null);
-        setIsSubmitted(false);
-      } else {
-        // Quiz completed
-        setShowResults(true);
-      }
-    }, 2000);
+    if (currentQuestion < quiz.questions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
+    } else {
+      // Quiz completed
+      setShowResults(true);
+    }
   };
   
   const handleQuizComplete = () => {
@@ -321,7 +290,7 @@ const QuizPage = () => {
     }
   };
   
-  const submitFeedback = () => {
+  const submitFeedback = (feedbackRating: number) => {
     if (lessonId) {
       // Save user feedback
       lessonService.saveFeedback(lessonId, feedbackRating);
@@ -347,132 +316,34 @@ const QuizPage = () => {
       <Header />
       
       <div className="max-w-3xl mx-auto px-4 py-8">
-        <div className="mb-6 flex justify-between items-center">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            asChild 
-            className="text-white/80 hover:text-white"
-          >
-            <Link to={lessonId ? `/lesson/${lessonId}` : '/'}>
-              <ChevronLeft className="mr-1 h-4 w-4" />
-              Back to Lesson
-            </Link>
-          </Button>
-          
-          <div className="text-white text-sm">
-            Question {currentQuestion + 1} of {quiz.questions.length}
-          </div>
-        </div>
+        {!showResults && (
+          <QuizHeader 
+            lessonId={lessonId} 
+            currentQuestion={currentQuestion} 
+            totalQuestions={quiz.questions.length}
+            quizTitle={quiz.title}
+          />
+        )}
         
-        <Card className="backdrop-blur-md bg-white/10 border border-white/10 text-white">
-          <CardHeader>
-            <CardTitle>{quiz.title}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {!showResults ? (
-              <div>
-                <h2 className="text-xl font-medium mb-6">{currentQuestionData.text}</h2>
-                <div className="space-y-3">
-                  {currentQuestionData.options.map((option, index) => (
-                    <div
-                      key={index}
-                      className={`p-4 rounded-md border cursor-pointer transition-all ${
-                        selectedOption === index
-                          ? isSubmitted
-                            ? index === currentQuestionData.correctOptionIndex
-                              ? "border-green-500 bg-green-500/20"
-                              : "border-red-500 bg-red-500/20"
-                            : "border-purple-400 bg-white/20"
-                          : "border-white/20 hover:border-white/40 hover:bg-white/10"
-                      }`}
-                      onClick={() => handleOptionSelect(index)}
-                    >
-                      {option}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <div className="mb-6">
-                  <div className="text-5xl font-bold mb-2">{score}/{quiz.questions.length}</div>
-                  <p className="text-white/70">
-                    {score / quiz.questions.length >= 0.8 
-                      ? "Great job! You've mastered this section." 
-                      : score / quiz.questions.length >= 0.6 
-                      ? "Good effort! Keep studying to improve." 
-                      : "Need more practice. Review the material and try again."}
-                  </p>
-                </div>
-                
-                <div className="bg-white/10 rounded-lg p-4 mb-6">
-                  <div className="flex items-center justify-center mb-2">
-                    <Award className="mr-2 h-5 w-5 text-[#14F195]" />
-                    <p className="font-medium">You earned {Math.round((score / quiz.questions.length) * quiz.rewardPoints)} points!</p>
-                  </div>
-                  <p className="text-sm text-white/70">Keep learning to earn more rewards</p>
-                </div>
-              </div>
-            )}
-          </CardContent>
-          <CardFooter className="justify-end border-t border-white/10 pt-4">
-            {!showResults ? (
-              <Button
-                onClick={handleSubmit}
-                disabled={selectedOption === null || isSubmitted}
-                className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0"
-              >
-                {isSubmitted ? "Next Question..." : "Submit Answer"}
-              </Button>
-            ) : (
-              <Button
-                onClick={handleQuizComplete}
-                className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0"
-              >
-                {quiz.isFinalTest ? "Complete Course" : "Complete Quiz"}
-              </Button>
-            )}
-          </CardFooter>
-        </Card>
+        {!showResults ? (
+          <QuizQuestion 
+            question={quiz.questions[currentQuestion]}
+            onNext={handleQuestionComplete}
+          />
+        ) : (
+          <QuizResults 
+            quiz={quiz}
+            score={score}
+            onComplete={handleQuizComplete}
+          />
+        )}
       </div>
       
-      {/* Feedback Dialog */}
-      <Dialog open={showFeedback} onOpenChange={setShowFeedback}>
-        <DialogContent className="bg-[#1A1F2C] text-white border-white/10">
-          <DialogHeader>
-            <DialogTitle>Rate this course</DialogTitle>
-            <DialogDescription className="text-white/70">
-              Your feedback helps us improve our content
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="py-4">
-            <div className="flex justify-center gap-2">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <Star
-                  key={star}
-                  className={`w-8 h-8 cursor-pointer transition-all ${
-                    star <= feedbackRating
-                      ? "fill-yellow-400 text-yellow-400"
-                      : "text-white/30"
-                  }`}
-                  onClick={() => setFeedbackRating(star)}
-                />
-              ))}
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowFeedback(false)} className="border-white/20 text-white hover:bg-white/10">
-              Skip
-            </Button>
-            <Button onClick={submitFeedback} className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0">
-              Submit Feedback
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <FeedbackDialog 
+        open={showFeedback} 
+        onOpenChange={setShowFeedback}
+        onSubmit={submitFeedback}
+      />
     </div>
   );
 };
