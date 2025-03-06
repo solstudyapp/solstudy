@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import LessonCard from "@/components/LessonCard";
 import { FilterBar } from "@/components/FilterBar";
 import { lessonData } from "@/data/lessons";
+import FeatureCards from "@/components/FeatureCards";
 
 const Index = () => {
   const { toast } = useToast();
@@ -55,6 +56,9 @@ const Index = () => {
             </Button>
           </div>
         </div>
+
+        {/* Feature Cards Section */}
+        <FeatureCards />
 
         {/* Search and Filter Section */}
         <div className="dark-glass rounded-xl p-4 mb-8 bg-gradient-to-br from-[#9945FF]/5 to-[#14F195]/5">

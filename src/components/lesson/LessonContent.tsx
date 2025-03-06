@@ -28,9 +28,19 @@ const LessonContent = ({
       <div className="backdrop-blur-md bg-white/10 border border-white/10 rounded-lg p-6 md:p-8">
         {/* If this is a sponsored lesson, show sponsor */}
         {lesson.sponsored && (
-          <div className="mb-6 p-3 bg-white/10 rounded-md flex items-center justify-between">
-            <div className="text-white/70 text-sm">This lesson is sponsored by</div>
-            <div className="font-medium text-white">Sponsor Name</div>
+          <div className="mb-6 p-4 bg-gradient-to-r from-[#9945FF]/10 to-[#14F195]/10 rounded-lg">
+            <div className="text-white/70 text-sm mb-2 text-center">This Course is Brought to You By:</div>
+            <div className="flex items-center justify-center h-12 bg-black/20 rounded">
+              {lesson.sponsorLogo ? (
+                <img 
+                  src={lesson.sponsorLogo} 
+                  alt="Sponsor Logo" 
+                  className="h-8 max-w-[120px] object-contain"
+                />
+              ) : (
+                <div className="font-medium text-white">Sponsor Name</div>
+              )}
+            </div>
           </div>
         )}
         
