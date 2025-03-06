@@ -74,6 +74,24 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
             {lesson.category}
           </Badge>
         </div>
+
+        {/* Sponsor area - only show if sponsored */}
+        {lesson.sponsored && (
+          <div className="mt-4 pt-3 border-t border-white/10">
+            <div className="text-xs text-white/60 mb-1">This Course is Brought to You By:</div>
+            <div className="h-8 bg-black/20 rounded flex items-center justify-center p-1">
+              {lesson.sponsorLogo ? (
+                <img 
+                  src={lesson.sponsorLogo} 
+                  alt="Sponsor Logo" 
+                  className="h-6 max-w-[100px] object-contain"
+                />
+              ) : (
+                <div className="text-xs text-white/40">Sponsor</div>
+              )}
+            </div>
+          </div>
+        )}
       </CardContent>
 
       <CardFooter className="p-0 mt-auto">

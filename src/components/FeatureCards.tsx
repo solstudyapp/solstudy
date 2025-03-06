@@ -57,14 +57,6 @@ const FeatureCards = () => {
               <h3 className="text-xl font-bold text-white mb-2">{feature.title}</h3>
               <p className="text-white/80">{feature.description}</p>
             </div>
-            
-            {/* Sponsor area */}
-            <div className="mt-6 pt-4 border-t border-white/10">
-              <div className="text-xs text-white/60 mb-1 text-center">This Feature is Brought to You By:</div>
-              <div className="h-8 bg-black/20 rounded flex items-center justify-center">
-                <div className="text-xs text-white/40">Sponsor Logo</div>
-              </div>
-            </div>
           </div>
         ))}
       </div>

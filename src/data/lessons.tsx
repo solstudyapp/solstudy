@@ -23,6 +23,11 @@ import {
 } from "lucide-react";
 import { LessonType } from "@/types/lesson";
 
+// Sponsor logos
+const COINGECKO_LOGO = "https://static.coingecko.com/s/coingecko-logo-8903d34ce19ca4be1c81f0db30e924154750d208683fad7ae6f2ce06c76d0a56.png";
+const SOLSCAN_LOGO = "https://solscan.io/static/media/solscan-logo.403868e9.svg";
+const BUBBLEMAPS_LOGO = "https://bubblemaps.io/images/logoText_whiteColor.svg";
+
 export const lessonData: LessonType[] = [
   {
     id: "intro-to-blockchain",
@@ -49,6 +54,8 @@ export const lessonData: LessonType[] = [
     rating: 4.5,
     reviewCount: 89,
     icon: <LineChart size={24} />,
+    sponsored: true,
+    sponsorLogo: COINGECKO_LOGO,
   },
   {
     id: "defi-essentials",
@@ -75,6 +82,7 @@ export const lessonData: LessonType[] = [
     rating: 4.6,
     reviewCount: 78,
     sponsored: true,
+    sponsorLogo: BUBBLEMAPS_LOGO,
     icon: <PaintBucket size={24} />,
   },
   {
@@ -141,6 +149,7 @@ export const lessonData: LessonType[] = [
     rating: 4.8,
     reviewCount: 47,
     sponsored: true,
+    sponsorLogo: SOLSCAN_LOGO,
     icon: <Sparkles size={24} />,
   },
 ];
