@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import Header from "@/components/Header";
 import { lessonData } from "@/data/lessons";
 import { getSectionsForLesson } from "@/data/sections";
 import { toast } from "@/hooks/use-toast";
@@ -36,10 +35,9 @@ const LessonView = () => {
   if (!lesson) {
     return (
       <div className="min-h-screen bg-black">
-        <Header />
         <div className="max-w-3xl mx-auto px-4 py-16 text-center text-white">
-          <h1 className="text-2xl font-bold mb-4">Lesson not found</h1>
-          <p className="mb-6">The lesson you're looking for doesn't exist or has been removed.</p>
+          <h1 className="text-2xl font-bold mb-4">Course not found</h1>
+          <p className="mb-6">The course you're looking for doesn't exist or has been removed.</p>
           <Button asChild>
             <Link to="/">Back to Courses</Link>
           </Button>
@@ -104,8 +102,6 @@ const LessonView = () => {
   
   return (
     <div className="min-h-screen bg-black">
-      <Header />
-      
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Lesson Header */}
         <LessonHeader 

@@ -183,6 +183,11 @@ const AuthPage = () => {
                     className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                   />
                 </div>
+                <div className="bg-[#14F195]/10 border border-[#14F195]/30 rounded-md p-3 text-sm">
+                  <p className="text-white">
+                    <strong>Bonus:</strong> Get 100 points just for signing up!
+                  </p>
+                </div>
                 <Button
                   className="w-full bg-[#14F195] text-[#1A1F2C] hover:bg-[#14F195]/90"
                   onClick={() => handleEmailAuth(true)}

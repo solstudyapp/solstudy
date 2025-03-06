@@ -13,19 +13,25 @@ import NotFound from "./pages/NotFound";
 function App() {
   return (
     <div className="min-h-screen flex flex-col bg-black">
-      <Header />
-      <main className="flex-grow">
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/auth" element={<AuthPage />} />
-          <Route path="/lesson/:lessonId" element={<LessonView />} />
-          <Route path="/quiz/:lessonId/:sectionId" element={<QuizPage />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </main>
-      <Footer />
+      <Routes>
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="*" element={
+          <>
+            <Header />
+            <main className="flex-grow">
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/lesson/:lessonId" element={<LessonView />} />
+                <Route path="/quiz/:lessonId/:sectionId" element={<QuizPage />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </main>
+            <Footer />
+          </>
+        } />
+      </Routes>
     </div>
   );
 }
