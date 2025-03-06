@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Route, Routes, Link, useLocation } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,7 +52,7 @@ const AdminSidebar = () => {
   ];
   
   return (
-    <div className="w-full lg:w-64 bg-white/10 backdrop-blur-md rounded-lg p-4 sticky top-6">
+    <div className="w-full lg:w-64 bg-sidebar dark-glass rounded-lg p-4 sticky top-6">
       <div className="p-2 mb-6">
         <h2 className="text-xl font-bold text-white">Admin Dashboard</h2>
       </div>
@@ -65,8 +64,8 @@ const AdminSidebar = () => {
             to={`/admin/${item.path}`}
             className={`flex items-center px-3 py-2 rounded-md transition-colors ${
               currentPath === item.path
-                ? "bg-white/20 text-white"
-                : "text-white/70 hover:text-white hover:bg-white/10"
+                ? "bg-sidebar-accent text-white"
+                : "text-white/70 hover:text-white hover:bg-sidebar-accent/50"
             }`}
           >
             <span className="mr-3">{item.icon}</span>
@@ -122,7 +121,6 @@ const UsersTab = () => {
   };
   
   const handleSingleAirdrop = (userId: string) => {
-    // In a real app, you would send a request to your backend
     toast({
       title: "Airdrop Sent",
       description: `${airdropAmount} points sent to user.`,
@@ -132,7 +130,6 @@ const UsersTab = () => {
   const handleBulkAirdrop = () => {
     if (selectedUsers.length === 0) return;
     
-    // In a real app, you would send a request to your backend
     toast({
       title: "Bulk Airdrop Sent",
       description: `${airdropAmount} points sent to ${selectedUsers.length} users.`,
@@ -396,7 +393,7 @@ const LessonsTab = () => {
 // Admin Dashboard Main Component
 const AdminDashboard = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#9945FF] to-[#14F195] p-6">
+    <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col lg:flex-row gap-6">
           <div className="w-full lg:w-64 lg:shrink-0">

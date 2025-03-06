@@ -72,4 +72,16 @@
   .dark-glass {
     @apply backdrop-blur-md bg-black/40 border border-white/10;
   }
+  
+  .admin-card {
+    @apply backdrop-blur-md bg-black/30 border-white/10 text-white;
+  }
+  
+  .admin-table-row {
+    @apply hover:bg-white/5 border-white/10;
+  }
+  
+  .admin-table-header {
+    @apply bg-black/20;
+  }
 }
