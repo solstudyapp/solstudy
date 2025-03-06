@@ -7,21 +7,35 @@ import { toast } from "@/hooks/use-toast";
 
 interface QuizQuestionProps {
   question: Question;
-  onNext: (isCorrect: boolean) => void;
+  selectedOption: number | undefined;
+  onSelectOption: (optionIndex: number) => void;
+  onNext: () => void;
+  onPrev: () => void;
+  isFirst: boolean;
+  isLast: boolean;
+  hasAnswered: boolean;
 }
 
-const QuizQuestion = ({ question, onNext }: QuizQuestionProps) => {
-  const [selectedOption, setSelectedOption] = useState<number | null>(null);
+const QuizQuestion = ({ 
+  question, 
+  selectedOption, 
+  onSelectOption, 
+  onNext, 
+  onPrev, 
+  isFirst, 
+  isLast,
+  hasAnswered 
+}: QuizQuestionProps) => {
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handleOptionSelect = (optionIndex: number) => {
     if (!isSubmitted) {
-      setSelectedOption(optionIndex);
+      onSelectOption(optionIndex);
     }
   };
 
   const handleSubmit = () => {
-    if (selectedOption === null) return;
+    if (selectedOption === undefined) return;
     
     setIsSubmitted(true);
     
@@ -42,8 +56,7 @@ const QuizQuestion = ({ question, onNext }: QuizQuestionProps) => {
     
     // Wait for a moment to show feedback before moving to next question
     setTimeout(() => {
-      onNext(isCorrect);
-      setSelectedOption(null);
+      onNext();
       setIsSubmitted(false);
     }, 2000);
   };
@@ -74,10 +87,18 @@ const QuizQuestion = ({ question, onNext }: QuizQuestionProps) => {
           ))}
         </div>
       </CardContent>
-      <CardFooter className="justify-end border-t border-white/10 pt-4">
+      <CardFooter className="flex justify-between border-t border-white/10 pt-4">
+        <Button
+          onClick={onPrev}
+          disabled={isFirst || isSubmitted}
+          variant="outline"
+          className="border-white/20 text-white hover:bg-white/10"
+        >
+          Previous
+        </Button>
         <Button
           onClick={handleSubmit}
-          disabled={selectedOption === null || isSubmitted}
+          disabled={selectedOption === undefined || isSubmitted}
           className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0"
         >
           {isSubmitted ? "Next Question..." : "Submit Answer"}
