@@ -1,0 +1,56 @@
+
+import { LessonType } from "@/types/lesson";
+import LessonNavigation from "./LessonNavigation";
+
+interface LessonContentProps {
+  lesson: LessonType;
+  currentSection: number;
+  currentPage: number;
+  currentPageData: { content: string };
+  navigatePrev: () => void;
+  navigateNext: () => void;
+  isFirstPage: boolean;
+  isLastPage: boolean;
+}
+
+const LessonContent = ({
+  lesson,
+  currentSection,
+  currentPage,
+  currentPageData,
+  navigatePrev,
+  navigateNext,
+  isFirstPage,
+  isLastPage,
+}: LessonContentProps) => {
+  return (
+    <div className="md:col-span-3">
+      <div className="backdrop-blur-md bg-white/10 border border-white/10 rounded-lg p-6 md:p-8">
+        {/* If this is a sponsored lesson, show sponsor */}
+        {lesson.sponsored && (
+          <div className="mb-6 p-3 bg-white/10 rounded-md flex items-center justify-between">
+            <div className="text-white/70 text-sm">This lesson is sponsored by</div>
+            <div className="font-medium text-white">Sponsor Name</div>
+          </div>
+        )}
+        
+        <div 
+          className="prose prose-invert max-w-none mb-8"
+          dangerouslySetInnerHTML={{ __html: currentPageData.content }}
+        />
+        
+        {/* Navigation buttons */}
+        <LessonNavigation
+          lessonId={lesson.id}
+          currentSection={currentSection}
+          navigatePrev={navigatePrev}
+          navigateNext={navigateNext}
+          isFirstPage={isFirstPage}
+          isLastPage={isLastPage}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default LessonContent;
