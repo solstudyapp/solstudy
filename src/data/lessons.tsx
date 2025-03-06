@@ -1,4 +1,5 @@
 
+import { ReactNode } from "react";
 import {
   Wallet,
   LineChart,
@@ -7,7 +8,6 @@ import {
   Rocket,
   Database,
   BookOpen,
-  LucideIcon,
   Lock,
   ShieldCheck,
   Network,

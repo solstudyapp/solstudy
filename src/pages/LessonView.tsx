@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import { lessonData } from "@/data/lessons";
+import { getSectionsForLesson } from "@/data/sections";
 import { toast } from "@/hooks/use-toast";
 import { lessonService } from "@/services/lessonService";
 import LessonSidebar from "@/components/lesson/LessonSidebar";
@@ -20,42 +21,8 @@ const LessonView = () => {
   // Find the lesson based on the URL param
   const lesson = lessonData.find(l => l.id === lessonId);
   
-  // Mock sections data - in real app, this would come from an API
-  const sections = [
-    {
-      id: "section1",
-      title: "Getting Started",
-      pages: [
-        { id: "page1", title: "Introduction", content: "<h1>Welcome to this lesson!</h1><p>In this section, you'll learn the basics of cryptocurrency and blockchain technology.</p>" },
-        { id: "page2", title: "What is Blockchain?", content: "<h1>Blockchain Technology</h1><p>Blockchain is a distributed ledger technology that enables secure, transparent, and immutable record-keeping without central authority.</p>" },
-        { id: "page3", title: "Key Concepts", content: "<h1>Key Blockchain Concepts</h1><p>Let's explore decentralization, consensus mechanisms, and cryptographic security - the foundations of blockchain technology.</p>" },
-        { id: "page4", title: "History of Blockchain", content: "<h1>A Brief History</h1><p>From Bitcoin's creation in 2009 to the modern blockchain ecosystem - understanding how we got here helps predict where we're going.</p>" },
-      ],
-      quizId: "quiz-section1" // Added the missing quizId property
-    },
-    {
-      id: "section2",
-      title: "Core Components",
-      pages: [
-        { id: "page5", title: "Cryptography Basics", content: "<h1>Cryptography in Blockchain</h1><p>Public/private keys, hash functions, and digital signatures are the building blocks of blockchain security.</p>" },
-        { id: "page6", title: "Consensus Mechanisms", content: "<h1>How Blockchains Agree</h1><p>Proof of Work, Proof of Stake, and other mechanisms ensure that all participants can trust the blockchain's state.</p>" },
-        { id: "page7", title: "Transactions & Blocks", content: "<h1>The Anatomy of Blockchain</h1><p>Understanding how transactions are created, validated, and permanently recorded in blocks.</p>" },
-        { id: "page8", title: "Smart Contracts", content: "<h1>Self-Executing Agreements</h1><p>Smart contracts are programs stored on the blockchain that run when predetermined conditions are met.</p>" },
-      ],
-      quizId: "quiz-section2" // Added the missing quizId property
-    },
-    {
-      id: "section3",
-      title: "Applications & Future",
-      pages: [
-        { id: "page9", title: "DeFi Overview", content: "<h1>Decentralized Finance</h1><p>DeFi aims to recreate and improve traditional financial systems using blockchain technology.</p>" },
-        { id: "page10", title: "NFTs Explained", content: "<h1>Non-Fungible Tokens</h1><p>NFTs represent unique digital assets, enabling new forms of digital ownership and creator economies.</p>" },
-        { id: "page11", title: "DAOs & Governance", content: "<h1>Decentralized Autonomous Organizations</h1><p>DAOs enable community governance of blockchain protocols and projects through token voting.</p>" },
-        { id: "page12", title: "Future Trends", content: "<h1>Where Blockchain Is Heading</h1><p>Scalability solutions, institutional adoption, and emerging use cases are shaping the future of blockchain.</p>" },
-      ],
-      quizId: "quiz-section3" // Added the missing quizId property
-    }
-  ];
+  // Get sections data from our new data file
+  const sections = lessonId ? getSectionsForLesson(lessonId) : [];
   
   useEffect(() => {
     if (!lesson) return;
@@ -64,7 +31,7 @@ const LessonView = () => {
     const totalPages = sections.reduce((acc, section) => acc + section.pages.length, 0);
     const pagesCompleted = sections.slice(0, currentSection).reduce((acc, section) => acc + section.pages.length, 0) + currentPage;
     setProgress(Math.round((pagesCompleted / totalPages) * 100));
-  }, [currentSection, currentPage, lesson]);
+  }, [currentSection, currentPage, lesson, sections]);
   
   if (!lesson) {
     return (
@@ -82,7 +49,7 @@ const LessonView = () => {
   }
 
   const currentSectionData = sections[currentSection];
-  const currentPageData = currentSectionData.pages[currentPage];
+  const currentPageData = currentSectionData?.pages[currentPage];
   
   const navigateNext = () => {
     // If there are more pages in the current section
