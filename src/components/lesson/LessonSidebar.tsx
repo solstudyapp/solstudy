@@ -21,7 +21,7 @@ const LessonSidebar = ({
   return (
     <div className="hidden md:block">
       <div className="backdrop-blur-md bg-white/10 border border-white/10 rounded-lg p-4 sticky top-24">
-        <h3 className="text-lg font-medium text-white mb-4">Lesson Contents</h3>
+        <h3 className="text-lg font-medium text-white mb-4">Course Contents</h3>
         <div className="space-y-4">
           {sections.map((section, sectionIndex) => (
             <div key={section.id}>
