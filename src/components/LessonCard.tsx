@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,11 @@ interface LessonCardProps {
 
 const LessonCard = ({ lesson }: LessonCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  const navigate = useNavigate();
+
+  const handleStartLesson = () => {
+    navigate(`/lesson/${lesson.id}`);
+  };
 
   return (
     <Card 
@@ -74,6 +80,7 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
         <Button 
           variant="ghost" 
           className="w-full bg-black/20 hover:bg-white/10 text-white rounded-none border-t border-white/10 h-12"
+          onClick={handleStartLesson}
         >
           <span className="mr-auto">Start Learning</span>
           <ChevronRight size={18} className="transition-transform duration-300 group-hover:translate-x-1" />

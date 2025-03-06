@@ -11,7 +11,7 @@ import { lessonService } from "@/services/lessonService";
 import { Quiz } from "@/types/lesson";
 
 const QuizPage = () => {
-  const { quizId } = useParams();
+  const { lessonId, sectionId } = useParams();
   const navigate = useNavigate();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
@@ -221,7 +221,8 @@ const QuizPage = () => {
         }
       ];
       
-      const foundQuiz = quizzes.find(q => q.id === quizId);
+      // For quizId, use the sectionId param
+      const foundQuiz = quizzes.find(q => q.sectionId === sectionId);
       if (foundQuiz) {
         setQuiz(foundQuiz);
       } else {
@@ -235,11 +236,11 @@ const QuizPage = () => {
     };
     
     fetchQuiz();
-  }, [quizId, navigate]);
+  }, [sectionId, navigate]);
   
   if (!quiz) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#9945FF] to-[#14F195]">
+      <div className="min-h-screen bg-black">
         <Header />
         <div className="max-w-3xl mx-auto px-4 py-16 text-center">
           <h2 className="text-2xl font-bold text-white">Loading quiz...</h2>
@@ -264,6 +265,15 @@ const QuizPage = () => {
     // Check if answer is correct
     if (selectedOption === currentQuestionData.correctOptionIndex) {
       setScore(score + 1);
+      toast({
+        title: "Correct!",
+        description: "Good job! Moving to next question soon...",
+      });
+    } else {
+      toast({
+        title: "Incorrect",
+        description: `The correct answer was: ${currentQuestionData.options[currentQuestionData.correctOptionIndex]}`,
+      });
     }
     
     // Wait for a moment to show feedback before moving to next question
@@ -276,7 +286,7 @@ const QuizPage = () => {
         // Quiz completed
         setShowResults(true);
       }
-    }, 1500);
+    }, 2000);
   };
   
   const handleQuizComplete = () => {
@@ -284,41 +294,56 @@ const QuizPage = () => {
     lessonService.completeQuiz(quiz, score);
     
     // Complete the section if it's a section quiz
-    if (!quiz.isFinalTest) {
-      lessonService.completeSection(quiz.lessonId, quiz.sectionId);
+    if (!quiz.isFinalTest && lessonId) {
+      lessonService.completeSection(lessonId, quiz.sectionId);
     }
+    
+    const earnedPoints = Math.round((score / quiz.questions.length) * quiz.rewardPoints);
     
     // Show toast notification
     toast({
       title: "Quiz completed!",
-      description: `You earned ${Math.round((score / quiz.questions.length) * quiz.rewardPoints)} points for completing this quiz.`,
+      description: `You earned ${earnedPoints} points for completing this quiz.`,
     });
     
     // Show feedback dialog for final test only
     if (quiz.isFinalTest) {
       setShowFeedback(true);
     } else {
-      // Navigate back to the lesson
-      navigate(`/lesson/${quiz.lessonId}`);
+      // For non-final tests, wait a moment before navigating back
+      setTimeout(() => {
+        if (lessonId) {
+          navigate(`/lesson/${lessonId}`);
+        } else {
+          navigate('/');
+        }
+      }, 1500);
     }
   };
   
   const submitFeedback = () => {
-    // Save user feedback
-    lessonService.saveFeedback(quiz.lessonId, feedbackRating);
+    if (lessonId) {
+      // Save user feedback
+      lessonService.saveFeedback(lessonId, feedbackRating);
+      
+      toast({
+        title: "Thanks for your feedback!",
+        description: "Your feedback helps us improve our content.",
+      });
+    }
     
-    toast({
-      title: "Thanks for your feedback!",
-      description: "Your feedback helps us improve our content.",
-    });
     setShowFeedback(false);
     
     // Navigate back to the lesson or to home
-    navigate(quiz.isFinalTest ? '/' : `/lesson/${quiz.lessonId}`);
+    if (lessonId) {
+      navigate(quiz.isFinalTest ? '/' : `/lesson/${lessonId}`);
+    } else {
+      navigate('/');
+    }
   };
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#9945FF] to-[#14F195]">
+    <div className="min-h-screen bg-black">
       <Header />
       
       <div className="max-w-3xl mx-auto px-4 py-8">
@@ -329,7 +354,7 @@ const QuizPage = () => {
             asChild 
             className="text-white/80 hover:text-white"
           >
-            <Link to={`/lesson/${quiz.lessonId}`}>
+            <Link to={lessonId ? `/lesson/${lessonId}` : '/'}>
               <ChevronLeft className="mr-1 h-4 w-4" />
               Back to Lesson
             </Link>
@@ -340,7 +365,7 @@ const QuizPage = () => {
           </div>
         </div>
         
-        <Card className="glass-card text-white">
+        <Card className="backdrop-blur-md bg-white/10 border border-white/10 text-white">
           <CardHeader>
             <CardTitle>{quiz.title}</CardTitle>
           </CardHeader>
@@ -396,14 +421,14 @@ const QuizPage = () => {
               <Button
                 onClick={handleSubmit}
                 disabled={selectedOption === null || isSubmitted}
-                className="bg-[#14F195] text-[#1A1F2C] hover:bg-[#14F195]/90"
+                className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0"
               >
                 {isSubmitted ? "Next Question..." : "Submit Answer"}
               </Button>
             ) : (
               <Button
                 onClick={handleQuizComplete}
-                className="bg-[#14F195] text-[#1A1F2C] hover:bg-[#14F195]/90"
+                className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0"
               >
                 {quiz.isFinalTest ? "Complete Course" : "Complete Quiz"}
               </Button>
@@ -442,7 +467,7 @@ const QuizPage = () => {
             <Button variant="outline" onClick={() => setShowFeedback(false)} className="border-white/20 text-white hover:bg-white/10">
               Skip
             </Button>
-            <Button onClick={submitFeedback} className="bg-[#14F195] text-[#1A1F2C] hover:bg-[#14F195]/90">
+            <Button onClick={submitFeedback} className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0">
               Submit Feedback
             </Button>
           </DialogFooter>

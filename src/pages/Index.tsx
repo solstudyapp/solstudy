@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
@@ -10,6 +11,7 @@ import { lessonData } from "@/data/lessons";
 
 const Index = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
   const [activeDifficulty, setActiveDifficulty] = useState("all");
@@ -23,6 +25,18 @@ const Index = () => {
     return matchesSearch && matchesCategory && matchesDifficulty;
   });
 
+  const handleStartLearning = () => {
+    // Navigate to the first lesson
+    if (lessonData.length > 0) {
+      navigate(`/lesson/${lessonData[0].id}`);
+    } else {
+      toast({
+        title: "No lessons available",
+        description: "Please check back later for new content.",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-black p-6">
       <div className="max-w-7xl mx-auto">
@@ -31,7 +45,10 @@ const Index = () => {
           <div className="max-w-3xl">
             <h1 className="text-4xl font-bold mb-4 text-gradient">SolStudy</h1>
             <p className="text-xl mb-6">Learn crypto, earn rewards, and build your knowledge in the blockchain space</p>
-            <Button className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0">
+            <Button 
+              className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0"
+              onClick={handleStartLearning}
+            >
               Start Learning
             </Button>
           </div>

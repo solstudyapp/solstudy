@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { 
@@ -14,9 +14,11 @@ import Header from "@/components/Header";
 import { DifficultyBadge } from "@/components/DifficultyBadge";
 import { lessonData } from "@/data/lessons";
 import { toast } from "@/hooks/use-toast";
+import { lessonService } from "@/services/lessonService";
 
 const LessonView = () => {
   const { lessonId } = useParams();
+  const navigate = useNavigate();
   const [currentSection, setCurrentSection] = useState(0);
   const [currentPage, setCurrentPage] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -65,11 +67,11 @@ const LessonView = () => {
     const totalPages = sections.reduce((acc, section) => acc + section.pages.length, 0);
     const pagesCompleted = sections.slice(0, currentSection).reduce((acc, section) => acc + section.pages.length, 0) + currentPage;
     setProgress(Math.round((pagesCompleted / totalPages) * 100));
-  }, [currentSection, currentPage]);
+  }, [currentSection, currentPage, lesson]);
   
   if (!lesson) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#9945FF] to-[#14F195]">
+      <div className="min-h-screen bg-black">
         <Header />
         <div className="max-w-3xl mx-auto px-4 py-16 text-center text-white">
           <h1 className="text-2xl font-bold mb-4">Lesson not found</h1>
@@ -94,18 +96,27 @@ const LessonView = () => {
     else if (currentSection < sections.length - 1) {
       setCurrentSection(currentSection + 1);
       setCurrentPage(0);
+      
+      // Mark section as completed in the service
+      lessonService.completeSection(lesson.id, currentSectionData.id);
+      
+      toast({
+        title: "Section completed!",
+        description: "Moving on to the next section.",
+      });
     } 
     // If we're at the last page of the last section
     else if (currentSection === sections.length - 1 && currentPage === currentSectionData.pages.length - 1) {
-      // Check if this is the last section
-      if (currentSection === sections.length - 1) {
-        toast({
-          title: "Section completed!",
-          description: "You've completed this section. Time for the quiz!",
-        });
-        // In a real app, you would navigate to the quiz
-        // navigate(`/quiz/${currentSectionData.quizId}`);
-      }
+      // Mark section as completed
+      lessonService.completeSection(lesson.id, currentSectionData.id);
+      
+      toast({
+        title: "Section completed!",
+        description: "You've completed this section. Time for the quiz!",
+      });
+      
+      // Navigate to the quiz
+      navigate(`/quiz/${lesson.id}/section${currentSection + 1}`);
     }
   };
   
@@ -125,7 +136,7 @@ const LessonView = () => {
   const isLastPage = currentSection === sections.length - 1 && currentPage === currentSectionData.pages.length - 1;
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#9945FF] to-[#14F195]">
+    <div className="min-h-screen bg-black">
       <Header />
       
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -244,18 +255,16 @@ const LessonView = () => {
                 
                 {isLastPage ? (
                   <Button 
-                    className="bg-[#14F195] text-[#1A1F2C] hover:bg-[#14F195]/90"
-                    asChild
+                    className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0"
+                    onClick={() => navigate(`/quiz/${lesson.id}/section${currentSection + 1}`)}
                   >
-                    <Link to={`/quiz/section${currentSection + 1}`}>
-                      Take Quiz
-                      <Trophy className="ml-2 h-4 w-4" />
-                    </Link>
+                    Take Quiz
+                    <Trophy className="ml-2 h-4 w-4" />
                   </Button>
                 ) : (
                   <Button
                     onClick={navigateNext}
-                    className="bg-[#9945FF] hover:bg-[#9945FF]/90 text-white"
+                    className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0"
                   >
                     Next Page
                     <ChevronRight className="ml-2 h-4 w-4" />
