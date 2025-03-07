@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -26,7 +25,7 @@ const SettingsPanel = () => {
   
   return (
     <div className="space-y-6">
-      <Card className="backdrop-blur-md bg-white/10 border-white/10 text-white">
+      <Card className="admin-card">
         <CardHeader>
           <CardTitle>Admin Settings</CardTitle>
           <CardDescription className="text-white/70">

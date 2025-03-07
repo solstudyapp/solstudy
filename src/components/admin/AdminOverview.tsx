@@ -49,7 +49,7 @@ const StatCard = ({ title, value, description, icon, trend }: {
   icon: React.ReactNode;
   trend?: number;
 }) => (
-  <Card className="backdrop-blur-md bg-black/40 border-white/10 text-white">
+  <Card className="admin-card">
     <CardHeader className="flex flex-row items-center justify-between pb-2">
       <CardTitle className="text-sm font-medium">{title}</CardTitle>
       <div className="p-2 bg-white/10 rounded-full">{icon}</div>
@@ -94,7 +94,7 @@ const ChartCard = ({ title, data, dataProp }: {
   dataProp: string;
 }) => {
   return (
-    <Card className="backdrop-blur-md bg-black/40 border-white/10 text-white">
+    <Card className="admin-card">
       <CardHeader>
         <CardTitle className="text-lg">{title}</CardTitle>
         <CardDescription className="text-white/70">Last 30 days</CardDescription>
@@ -147,7 +147,7 @@ const AdminOverview = () => {
   
   return (
     <div className="space-y-6">
-      <Card className="backdrop-blur-md bg-black/40 border-white/10 text-white">
+      <Card className="admin-card">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <div>
             <CardTitle>Dashboard Overview</CardTitle>
