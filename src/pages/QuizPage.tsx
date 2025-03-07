@@ -125,11 +125,13 @@ const QuizPage = () => {
     const isLastSection = currentSectionIndex >= sections.length - 1;
     
     if (isLastSection) {
-      // If this was the last section quiz, offer the final test
+      // If this was the last section quiz, navigate to the final test
       toast({
         title: "All sections completed!",
         description: "You can now take the final test for this lesson.",
       });
+      
+      // Explicitly navigate to the final test
       navigate(`/quiz/${lessonId}/final`);
     } else {
       // If there are more sections, navigate to the next section
