@@ -7,6 +7,7 @@ import { Star, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DifficultyBadge } from "./DifficultyBadge";
 import { LessonType } from "@/types/lesson";
+import { useNavigate } from "react-router-dom";
 
 interface LessonCardProps {
   lesson: LessonType;
@@ -14,6 +15,11 @@ interface LessonCardProps {
 
 const LessonCard = ({ lesson }: LessonCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  const navigate = useNavigate();
+
+  const handleStartLearning = () => {
+    navigate(`/lesson/${lesson.id}`);
+  };
 
   return (
     <Card 
@@ -74,6 +80,7 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
         <Button 
           variant="ghost" 
           className="w-full bg-white/10 hover:bg-white/20 text-white rounded-none border-t border-white/10 h-12"
+          onClick={handleStartLearning}
         >
           <span className="mr-auto">Start Learning</span>
           <ChevronRight size={18} className="transition-transform duration-300 group-hover:translate-x-1" />
