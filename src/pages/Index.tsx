@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -44,14 +45,13 @@ const Index = () => {
         {/* Hero Section */}
         <div className="relative mb-12 overflow-hidden rounded-xl dark-glass p-8 text-white bg-gradient-to-br from-[#9945FF]/5 to-[#14F195]/5">
           <div className="max-w-3xl">
-            <h1 className="text-4xl font-bold mb-4 text-gradient">SolStudy</h1>
+            <h1 className="text-4xl font-bold mb-4">
+              <span className="bg-gradient-to-r from-[#9945FF] to-[#14F195] bg-clip-text text-transparent">SolStudy</span>
+            </h1>
             <p className="text-xl mb-6">
               Learn about crypto from fundamentals to advanced trading strategies. With our course feedback component you play an important role helping evolve the material for future users. Earn rewards for completing courses and referring others to do so. Rewards will be converted to tokens upon SocialFiLy TGE. We are part of the growing SocialFiLy ecosystem and look forward to having you in our community.
             </p>
-            <Button 
-              className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0"
-              onClick={handleStartLearning}
-            >
+            <Button onClick={handleStartLearning}>
               Start Learning
             </Button>
           </div>

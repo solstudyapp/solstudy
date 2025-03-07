@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -247,9 +246,7 @@ const Dashboard = () => {
                             </div>
                             <Progress value={lesson.progress} className="h-2 mt-2 mb-3 bg-white/20" />
                           </div>
-                          <Button 
-                            className="bg-[#9945FF] hover:bg-[#9945FF]/90 text-white flex items-center whitespace-nowrap"
-                            size="sm"
+                          <Button variant="gradient"
                             asChild
                           >
                             <Link to={`/lesson/${lesson.id}`}>
@@ -266,7 +263,7 @@ const Dashboard = () => {
                     <GraduationCap className="h-12 w-12 mx-auto text-white/30 mb-3" />
                     <p>You haven't started any courses yet</p>
                     <Button 
-                      className="mt-4 bg-[#14F195] text-[#1A1F2C] hover:bg-[#14F195]/90"
+                      variant="gradient"
                       asChild
                     >
                       <Link to="/">
@@ -318,7 +315,7 @@ const Dashboard = () => {
                   <div className="text-center py-6">
                     <p className="text-white/70">Complete your first course to see it here!</p>
                     <Button 
-                      className="mt-4 bg-[#9945FF] hover:bg-[#9945FF]/90 text-white"
+                      variant="gradient"
                       asChild
                     >
                       <Link to="/">
@@ -374,10 +371,10 @@ const Dashboard = () => {
                     </div>
                     
                     <div className="flex justify-center gap-4">
-                      <Button className="bg-[#1877F2] hover:bg-[#1877F2]/90 text-white">
+                      <Button variant="gradient">
                         Share on Facebook
                       </Button>
-                      <Button className="bg-[#1DA1F2] hover:bg-[#1DA1F2]/90 text-white">
+                      <Button variant="gradient">
                         Share on Twitter
                       </Button>
                     </div>
@@ -400,10 +397,7 @@ const Dashboard = () => {
                   <p className="text-white/70 mb-6">
                     Share your referral code with friends to start earning points!
                   </p>
-                  <Button 
-                    className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0"
-                    onClick={handleCopyReferralCode}
-                  >
+                  <Button variant="gradient" onClick={handleCopyReferralCode}>
                     Copy Referral Code
                   </Button>
                 </div>
