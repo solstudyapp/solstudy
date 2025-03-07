@@ -8,12 +8,17 @@ import { Check, ChevronsUpDown } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Create a type-safe list of icon names with their components for selection
+// Filter out non-icon exports from lucide-react and create a type-safe list
 const iconList = Object.entries(LucideIcons)
-  .filter(([name]) => name !== "createLucideIcon" && name !== "icons" && !name.startsWith("__"))
-  .map(([name, Icon]) => ({
+  .filter(([name]) => 
+    name !== "createLucideIcon" && 
+    name !== "icons" && 
+    !name.startsWith("__") &&
+    typeof LucideIcons[name as keyof typeof LucideIcons] === 'function'
+  )
+  .map(([name, IconComponent]) => ({
     name,
-    icon: Icon,
+    icon: IconComponent as React.FC<any>,
   }));
 
 interface IconSelectorProps {
@@ -78,10 +83,9 @@ const IconSelector = ({ selectedIcon, onSelectIcon }: IconSelectorProps) => {
                 .filter(({ name }) => 
                   name.toLowerCase().includes(searchValue.toLowerCase())
                 )
-                .map(({ name, icon: Icon }) => {
+                .map(({ name, icon: IconComponent }) => {
                   const isSelected = name === currentIconName;
-                  // Create an instance of the icon with size 24
-                  const iconElement = <Icon size={24} />;
+                  const iconElement = <IconComponent size={24} />;
                   
                   return (
                     <CommandItem
@@ -98,7 +102,7 @@ const IconSelector = ({ selectedIcon, onSelectIcon }: IconSelectorProps) => {
                     >
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 flex items-center justify-center">
-                          <Icon size={20} />
+                          <IconComponent size={20} />
                         </div>
                         <span>{name}</span>
                       </div>
