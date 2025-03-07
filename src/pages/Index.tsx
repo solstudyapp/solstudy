@@ -43,8 +43,13 @@ const Index = () => {
     <div className="min-h-screen bg-black p-6">
       <div className="max-w-7xl mx-auto">
         {/* Hero Section */}
-        <div className="relative mb-12 overflow-hidden rounded-xl dark-glass p-8 text-white bg-gradient-to-br from-[#9945FF]/5 to-[#14F195]/5">
-          <div className="max-w-3xl">
+        <div className="relative mb-12 overflow-hidden rounded-xl p-4 text-white">
+          {/* Gradient border/outline for the hero card */}
+          <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-[#9945FF] to-[#14F195] opacity-70"></div>
+          {/* Dark inner content background */}
+          <div className="absolute inset-[1px] rounded-xl bg-black/80 backdrop-blur-sm"></div>
+          
+          <div className="relative z-10 flex flex-col items-center text-center mx-auto max-w-5xl px-2">
             <h1 className="text-4xl font-bold mb-4">
               <span className="bg-gradient-to-r from-[#9945FF] to-[#14F195] bg-clip-text text-transparent">SolStudy</span>
             </h1>
@@ -56,7 +61,7 @@ const Index = () => {
               onClick={handleStartLearning}
               className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white"
             >
-              Start Learning
+              Start Learning and Earning Today!
             </Button>
           </div>
         </div>
@@ -65,8 +70,13 @@ const Index = () => {
         <FeatureCards />
 
         {/* Search and Filter Section */}
-        <div className="dark-glass rounded-xl p-4 mb-8 bg-gradient-to-br from-[#9945FF]/5 to-[#14F195]/5">
-          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+        <div className="relative rounded-xl p-4 mb-8">
+          {/* Gradient border/outline for the search section */}
+          <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-[#9945FF] to-[#14F195] opacity-70"></div>
+          {/* Dark inner content background */}
+          <div className="absolute inset-[1px] rounded-xl bg-black/80 backdrop-blur-sm"></div>
+          
+          <div className="relative z-10 flex flex-col md:flex-row gap-4 items-center justify-between">
             <div className="relative w-full md:w-1/3">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60" />
               <Input
@@ -93,9 +103,16 @@ const Index = () => {
         </div>
 
         {filteredLessons.length === 0 && (
-          <div className="text-center dark-glass rounded-xl p-12 text-white">
-            <h3 className="text-xl font-medium">No courses found</h3>
-            <p className="mt-2">Try adjusting your search or filters</p>
+          <div className="relative text-center rounded-xl p-12">
+            {/* Gradient border/outline */}
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-[#9945FF] to-[#14F195] opacity-70"></div>
+            {/* Dark inner content background */}
+            <div className="absolute inset-[1px] rounded-xl bg-black/80 backdrop-blur-sm"></div>
+            
+            <div className="relative z-10 text-white">
+              <h3 className="text-xl font-medium">No courses found</h3>
+              <p className="mt-2">Try adjusting your search or filters</p>
+            </div>
           </div>
         )}
       </div>

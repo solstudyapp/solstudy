@@ -61,7 +61,7 @@ const LessonSidebar = ({
           value={`${currentSection}:${currentPage}`}
           onValueChange={handlePageSelect}
         >
-          <SelectTrigger className="w-full bg-gray-900 border-white/20 text-white">
+          <SelectTrigger className="w-full bg-white/10 border-white/20 text-white">
             <SelectValue placeholder="Select a page" />
           </SelectTrigger>
           <SelectContent className="bg-gray-900 border-white/20 text-white max-h-[300px] z-50">
