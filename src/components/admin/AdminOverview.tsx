@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowUpRight, Users, BookOpen, Award, Activity, TrendingUp } from "lucide-react";
 import { format, subDays } from "date-fns";
@@ -199,33 +198,6 @@ const AdminOverview = () => {
               data={chartData}
               dataProp="points"
             />
-          </div>
-          
-          <div className="mt-6">
-            <h3 className="text-lg font-medium mb-4">Platform Health</h3>
-            <div className="space-y-4">
-              <div>
-                <div className="flex justify-between mb-2">
-                  <span className="text-sm text-white/70">User Engagement</span>
-                  <span className="text-sm font-medium">70%</span>
-                </div>
-                <Progress value={70} className="h-2 bg-white/10" />
-              </div>
-              <div>
-                <div className="flex justify-between mb-2">
-                  <span className="text-sm text-white/70">Lesson Completion Rate</span>
-                  <span className="text-sm font-medium">65%</span>
-                </div>
-                <Progress value={65} className="h-2 bg-white/10" />
-              </div>
-              <div>
-                <div className="flex justify-between mb-2">
-                  <span className="text-sm text-white/70">Quiz Participation</span>
-                  <span className="text-sm font-medium">85%</span>
-                </div>
-                <Progress value={85} className="h-2 bg-white/10" />
-              </div>
-            </div>
           </div>
         </CardContent>
       </Card>
