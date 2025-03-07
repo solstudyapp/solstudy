@@ -24,7 +24,7 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
   return (
     <Card 
       className={cn(
-        "overflow-hidden transition-all duration-300 dark-glass border-0 group relative",
+        "overflow-hidden transition-all duration-300 dark-glass border-0 group relative cursor-pointer",
         lesson.difficulty === "beginner" && "bg-gradient-to-br from-green-400/10 to-emerald-500/20 text-white",
         lesson.difficulty === "intermediate" && "bg-gradient-to-br from-blue-400/10 to-purple-500/20 text-white",
         lesson.difficulty === "advanced" && "bg-gradient-to-br from-orange-400/10 to-red-500/20 text-white",
@@ -32,6 +32,7 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={handleStartLesson}
     >
       {lesson.sponsored && (
         <div className="absolute top-0 right-0 bg-black/40 backdrop-blur-sm text-white px-3 py-1 text-xs font-medium">
@@ -97,8 +98,16 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
       <CardFooter className="p-0 mt-auto">
         <Button 
           variant="ghost" 
-          className="w-full bg-black/20 hover:bg-white/10 text-white rounded-none border-t border-white/10 h-12"
-          onClick={handleStartLesson}
+          className={cn(
+            "w-full hover:bg-white/10 text-white rounded-none border-t border-white/10 h-12",
+            lesson.difficulty === "beginner" && "bg-green-500/30",
+            lesson.difficulty === "intermediate" && "bg-blue-500/30",
+            lesson.difficulty === "advanced" && "bg-orange-500/30"
+          )}
+          onClick={(e) => {
+            e.stopPropagation(); // Prevent triggering the card's onClick
+            handleStartLesson();
+          }}
         >
           <span className="mr-auto">Start Learning</span>
           <ChevronRight size={18} className="transition-transform duration-300 group-hover:translate-x-1" />
