@@ -71,17 +71,25 @@ export const RichTextEditor = ({ initialContent, onChange }: RichTextEditorProps
   
   // Link functionality
   const openLinkDialog = () => {
+    // Focus the editor first to ensure we can get the selection
+    if (editorRef.current) {
+      editorRef.current.focus();
+    }
+    
+    // Get the current selection
     const selection = window.getSelection();
     const hasSelectedText = selection && selection.toString().length > 0;
     setHasSelection(hasSelectedText);
     
-    if (hasSelectedText) {
+    if (hasSelectedText && selection) {
       setLinkText(selection.toString());
+      // Store the range for later use
       setSelectedRange(selection.getRangeAt(0).cloneRange());
     } else {
       setLinkText("");
       setSelectedRange(null);
     }
+    
     setLinkUrl("");
     setShowLinkDialog(true);
   };
@@ -99,8 +107,26 @@ export const RichTextEditor = ({ initialContent, onChange }: RichTextEditorProps
         selection.removeAllRanges();
         selection.addRange(selectedRange);
         
-        // Now execute the command on the restored selection
-        execCommand('createLink', false, linkUrl);
+        // Create a link element instead of using execCommand
+        const linkElement = document.createElement('a');
+        linkElement.href = linkUrl;
+        linkElement.textContent = selection.toString();
+        linkElement.target = "_blank";
+        linkElement.rel = "noopener noreferrer";
+        
+        // Replace selection with our link
+        selection.deleteFromDocument();
+        selection.getRangeAt(0).insertNode(linkElement);
+        
+        // Move cursor to after the link
+        const range = document.createRange();
+        range.setStartAfter(linkElement);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        
+        handleContentChange();
+        
         toast({
           title: "Link inserted",
           description: "The link has been added to the selected text",
@@ -170,7 +196,6 @@ export const RichTextEditor = ({ initialContent, onChange }: RichTextEditorProps
     try {
       // This is a simplified mock of an image upload
       // In a real application, this would be an API call to upload the image
-      // and return a URL
       await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate upload delay
       
       // Create a local object URL for demo purposes
