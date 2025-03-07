@@ -42,8 +42,8 @@ const FeatureCards = () => {
     },
     {
       icon: <Coins className="h-10 w-10" />,
-      title: "Earn Rewards",
-      description: "Earn rewards for completing courses and referring users to the platform. All rewards converte to SocialFiLy tokens on TGE.",
+      title: "Learn and Earn",
+      description: "Earn rewards for learning and referring users to SolStudy. Rewards points converted to SocialFiLy tokens on TGE.",
       gradient: "from-[#14F195] to-[#0EA5E9]" // Green to Blue
     }
   ];
