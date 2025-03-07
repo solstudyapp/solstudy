@@ -40,7 +40,7 @@ const QuizResults = ({ quiz, score, onComplete }: QuizResultsProps) => {
             onClick={onComplete}
             className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0 mt-4"
           >
-            {quiz.isFinalTest ? "Complete Course" : "Complete Quiz"}
+            {quiz.isFinalTest ? "Finish Lesson" : "Complete Quiz"}
           </Button>
         </div>
       </CardContent>
