@@ -5,7 +5,7 @@ import {
   MessageSquare,
   LineChart,
   BookText,
-  Users
+  Coins
 } from "lucide-react";
 
 const FeatureCards = () => {
@@ -41,9 +41,9 @@ const FeatureCards = () => {
       gradient: "from-[#9945FF] to-[#14F195]" // Purple to Green
     },
     {
-      icon: <Users className="h-10 w-10" />,
-      title: "Community Learning",
-      description: "Join a community of crypto enthusiasts and learn together through shared experiences.",
+      icon: <Coins className="h-10 w-10" />,
+      title: "Earn Rewards",
+      description: "Earn rewards for completing courses and referring users to the platform. All rewards converte to SocialFiLy tokens on TGE.",
       gradient: "from-[#14F195] to-[#0EA5E9]" // Green to Blue
     }
   ];
