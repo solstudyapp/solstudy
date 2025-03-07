@@ -122,36 +122,18 @@ const QuizPage = () => {
       if (nextSectionNumber <= 3) {
         progressData.currentSection = nextSectionNumber - 1; // Array is 0-indexed
         progressData.currentPage = 0; // Start at the first page of the new section
-        
-        localStorage.setItem(`lesson_progress_${lessonId}`, JSON.stringify(progressData));
-        
-        toast({
-          title: "Section completed!",
-          description: "Moving to the next section.",
-          variant: "default"
-        });
-        
-        // Navigate back to the lesson
-        navigate(`/lesson/${lessonId}`);
-      } else {
-        // This was the last section, redirect to final test
-        localStorage.setItem(`lesson_progress_${lessonId}`, JSON.stringify(progressData));
-        
-        toast({
-          title: "All sections completed!",
-          description: "Taking you to the final test.",
-          variant: "default"
-        });
-        
-        // Get the final test id for this lesson
-        const finalTest = getFinalTest(lessonId);
-        if (finalTest) {
-          navigate(`/quiz/${finalTest.id}?type=final&lessonId=${lessonId}`);
-        } else {
-          // Fallback if no final test found
-          navigate(`/lesson/${lessonId}`);
-        }
       }
+      
+      localStorage.setItem(`lesson_progress_${lessonId}`, JSON.stringify(progressData));
+      
+      toast({
+        title: "Section completed!",
+        description: nextSectionNumber <= 3 ? "Moving to the next section." : "You can now take the final test.",
+        variant: "default"
+      });
+      
+      // Navigate back to the lesson
+      navigate(`/lesson/${lessonId}`);
     } else if (quizType === "final") {
       // Mark lesson as completed
       localStorage.setItem(`lesson_${lessonId}_completed`, "true");
