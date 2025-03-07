@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,13 +23,21 @@ import {
   Database,
   PaintBucket,
   BarChart,
-  Sparkles
+  Sparkles,
+  CheckCircle,
+  Calendar,
+  Clock,
+  UserPlus,
+  Link as LinkIcon,
+  Facebook,
+  Twitter
 } from "lucide-react";
 import { lessonService } from "@/services/lessonService";
 import { lessonData } from "@/data/lessons";
 import { useToast } from "@/hooks/use-toast";
 import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { LessonType } from "@/types/lesson";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 // Mock data for the points chart
 const generateMockPointsData = () => {
@@ -49,6 +58,34 @@ const generateMockPointsData = () => {
   return data;
 };
 
+// Mock referral history data
+const mockReferrals = [
+  {
+    id: 1,
+    name: "Alex Johnson",
+    email: "alex.j@example.com",
+    date: "2023-08-15",
+    status: "completed",
+    points: 100
+  },
+  {
+    id: 2,
+    name: "Maria Garcia",
+    email: "maria.g@example.com",
+    date: "2023-09-02",
+    status: "completed",
+    points: 100
+  },
+  {
+    id: 3,
+    name: "Sam Wilson",
+    email: "sam.w@example.com",
+    date: "2023-10-17",
+    status: "pending",
+    points: 0
+  }
+];
+
 const Dashboard = () => {
   const { toast } = useToast();
   const [userPoints, setUserPoints] = useState(0);
@@ -56,6 +93,8 @@ const Dashboard = () => {
   const [completedLessons, setCompletedLessons] = useState<any[]>([]);
   const [referralCode, setReferralCode] = useState("SOLSTUDY123");
   const [pointsData, setPointsData] = useState<any[]>([]);
+  const [referrals, setReferrals] = useState(mockReferrals);
+  const [referralLink, setReferralLink] = useState("");
   
   // Function to get the appropriate icon for a lesson based on its ID
   const getLessonIcon = (lessonId: string) => {
@@ -127,14 +166,29 @@ const Dashboard = () => {
     
     // Generate mock points data for the chart
     setPointsData(generateMockPointsData());
-  }, []);
+    
+    // Create the full referral link
+    const baseUrl = window.location.origin;
+    setReferralLink(`${baseUrl}/signup?ref=${referralCode}`);
+  }, [referralCode]);
   
   const handleCopyReferralCode = () => {
-    navigator.clipboard.writeText(referralCode);
+    navigator.clipboard.writeText(referralLink);
     toast({
-      title: "Referral code copied!",
-      description: "Your referral code has been copied to clipboard.",
+      title: "Referral link copied!",
+      description: "Your referral link has been copied to clipboard.",
     });
+  };
+  
+  const shareOnFacebook = () => {
+    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralLink)}`;
+    window.open(url, '_blank', 'width=600,height=400');
+  };
+  
+  const shareOnTwitter = () => {
+    const text = "Join me on SolStudy to learn about blockchain and Solana! Use my referral link:";
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(referralLink)}`;
+    window.open(url, '_blank', 'width=600,height=400');
   };
   
   return (
@@ -339,7 +393,7 @@ const Dashboard = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-4xl font-bold">0</div>
+                  <div className="text-4xl font-bold">{referrals.filter(r => r.status === "completed").length}</div>
                   <p className="text-white/70 mt-2">Each referral earns you 100 points!</p>
                 </CardContent>
               </Card>
@@ -354,15 +408,15 @@ const Dashboard = () => {
                 <CardContent>
                   <div className="bg-white/10 rounded-lg p-6 text-center">
                     <h3 className="text-xl font-medium mb-3">Share SolStudy and earn rewards!</h3>
-                    <p className="text-white/70 mb-6">Invite friends to join SolStudy. You'll earn 100 points for each person who signs up using your referral code.</p>
+                    <p className="text-white/70 mb-6">Invite friends to join SolStudy. You'll earn 100 points for each person who signs up using your referral link.</p>
                     
                     <div className="relative mb-6">
                       <div className="bg-white/5 border border-white/20 rounded-lg p-4 flex justify-between items-center">
-                        <div className="font-mono text-lg">{referralCode}</div>
+                        <div className="font-mono text-lg truncate mr-2">{referralLink}</div>
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="border-white/20 text-white hover:bg-white/10"
+                          className="border-white/20 text-white hover:bg-white/10 flex-shrink-0"
                           onClick={handleCopyReferralCode}
                         >
                           <Copy className="h-4 w-4" />
@@ -371,10 +425,20 @@ const Dashboard = () => {
                     </div>
                     
                     <div className="flex justify-center gap-4">
-                      <Button variant="gradient">
+                      <Button 
+                        variant="gradient" 
+                        onClick={shareOnFacebook}
+                        className="flex items-center gap-2"
+                      >
+                        <Facebook size={16} />
                         Share on Facebook
                       </Button>
-                      <Button variant="gradient">
+                      <Button 
+                        variant="gradient"
+                        onClick={shareOnTwitter}
+                        className="flex items-center gap-2"
+                      >
+                        <Twitter size={16} />
                         Share on Twitter
                       </Button>
                     </div>
@@ -391,16 +455,66 @@ const Dashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-10">
-                  <Users className="h-16 w-16 mx-auto text-white/20 mb-4" />
-                  <h3 className="text-xl font-medium mb-2">No referrals yet</h3>
-                  <p className="text-white/70 mb-6">
-                    Share your referral code with friends to start earning points!
-                  </p>
-                  <Button variant="gradient" onClick={handleCopyReferralCode}>
-                    Copy Referral Code
-                  </Button>
-                </div>
+                {referrals.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="border-white/10">
+                          <TableHead className="text-white">Name</TableHead>
+                          <TableHead className="text-white">Email</TableHead>
+                          <TableHead className="text-white">Date</TableHead>
+                          <TableHead className="text-white">Status</TableHead>
+                          <TableHead className="text-white text-right">Points</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {referrals.map((referral) => (
+                          <TableRow key={referral.id} className="border-white/10">
+                            <TableCell className="text-white">{referral.name}</TableCell>
+                            <TableCell className="text-white">{referral.email}</TableCell>
+                            <TableCell className="text-white">
+                              <div className="flex items-center">
+                                <Calendar className="mr-2 h-4 w-4 text-white/70" />
+                                {new Date(referral.date).toLocaleDateString()}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {referral.status === "completed" ? (
+                                <div className="flex items-center text-[#14F195]">
+                                  <CheckCircle className="mr-1 h-4 w-4" />
+                                  Completed
+                                </div>
+                              ) : (
+                                <div className="flex items-center text-yellow-500">
+                                  <Clock className="mr-1 h-4 w-4" />
+                                  Pending
+                                </div>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right font-medium">
+                              {referral.status === "completed" ? (
+                                <span className="text-[#14F195]">+{referral.points}</span>
+                              ) : (
+                                <span className="text-white/50">--</span>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                ) : (
+                  <div className="text-center py-10">
+                    <Users className="h-16 w-16 mx-auto text-white/20 mb-4" />
+                    <h3 className="text-xl font-medium mb-2">No referrals yet</h3>
+                    <p className="text-white/70 mb-6">
+                      Share your referral link with friends to start earning points!
+                    </p>
+                    <Button variant="gradient" onClick={handleCopyReferralCode}>
+                      Copy Referral Link
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
