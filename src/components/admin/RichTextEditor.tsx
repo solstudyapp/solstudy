@@ -107,7 +107,7 @@ export const RichTextEditor = ({ initialContent, onChange }: RichTextEditorProps
         selection.removeAllRanges();
         selection.addRange(selectedRange);
         
-        // Create a link element instead of using execCommand
+        // Create a link element
         const linkElement = document.createElement('a');
         linkElement.href = linkUrl;
         linkElement.textContent = selection.toString();
@@ -124,13 +124,6 @@ export const RichTextEditor = ({ initialContent, onChange }: RichTextEditorProps
         range.collapse(true);
         selection.removeAllRanges();
         selection.addRange(range);
-        
-        handleContentChange();
-        
-        toast({
-          title: "Link inserted",
-          description: "The link has been added to the selected text",
-        });
       } else if (linkText) {
         // Insert new text with the link
         const linkElement = document.createElement('a');
@@ -153,13 +146,15 @@ export const RichTextEditor = ({ initialContent, onChange }: RichTextEditorProps
           // If no selection, append to end
           editorRef.current.appendChild(linkElement);
         }
-        
-        handleContentChange();
-        toast({
-          title: "Link inserted",
-          description: "A new link has been inserted",
-        });
       }
+      
+      // Critical: Make sure to call handleContentChange to update state with new content
+      handleContentChange();
+      
+      toast({
+        title: "Link inserted",
+        description: "The link has been added to your content",
+      });
     }
     
     setShowLinkDialog(false);
