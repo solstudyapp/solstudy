@@ -23,6 +23,21 @@ const LessonView = () => {
   // Get sections data from our new data file
   const sections = lessonId ? getSectionsForLesson(lessonId) : [];
   
+  // Listen for navigation events from QuizPage
+  useEffect(() => {
+    const handleNavigateToSection = (event: CustomEvent<{sectionIndex: number, pageIndex: number}>) => {
+      const { sectionIndex, pageIndex } = event.detail;
+      setCurrentSection(sectionIndex);
+      setCurrentPage(pageIndex);
+    };
+    
+    window.addEventListener('navigateToSection', handleNavigateToSection as EventListener);
+    
+    return () => {
+      window.removeEventListener('navigateToSection', handleNavigateToSection as EventListener);
+    };
+  }, []);
+  
   useEffect(() => {
     if (!lesson) return;
     

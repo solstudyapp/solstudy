@@ -106,18 +106,30 @@ const QuizPage = () => {
     
     // Extract section number from sectionId (e.g., "section2" -> 2)
     const currentSectionNum = parseInt(sectionId?.replace("section", "") || "0", 10);
+    const nextSectionNum = currentSectionNum + 1;
     
     toast({
       title: "Quiz completed!",
       description: "Great job! Your progress has been saved.",
     });
     
-    // Navigate back to lesson or to the next section
-    if (quiz.isFinalTest) {
+    // Navigate based on whether this is the final quiz or not
+    if (quiz.isFinalTest || currentSectionNum >= 3) {
       navigate("/");
     } else {
-      // If there's a next section, navigate to it, otherwise go back to lesson view
+      // Navigate to the next section's first page
       navigate(`/lesson/${lessonId}`);
+      
+      // Use a short timeout to ensure navigation completes before trying to set section/page
+      setTimeout(() => {
+        // This will dispatch an event that LessonView can listen for to set the correct section
+        window.dispatchEvent(new CustomEvent('navigateToSection', {
+          detail: {
+            sectionIndex: nextSectionNum - 1,
+            pageIndex: 0
+          }
+        }));
+      }, 100);
     }
   };
   
