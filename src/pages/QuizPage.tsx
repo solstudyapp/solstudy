@@ -133,23 +133,24 @@ const QuizPage = () => {
       navigate(`/quiz/${lessonId}/final`);
     } else {
       // If there are more sections, navigate to the next section
-      toast({
-        title: "Section completed!",
-        description: "Moving on to the next section.",
-      });
+      const nextSectionIndex = currentSectionIndex + 1;
+      const nextSectionId = sections[nextSectionIndex].id;
+      const nextSectionFirstPageId = sections[nextSectionIndex].pages[0].id;
       
-      // First update the progress to the next section BEFORE navigation
-      const nextSectionId = sections[currentSectionIndex + 1].id;
-      const nextSectionFirstPageId = sections[currentSectionIndex + 1].pages[0].id;
-      
+      // Update progress to next section
       lessonService.updateProgress(
         lessonId || "", 
         nextSectionId, 
         nextSectionFirstPageId
       );
       
-      // Then navigate to the lesson page
-      navigate(`/lesson/${lessonId}`);
+      toast({
+        title: "Section completed!",
+        description: "Moving on to the next section.",
+      });
+      
+      // Navigate directly to the next section's first page
+      navigate(`/lesson/${lessonId}?section=${nextSectionIndex}&page=0`);
     }
   };
   

@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { lessonData } from "@/data/lessons";
 import { getSectionsForLesson } from "@/data/sections";
 import { toast } from "@/hooks/use-toast";
@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 const LessonView = () => {
   const { lessonId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [currentSection, setCurrentSection] = useState(0);
   const [currentPage, setCurrentPage] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -22,6 +23,53 @@ const LessonView = () => {
   
   // Get sections data from our new data file
   const sections = lessonId ? getSectionsForLesson(lessonId) : [];
+  
+  // Parse URL query parameters for direct navigation
+  useEffect(() => {
+    // Get saved progress or URL params
+    if (lesson && sections.length > 0) {
+      const queryParams = new URLSearchParams(location.search);
+      const sectionParam = queryParams.get('section');
+      const pageParam = queryParams.get('page');
+      
+      if (sectionParam !== null && pageParam !== null) {
+        // If URL has section and page params, use those
+        const sectionIndex = parseInt(sectionParam);
+        const pageIndex = parseInt(pageParam);
+        
+        if (
+          !isNaN(sectionIndex) && 
+          !isNaN(pageIndex) && 
+          sectionIndex >= 0 && 
+          sectionIndex < sections.length && 
+          pageIndex >= 0 && 
+          pageIndex < sections[sectionIndex].pages.length
+        ) {
+          setCurrentSection(sectionIndex);
+          setCurrentPage(pageIndex);
+          return;
+        }
+      }
+      
+      // If no valid URL params, get from saved progress
+      const userProgress = lessonService.getUserProgress(lesson.id);
+      
+      // Find the section index from the saved progress
+      const progressSectionIndex = sections.findIndex(
+        section => section.id === userProgress.currentSectionId
+      );
+      
+      // Find the page index from the saved progress
+      const section = sections[progressSectionIndex >= 0 ? progressSectionIndex : 0];
+      const progressPageIndex = section 
+        ? section.pages.findIndex(page => page.id === userProgress.currentPageId)
+        : 0;
+      
+      // Set state based on saved progress (if valid) or defaults (0, 0)
+      setCurrentSection(progressSectionIndex >= 0 ? progressSectionIndex : 0);
+      setCurrentPage(progressPageIndex >= 0 ? progressPageIndex : 0);
+    }
+  }, [lesson, sections, location.search]);
   
   useEffect(() => {
     // Scroll to top when component mounts
@@ -39,6 +87,20 @@ const LessonView = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [currentSection, currentPage]);
+  
+  // Update saved progress when section or page changes
+  useEffect(() => {
+    if (lesson && sections.length > 0 && sections[currentSection]) {
+      const currentSectionData = sections[currentSection];
+      if (currentSectionData && currentSectionData.pages[currentPage]) {
+        lessonService.updateProgress(
+          lesson.id,
+          currentSectionData.id,
+          currentSectionData.pages[currentPage].id
+        );
+      }
+    }
+  }, [lesson, currentSection, currentPage, sections]);
   
   if (!lesson) {
     return (
