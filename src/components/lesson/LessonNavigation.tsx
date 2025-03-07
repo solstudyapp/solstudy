@@ -22,6 +22,14 @@ const LessonNavigation = ({
 }: LessonNavigationProps) => {
   const navigate = useNavigate();
 
+  // Format the section ID correctly based on the lesson type
+  const getFormattedSectionId = () => {
+    if (lessonId === "daily-bonus-lesson") {
+      return `daily-bonus-section${currentSection + 1}`;
+    }
+    return `section${currentSection + 1}`;
+  };
+
   return (
     <div className="flex justify-between pt-4 border-t border-white/10">
       <Button
@@ -39,7 +47,7 @@ const LessonNavigation = ({
       {isLastPage ? (
         <Button 
           className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0"
-          onClick={() => navigate(`/quiz/${lessonId}/section${currentSection + 1}`)}
+          onClick={() => navigate(`/quiz/${lessonId}/${getFormattedSectionId()}`)}
         >
           Take Section Quiz
           <FileQuestion className="ml-2 h-4 w-4" />

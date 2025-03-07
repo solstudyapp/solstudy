@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { lessonData } from "@/data/lessons";
+import { lessonData, dailyBonusLesson } from "@/data/lessons";
 import { getSectionsForLesson } from "@/data/sections";
 import { getQuizByLessonAndSection } from "@/data/quizzes";
 import { lessonService } from "@/services/lessonService";
@@ -22,8 +22,10 @@ const QuizPage = () => {
   const [showFeedback, setShowFeedback] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Find lesson data
-  const lesson = lessonData.find(l => l.id === lessonId);
+  // Find lesson data - check if it's the daily bonus lesson
+  const lesson = lessonId === "daily-bonus-lesson" 
+    ? dailyBonusLesson 
+    : lessonData.find(l => l.id === lessonId);
   
   // Get all sections for the lesson to check progress
   const sections = lessonId ? getSectionsForLesson(lessonId) : [];
@@ -32,10 +34,20 @@ const QuizPage = () => {
   const isFinalTest = sectionId === 'final';
   const quiz = lessonId && sectionId ? getQuizByLessonAndSection(lessonId, sectionId, isFinalTest) : null;
   
-  // Parse the current section number from the sectionId (e.g., "section1" -> 0)
-  const currentSectionIndex = !isFinalTest && sectionId ? 
-    parseInt(sectionId.replace('section', '')) - 1 : 
-    sections.length - 1;
+  // Parse the current section number from the sectionId - handle both regular and daily bonus sections
+  const currentSectionIndex = (() => {
+    if (isFinalTest) return sections.length - 1;
+    
+    if (sectionId?.startsWith('daily-bonus-section')) {
+      return parseInt(sectionId.replace('daily-bonus-section', '')) - 1;
+    }
+    
+    if (sectionId?.startsWith('section')) {
+      return parseInt(sectionId.replace('section', '')) - 1;
+    }
+    
+    return 0;
+  })();
   
   // Reset state when quiz changes
   useEffect(() => {
@@ -51,6 +63,7 @@ const QuizPage = () => {
   // If quiz or lesson not found, handle gracefully
   useEffect(() => {
     if (!lesson || !quiz) {
+      console.log("Quiz not found:", { lessonId, sectionId, lesson, quiz });
       toast({
         title: "Quiz not found",
         description: "The requested quiz could not be found.",
@@ -58,7 +71,7 @@ const QuizPage = () => {
       });
       navigate("/");
     }
-  }, [lesson, quiz, toast, navigate]);
+  }, [lesson, quiz, toast, navigate, lessonId, sectionId]);
   
   useEffect(() => {
     // For the final test, check if all section quizzes are completed
@@ -148,6 +161,15 @@ const QuizPage = () => {
   
   // Function to handle section quiz completion without feedback
   const handleSectionQuizComplete = () => {
+    // Determine the next section ID based on the lesson type
+    const getNextSectionId = () => {
+      const nextSectionIndex = currentSectionIndex + 1;
+      if (nextSectionIndex < sections.length) {
+        return sections[nextSectionIndex].id;
+      }
+      return null;
+    };
+    
     // For section quizzes, determine if there's a next section
     const isLastSection = currentSectionIndex >= sections.length - 1;
     
@@ -163,7 +185,13 @@ const QuizPage = () => {
     } else {
       // If there are more sections, navigate to the next section
       const nextSectionIndex = currentSectionIndex + 1;
-      const nextSectionId = sections[nextSectionIndex].id;
+      const nextSectionId = getNextSectionId();
+      if (!nextSectionId) {
+        console.error("Next section ID not found");
+        navigate("/");
+        return;
+      }
+      
       const nextSectionFirstPageId = sections[nextSectionIndex].pages[0].id;
       
       // Update progress to next section

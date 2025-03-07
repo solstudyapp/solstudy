@@ -50,6 +50,7 @@ export const lessonService = {
     progress.currentPageId = pageId;
     
     userProgressStore[key] = progress;
+    console.log(`Progress updated for ${lessonId}: Section ${sectionId}, Page ${pageId}`);
   },
   
   // Mark a section as completed
@@ -59,6 +60,7 @@ export const lessonService = {
     
     if (!progress.completedSections.includes(sectionId)) {
       progress.completedSections.push(sectionId);
+      console.log(`Section ${sectionId} completed for lesson ${lessonId}`);
     }
     
     userProgressStore[key] = progress;
@@ -66,6 +68,11 @@ export const lessonService = {
   
   // Mark a quiz as completed and award points
   completeQuiz: (quiz: Quiz, score: number): void => {
+    if (!quiz) {
+      console.error("Cannot complete quiz: quiz is undefined");
+      return;
+    }
+    
     const key = `${CURRENT_USER_ID}-${quiz.lessonId}`;
     const progress = lessonService.getUserProgress(quiz.lessonId);
     
@@ -78,6 +85,8 @@ export const lessonService = {
       
       // Update user total points
       userPointsStore[CURRENT_USER_ID] = (userPointsStore[CURRENT_USER_ID] || 0) + earnedPoints;
+      
+      console.log(`Quiz ${quiz.id} completed with score ${score}/${quiz.questions.length} and earned ${earnedPoints} points`);
     }
     
     userProgressStore[key] = progress;
@@ -90,11 +99,13 @@ export const lessonService = {
     
     progress.testCompleted = true;
     userProgressStore[key] = progress;
+    console.log(`Final test completed for lesson ${lessonId}`);
   },
   
   // Save user feedback for a lesson
   saveFeedback: (lessonId: string, rating: number): void => {
     userFeedbackStore[`${CURRENT_USER_ID}-${lessonId}`] = rating;
+    console.log(`Feedback saved for lesson ${lessonId}: rating ${rating}`);
   },
   
   // Get total points for user
