@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -10,12 +9,10 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Search, Gift, MoreVertical, Trash, Settings, CheckCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
-// Get current date for activity calculations
 const currentDate = new Date();
 const thirtyDaysAgo = new Date(currentDate);
 thirtyDaysAgo.setDate(currentDate.getDate() - 30);
 
-// Mock user data with last activity date
 const users = [
   { id: "user1", name: "Alex Johnson", email: "alex@example.com", points: 750, lessonsCompleted: 5, lastActivity: new Date(currentDate.getTime() - 5 * 24 * 60 * 60 * 1000) },
   { id: "user2", name: "Sara Williams", email: "sara@example.com", points: 1250, lessonsCompleted: 8, lastActivity: new Date(currentDate.getTime() - 2 * 24 * 60 * 60 * 1000) },
@@ -27,7 +24,6 @@ const users = [
   { id: "user8", name: "Olivia Taylor", email: "olivia@example.com", points: 1500, lessonsCompleted: 10, lastActivity: new Date(currentDate.getTime() - 1 * 24 * 60 * 60 * 1000) },
 ];
 
-// Function to format date
 const formatDate = (date: Date): string => {
   return date.toLocaleDateString('en-US', { 
     year: 'numeric', 
@@ -36,7 +32,6 @@ const formatDate = (date: Date): string => {
   });
 };
 
-// Function to check if user is active (activity within last 30 days)
 const isUserActive = (lastActivity: Date): boolean => {
   return lastActivity >= thirtyDaysAgo;
 };
@@ -145,7 +140,7 @@ const UserManagement = () => {
   
   return (
     <div className="space-y-6">
-      <Card className="backdrop-blur-md bg-white/10 border-white/10 text-white">
+      <Card className="admin-card">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <div>
             <CardTitle>Users Management</CardTitle>
@@ -181,7 +176,7 @@ const UserManagement = () => {
           
           <div className="rounded-md border border-white/20 overflow-hidden">
             <Table>
-              <TableHeader className="bg-white/10">
+              <TableHeader className="bg-black/20">
                 <TableRow className="hover:bg-white/5 border-white/10">
                   <TableHead className="w-12">
                     <div className="flex items-center">
@@ -297,7 +292,6 @@ const UserManagement = () => {
         </CardContent>
       </Card>
       
-      {/* Airdrop Dialog */}
       <Dialog open={showAirdropDialog} onOpenChange={setShowAirdropDialog}>
         <DialogContent className="bg-[#1A1F2C] text-white border-white/10">
           <DialogHeader>
@@ -341,7 +335,6 @@ const UserManagement = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Delete User Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent className="bg-[#1A1F2C] text-white border-white/10">
           <DialogHeader>
@@ -363,7 +356,6 @@ const UserManagement = () => {
         </DialogContent>
       </Dialog>
       
-      {/* User Settings Dialog */}
       <Dialog open={showUserSettingsDialog} onOpenChange={setShowUserSettingsDialog}>
         <DialogContent className="bg-[#1A1F2C] text-white border-white/10">
           <DialogHeader>
