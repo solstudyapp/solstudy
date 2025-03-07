@@ -10,6 +10,7 @@ interface LessonNavigationProps {
   navigateNext: () => void;
   isFirstPage: boolean;
   isLastPage: boolean;
+  isLastSection: boolean;
 }
 
 const LessonNavigation = ({
@@ -19,6 +20,7 @@ const LessonNavigation = ({
   navigateNext,
   isFirstPage,
   isLastPage,
+  isLastSection,
 }: LessonNavigationProps) => {
   const navigate = useNavigate();
 
@@ -41,7 +43,7 @@ const LessonNavigation = ({
           className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0"
           onClick={() => navigate(`/quiz/${lessonId}/section${currentSection + 1}`)}
         >
-          Take Quiz
+          {isLastSection ? "Take Final Test" : "Take Quiz"}
           <Trophy className="ml-2 h-4 w-4" />
         </Button>
       ) : (

@@ -24,13 +24,28 @@ const LessonView = () => {
   const sections = lessonId ? getSectionsForLesson(lessonId) : [];
   
   useEffect(() => {
-    if (!lesson) return;
+    if (!lesson || !lessonId) return;
     
-    // Calculate progress based on current position
-    const totalPages = sections.reduce((acc, section) => acc + section.pages.length, 0);
-    const pagesCompleted = sections.slice(0, currentSection).reduce((acc, section) => acc + section.pages.length, 0) + currentPage;
-    setProgress(Math.round((pagesCompleted / totalPages) * 100));
-  }, [currentSection, currentPage, lesson, sections]);
+    // Get user progress for this lesson
+    const userProgress = lessonService.getUserProgress(lessonId);
+    
+    // Find completed sections
+    const completedSections = userProgress.completedSections;
+    
+    // Calculate progress based on completed sections
+    setProgress(Math.round((completedSections.length / sections.length) * 100));
+    
+    // If we have completed sections, set the current section/page accordingly
+    if (completedSections.length > 0) {
+      // Set to the first non-completed section, or the last section if all are completed
+      const nextSectionIndex = completedSections.length >= sections.length 
+        ? sections.length - 1 
+        : completedSections.length;
+      
+      setCurrentSection(nextSectionIndex);
+      setCurrentPage(0);
+    }
+  }, [lesson, lessonId, sections]);
   
   if (!lesson) {
     return (
@@ -56,29 +71,18 @@ const LessonView = () => {
     } 
     // If there are more sections
     else if (currentSection < sections.length - 1) {
-      setCurrentSection(currentSection + 1);
-      setCurrentPage(0);
+      // We don't automatically move to the next section
+      // The user needs to take the quiz first
       
-      // Mark section as completed in the service
-      lessonService.completeSection(lesson.id, currentSectionData.id);
-      
-      toast({
-        title: "Section completed!",
-        description: "Moving on to the next section.",
-      });
-    } 
-    // If we're at the last page of the last section
-    else if (currentSection === sections.length - 1 && currentPage === currentSectionData.pages.length - 1) {
-      // Mark section as completed
-      lessonService.completeSection(lesson.id, currentSectionData.id);
+      // Update progress in the service
+      if (lessonId) {
+        lessonService.completeSection(lessonId, currentSectionData.id);
+      }
       
       toast({
         title: "Section completed!",
-        description: "You've completed this section. Time for the quiz!",
+        description: "Take the quiz to move to the next section.",
       });
-      
-      // Navigate to the quiz
-      navigate(`/quiz/${lesson.id}/section${currentSection + 1}`);
     }
   };
   
@@ -96,6 +100,7 @@ const LessonView = () => {
   
   const isFirstPage = currentSection === 0 && currentPage === 0;
   const isLastPage = currentSection === sections.length - 1 && currentPage === currentSectionData.pages.length - 1;
+  const isLastSection = currentSection === sections.length - 1;
   
   // Calculate total pages for the header
   const totalPages = sections.reduce((acc, section) => acc + section.pages.length, 0);
@@ -123,16 +128,24 @@ const LessonView = () => {
           />
           
           {/* Main Content */}
-          <LessonContent 
-            lesson={lesson}
-            currentSection={currentSection}
-            currentPage={currentPage}
-            currentPageData={currentPageData}
-            navigatePrev={navigatePrev}
-            navigateNext={navigateNext}
-            isFirstPage={isFirstPage}
-            isLastPage={isLastPage}
-          />
+          <div className="col-span-1 md:col-span-3 space-y-6">
+            <div className="backdrop-blur-md bg-white/10 border border-white/10 rounded-lg p-6 text-white">
+              <div 
+                dangerouslySetInnerHTML={{ __html: currentPageData?.content || "" }}
+                className="prose prose-invert max-w-none"
+              />
+              
+              <LessonNavigation 
+                lessonId={lesson.id}
+                currentSection={currentSection}
+                navigatePrev={navigatePrev}
+                navigateNext={navigateNext}
+                isFirstPage={isFirstPage}
+                isLastPage={isLastPage}
+                isLastSection={isLastSection}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { lessonData } from "@/data/lessons";
 import { getQuizByLessonAndSection } from "@/data/quizzes";
 import { lessonService } from "@/services/lessonService";
+import { getSectionsForLesson } from "@/data/sections";
 import QuizHeader from "@/components/quiz/QuizHeader";
 import QuizQuestion from "@/components/quiz/QuizQuestion";
 import QuizResults from "@/components/quiz/QuizResults";
@@ -24,7 +25,24 @@ const QuizPage = () => {
   const lesson = lessonData.find(l => l.id === lessonId);
   
   // Get quiz data from our new file
-  const quiz = sectionId && lessonId ? getQuizByLessonAndSection(lessonId, sectionId) : null;
+  let quiz = sectionId && lessonId ? getQuizByLessonAndSection(lessonId, sectionId) : null;
+  
+  // Get sections for this lesson
+  const sections = lessonId ? getSectionsForLesson(lessonId) : [];
+  
+  // Determine if this is the final test
+  useEffect(() => {
+    if (quiz && lessonId && sectionId) {
+      // Check if this is the last section
+      const sectionIndex = sections.findIndex(s => s.id === sectionId);
+      const isLastSection = sectionIndex === sections.length - 1;
+      
+      // Set isFinalTest for the quiz
+      if (isLastSection) {
+        quiz = { ...quiz, isFinalTest: true };
+      }
+    }
+  }, [quiz, lessonId, sectionId, sections]);
   
   // If quiz or lesson not found, handle gracefully
   useEffect(() => {
@@ -49,7 +67,7 @@ const QuizPage = () => {
   };
   
   const nextQuestion = () => {
-    if (currentQuestion < quiz.questions.length - 1) {
+    if (currentQuestion < quiz!.questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     } else {
       // All questions completed, show results
@@ -65,13 +83,18 @@ const QuizPage = () => {
   
   const calculateScore = () => {
     return userAnswers.reduce((score, answer, index) => {
-      return answer === quiz.questions[index].correctOptionIndex ? score + 1 : score;
+      return answer === quiz!.questions[index].correctOptionIndex ? score + 1 : score;
     }, 0);
   };
   
   const handleCompleteQuiz = () => {
     const score = calculateScore();
-    lessonService.completeQuiz(quiz, score);
+    lessonService.completeQuiz(quiz!, score);
+    
+    // Mark this section as completed
+    if (lessonId && sectionId) {
+      lessonService.completeSection(lessonId, sectionId);
+    }
     
     // Show feedback dialog after completing
     setShowFeedback(true);
@@ -85,11 +108,29 @@ const QuizPage = () => {
       description: "Great job! Your progress has been saved.",
     });
     
-    // Navigate back to lesson or to the next section
-    if (quiz.isFinalTest) {
-      navigate("/");
+    // Determine next section or course completion
+    if (lessonId && sectionId) {
+      const currentSectionIndex = sections.findIndex(s => s.id === sectionId);
+      
+      if (quiz?.isFinalTest) {
+        // Navigate to dashboard after completing the course
+        navigate("/dashboard");
+        toast({
+          title: "Course Completed!",
+          description: "Congratulations on completing the course!",
+        });
+      } else if (currentSectionIndex < sections.length - 1) {
+        // Navigate to the next section
+        const nextSection = currentSectionIndex + 1;
+        navigate(`/lesson/${lessonId}`);
+        
+        // This will trigger the useEffect in LessonView to show the next section
+      } else {
+        // Navigate back to lesson (should show final test button)
+        navigate(`/lesson/${lessonId}`);
+      }
     } else {
-      navigate(`/lesson/${lessonId}`);
+      navigate("/");
     }
   };
   
