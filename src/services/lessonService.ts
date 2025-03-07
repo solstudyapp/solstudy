@@ -78,6 +78,15 @@ export const lessonService = {
     userProgressStore[key] = progress;
   },
   
+  // Mark the final test as completed
+  completeFinalTest: (lessonId: string): void => {
+    const key = `${CURRENT_USER_ID}-${lessonId}`;
+    const progress = lessonService.getUserProgress(lessonId);
+    
+    progress.testCompleted = true;
+    userProgressStore[key] = progress;
+  },
+  
   // Save user feedback for a lesson
   saveFeedback: (lessonId: string, rating: number): void => {
     userFeedbackStore[`${CURRENT_USER_ID}-${lessonId}`] = rating;
@@ -98,6 +107,12 @@ export const lessonService = {
   isQuizCompleted: (lessonId: string, quizId: string): boolean => {
     const progress = lessonService.getUserProgress(lessonId);
     return progress.completedQuizzes.includes(quizId);
+  },
+  
+  // Check if final test is completed
+  isFinalTestCompleted: (lessonId: string): boolean => {
+    const progress = lessonService.getUserProgress(lessonId);
+    return progress.testCompleted;
   },
   
   // Calculate overall lesson progress percentage

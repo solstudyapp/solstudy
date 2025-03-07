@@ -1,5 +1,5 @@
 
-import { ChevronLeft, ChevronRight, Trophy } from "lucide-react";
+import { ChevronLeft, ChevronRight, Trophy, FileQuestion } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
@@ -39,10 +39,10 @@ const LessonNavigation = ({
       {isLastPage ? (
         <Button 
           className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0"
-          onClick={() => navigate(`/quiz/${lessonId}/section${currentSection + 1}`)}
+          onClick={() => navigate(`/quiz/${lessonId}/${currentSectionData.id}`)}
         >
-          Take Quiz
-          <Trophy className="ml-2 h-4 w-4" />
+          Take Section Quiz
+          <FileQuestion className="ml-2 h-4 w-4" />
         </Button>
       ) : (
         <Button

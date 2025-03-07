@@ -1,8 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { lessonData } from "@/data/lessons";
+import { getSectionsForLesson } from "@/data/sections";
 import { getQuizByLessonAndSection } from "@/data/quizzes";
 import { lessonService } from "@/services/lessonService";
 import QuizHeader from "@/components/quiz/QuizHeader";
@@ -23,8 +23,12 @@ const QuizPage = () => {
   // Find lesson data
   const lesson = lessonData.find(l => l.id === lessonId);
   
-  // Get quiz data from our new file
-  const quiz = sectionId && lessonId ? getQuizByLessonAndSection(lessonId, sectionId) : null;
+  // Get all sections for the lesson to check progress
+  const sections = lessonId ? getSectionsForLesson(lessonId) : [];
+  
+  // Get quiz data - handling both section quizzes and final test
+  const isFinalTest = sectionId === 'final';
+  const quiz = lessonId && sectionId ? getQuizByLessonAndSection(lessonId, sectionId, isFinalTest) : null;
   
   // If quiz or lesson not found, handle gracefully
   useEffect(() => {
@@ -37,6 +41,24 @@ const QuizPage = () => {
       navigate("/");
     }
   }, [lesson, quiz, toast, navigate]);
+  
+  useEffect(() => {
+    // For the final test, check if all section quizzes are completed
+    if (isFinalTest) {
+      const allSectionsCompleted = sections.every(section => 
+        lessonService.isSectionCompleted(lessonId || "", section.id)
+      );
+      
+      if (!allSectionsCompleted) {
+        toast({
+          title: "Complete all sections first",
+          description: "You need to complete all section quizzes before taking the final test.",
+          variant: "destructive",
+        });
+        navigate(`/lesson/${lessonId}`);
+      }
+    }
+  }, [isFinalTest, sections, lessonId, navigate, toast]);
   
   if (!lesson || !quiz) {
     return <div className="min-h-screen bg-black text-white p-8">Loading...</div>;
@@ -71,7 +93,18 @@ const QuizPage = () => {
   
   const handleCompleteQuiz = () => {
     const score = calculateScore();
-    lessonService.completeQuiz(quiz, score);
+    
+    // Mark the section as completed or record final test completion
+    if (isFinalTest) {
+      lessonService.completeQuiz(quiz, score);
+      
+      // Mark the lesson as fully completed if final test
+      lessonService.completeFinalTest(lessonId || "");
+    } else {
+      // For section quizzes, mark the section as completed
+      lessonService.completeQuiz(quiz, score);
+      lessonService.completeSection(lessonId || "", sectionId || "");
+    }
     
     // Show feedback dialog after completing
     setShowFeedback(true);
@@ -85,11 +118,27 @@ const QuizPage = () => {
       description: "Great job! Your progress has been saved.",
     });
     
-    // Navigate back to lesson or to the next section
-    if (quiz.isFinalTest) {
-      navigate("/");
+    // Navigate based on quiz type
+    if (isFinalTest) {
+      // After final test, go to dashboard
+      navigate("/dashboard");
     } else {
-      navigate(`/lesson/${lessonId}`);
+      // Check if all sections are completed
+      const allSectionsCompleted = sections.every(section => 
+        lessonService.isSectionCompleted(lessonId || "", section.id)
+      );
+      
+      if (allSectionsCompleted) {
+        // If all sections are completed, offer the final test
+        toast({
+          title: "All sections completed!",
+          description: "You can now take the final test for this lesson.",
+        });
+        navigate(`/quiz/${lessonId}/final`);
+      } else {
+        // Otherwise, continue to next section
+        navigate(`/lesson/${lessonId}`);
+      }
     }
   };
   
@@ -104,6 +153,7 @@ const QuizPage = () => {
           currentQuestion={currentQuestion}
           totalQuestions={quiz.questions.length}
           quizTitle={quiz.title}
+          isFinalTest={isFinalTest}
         />
         
         {!showResults ? (

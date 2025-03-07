@@ -129,6 +129,72 @@ export const quizzesData: Record<string, Quiz> = {
       },
     ]
   },
+  // Final comprehensive test for the blockchain course
+  "final-test-intro-to-blockchain": {
+    id: "final-test-intro-to-blockchain",
+    title: "Blockchain Mastery Final Test",
+    lessonId: "intro-to-blockchain",
+    sectionId: "final",
+    rewardPoints: 500,
+    isFinalTest: true,
+    questions: [
+      {
+        id: "ft-q1",
+        text: "Which of these is NOT considered one of the three main properties of blockchain technology?",
+        options: [
+          "Decentralization",
+          "Scalability",
+          "Security",
+          "Immutability"
+        ],
+        correctOptionIndex: 1
+      },
+      {
+        id: "ft-q2",
+        text: "In the context of blockchain, what is a 'genesis block'?",
+        options: [
+          "The last block in the chain",
+          "The first block in the chain",
+          "A block containing the blockchain's code",
+          "A special block created during network upgrades"
+        ],
+        correctOptionIndex: 1
+      },
+      {
+        id: "ft-q3",
+        text: "Which consensus mechanism is known for its high energy consumption?",
+        options: [
+          "Proof of Stake (PoS)",
+          "Proof of Authority (PoA)",
+          "Proof of Work (PoW)",
+          "Delegated Proof of Stake (DPoS)"
+        ],
+        correctOptionIndex: 2
+      },
+      {
+        id: "ft-q4",
+        text: "What is a key difference between a public and private blockchain?",
+        options: [
+          "Private blockchains don't use cryptography",
+          "Public blockchains allow anyone to participate in the network",
+          "Private blockchains don't use blocks to store data",
+          "Public blockchains can't support smart contracts"
+        ],
+        correctOptionIndex: 1
+      },
+      {
+        id: "ft-q5",
+        text: "Which of these is NOT typically a use case for NFTs?",
+        options: [
+          "Digital art ownership",
+          "Decentralized currency",
+          "Gaming assets",
+          "Event tickets"
+        ],
+        correctOptionIndex: 1
+      }
+    ]
+  },
   // Default quiz when no specific quiz is found
   "default-quiz": {
     id: "default-quiz",
@@ -169,7 +235,16 @@ export const getQuizById = (quizId: string): Quiz => {
 };
 
 // Helper function to get a quiz by lesson ID and section ID
-export const getQuizByLessonAndSection = (lessonId: string, sectionId: string): Quiz => {
+export const getQuizByLessonAndSection = (
+  lessonId: string, 
+  sectionId: string,
+  isFinalTest = false
+): Quiz => {
+  if (isFinalTest || sectionId === 'final') {
+    const finalQuizId = `final-test-${lessonId}`;
+    return quizzesData[finalQuizId] || quizzesData["default-quiz"];
+  }
+  
   const quizId = `quiz-${sectionId}`;
   return quizzesData[quizId] || quizzesData["default-quiz"];
 };
