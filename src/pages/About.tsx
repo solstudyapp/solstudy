@@ -139,8 +139,10 @@ const About = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="flex flex-col md:flex-row gap-6 dark-glass rounded-xl p-6 bg-gradient-to-br from-[#9945FF]/10 to-[#14F195]/10">
-              <div className="flex-shrink-0 bg-gradient-to-r from-[#9945FF]/20 to-[#14F195]/20 p-4 rounded-full">
-                <BookOpen className="h-8 w-8 text-white" />
+              <div className="flex-shrink-0">
+                <div className="bg-gradient-to-r from-[#9945FF]/20 to-[#14F195]/20 p-4 rounded-full">
+                  <BookOpen className="h-8 w-8 text-white" />
+                </div>
               </div>
               <div>
                 <h3 className="text-xl font-bold text-white mb-2">Structured Learning</h3>
@@ -151,8 +153,10 @@ const About = () => {
             </div>
             
             <div className="flex flex-col md:flex-row gap-6 dark-glass rounded-xl p-6 bg-gradient-to-br from-[#9945FF]/10 to-[#14F195]/10">
-              <div className="flex-shrink-0 bg-gradient-to-r from-[#9945FF]/20 to-[#14F195]/20 p-4 rounded-full">
-                <LineChart className="h-8 w-8 text-white" />
+              <div className="flex-shrink-0">
+                <div className="bg-gradient-to-r from-[#9945FF]/20 to-[#14F195]/20 p-4 rounded-full">
+                  <LineChart className="h-8 w-8 text-white" />
+                </div>
               </div>
               <div>
                 <h3 className="text-xl font-bold text-white mb-2">Track Progress</h3>
@@ -163,8 +167,10 @@ const About = () => {
             </div>
             
             <div className="flex flex-col md:flex-row gap-6 dark-glass rounded-xl p-6 bg-gradient-to-br from-[#9945FF]/10 to-[#14F195]/10">
-              <div className="flex-shrink-0 bg-gradient-to-r from-[#9945FF]/20 to-[#14F195]/20 p-4 rounded-full">
-                <MessageSquare className="h-8 w-8 text-white" />
+              <div className="flex-shrink-0">
+                <div className="bg-gradient-to-r from-[#9945FF]/20 to-[#14F195]/20 p-4 rounded-full">
+                  <MessageSquare className="h-8 w-8 text-white" />
+                </div>
               </div>
               <div>
                 <h3 className="text-xl font-bold text-white mb-2">Provide Feedback</h3>
@@ -175,8 +181,10 @@ const About = () => {
             </div>
             
             <div className="flex flex-col md:flex-row gap-6 dark-glass rounded-xl p-6 bg-gradient-to-br from-[#9945FF]/10 to-[#14F195]/10">
-              <div className="flex-shrink-0 bg-gradient-to-r from-[#9945FF]/20 to-[#14F195]/20 p-4 rounded-full">
-                <Users className="h-8 w-8 text-white" />
+              <div className="flex-shrink-0">
+                <div className="bg-gradient-to-r from-[#9945FF]/20 to-[#14F195]/20 p-4 rounded-full">
+                  <Users className="h-8 w-8 text-white" />
+                </div>
               </div>
               <div>
                 <h3 className="text-xl font-bold text-white mb-2">Community Learning</h3>
