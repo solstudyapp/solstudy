@@ -14,37 +14,37 @@ const FeatureCards = () => {
       icon: <BookOpen className="h-10 w-10" />,
       title: "Structured Learning",
       description: "Progress through beginner, intermediate, and advanced lessons at your own pace.",
-      color: "from-[#9945FF]/10 to-[#14F195]/10" // Updated to match Points Earned card
+      color: "from-[#9945FF]/10 to-[#14F195]/10" 
     },
     {
       icon: <ShieldCheck className="h-10 w-10" />,
       title: "Scam Protection",
       description: "Learn to identify and avoid common cryptocurrency scams and protect your assets.",
-      color: "from-[#9945FF]/10 to-[#14F195]/10" // Updated to match Points Earned card
+      color: "from-[#9945FF]/10 to-[#14F195]/10" 
     },
     {
       icon: <MessageSquare className="h-10 w-10" />,
       title: "Provide Feedback",
       description: "Provide valuable feedback about course content and help SolStudy evolve for future users.",
-      color: "from-[#9945FF]/10 to-[#14F195]/10" // Updated to match Points Earned card
+      color: "from-[#9945FF]/10 to-[#14F195]/10" 
     },
     {
       icon: <LineChart className="h-10 w-10" />,
       title: "Track Progress",
       description: "Monitor your learning journey with a personalized dashboard and progress tracking.",
-      color: "from-[#9945FF]/10 to-[#14F195]/10" // Updated to match Points Earned card
+      color: "from-[#9945FF]/10 to-[#14F195]/10" 
     },
     {
       icon: <BookText className="h-10 w-10" />,
       title: "Interactive Quizzes",
       description: "Test your knowledge with interactive quizzes and get immediate feedback.",
-      color: "from-[#9945FF]/10 to-[#14F195]/10" // Updated to match Points Earned card
+      color: "from-[#9945FF]/10 to-[#14F195]/10" 
     },
     {
       icon: <Users className="h-10 w-10" />,
       title: "Community Learning",
       description: "Join a community of crypto enthusiasts and learn together through shared experiences.",
-      color: "from-[#9945FF]/10 to-[#14F195]/10" // Updated to match Points Earned card
+      color: "from-[#9945FF]/10 to-[#14F195]/10" 
     }
   ];
 
@@ -54,7 +54,7 @@ const FeatureCards = () => {
         {features.map((feature, index) => (
           <div 
             key={index} 
-            className={`dark-glass rounded-xl p-6 transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-lg bg-gradient-to-br ${feature.color}`}
+            className="dark-glass rounded-xl p-6 transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-lg bg-gradient-to-br from-black/40 to-black/40"
           >
             <div className="flex flex-col items-center text-center">
               <div className="bg-gradient-to-r from-[#9945FF]/20 to-[#14F195]/20 p-4 rounded-full mb-4">

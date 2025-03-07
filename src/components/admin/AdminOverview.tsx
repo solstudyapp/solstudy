@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowUpRight, Users, BookOpen, Award, Activity, TrendingUp } from "lucide-react";
 import { format, subDays } from "date-fns";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 // Function to generate dates for the last 30 days
 const generateDateData = () => {
@@ -48,7 +49,7 @@ const StatCard = ({ title, value, description, icon, trend }: {
   icon: React.ReactNode;
   trend?: number;
 }) => (
-  <Card className="backdrop-blur-md bg-white/10 border-white/10 text-white">
+  <Card className="backdrop-blur-md bg-black/40 border-white/10 text-white">
     <CardHeader className="flex flex-row items-center justify-between pb-2">
       <CardTitle className="text-sm font-medium">{title}</CardTitle>
       <div className="p-2 bg-white/10 rounded-full">{icon}</div>
@@ -69,56 +70,66 @@ const StatCard = ({ title, value, description, icon, trend }: {
   </Card>
 );
 
+// Custom tooltip component for charts
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-black/80 p-2 border border-white/20 rounded text-xs">
+        <p className="font-medium text-white">{label}</p>
+        {payload.map((entry: any, index: number) => (
+          <p key={index} style={{ color: entry.color }}>
+            {entry.name}: {entry.value}
+          </p>
+        ))}
+      </div>
+    );
+  }
+
+  return null;
+};
+
 const ChartCard = ({ title, data, dataProp }: { 
   title: string; 
   data: Array<{ date: string; day: string; [key: string]: number | string }>; 
   dataProp: string;
 }) => {
-  // Simple visual representation of the chart
-  const maxValue = Math.max(...data.map(item => Number(item[dataProp])));
-  
   return (
-    <Card className="backdrop-blur-md bg-white/10 border-white/10 text-white">
+    <Card className="backdrop-blur-md bg-black/40 border-white/10 text-white">
       <CardHeader>
         <CardTitle className="text-lg">{title}</CardTitle>
         <CardDescription className="text-white/70">Last 30 days</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="h-[200px] flex flex-col">
-          <div className="flex-1 flex items-end justify-between gap-2 border-b border-white/10 pb-2 relative">
-            {/* Horizontal grid lines */}
-            <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
-              <div className="w-full h-px bg-white/10"></div>
-              <div className="w-full h-px bg-white/10"></div>
-              <div className="w-full h-px bg-white/10"></div>
-            </div>
-            
-            {data.map((item, index) => {
-              const height = ((Number(item[dataProp]) / maxValue) * 100);
-              return (
-                <div key={index} className="flex flex-col items-center">
-                  <div className="relative h-full w-8 flex items-end">
-                    <div 
-                      className="w-8 bg-gradient-to-t from-purple-500/50 to-purple-500 rounded-t-sm" 
-                      style={{ height: `${height}%` }}
-                    ></div>
-                    {index > 0 && (
-                      <div className="absolute left-0 bottom-[calc(${height}%+0.5rem)] w-full h-0.5 bg-purple-500/30"></div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          
-          {/* Date labels */}
-          <div className="flex justify-between mt-2">
-            {data.map((item, index) => (
-              <div key={index} className="text-xs text-white/70 w-8 text-center">
-                {item.date}
-              </div>
-            ))}
-          </div>
+        <div className="h-[200px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart
+              data={data}
+              margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+              <XAxis 
+                dataKey="date" 
+                stroke="rgba(255,255,255,0.5)" 
+                fontSize={12}
+                tickLine={false}
+              />
+              <YAxis 
+                stroke="rgba(255,255,255,0.5)" 
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Line 
+                type="monotone" 
+                dataKey={dataProp} 
+                stroke="#9945FF" 
+                activeDot={{ r: 6, fill: "#14F195" }}
+                strokeWidth={2}
+                dot={{ r: 4, fill: "#9945FF", strokeWidth: 0 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
       </CardContent>
     </Card>
@@ -136,7 +147,7 @@ const AdminOverview = () => {
   
   return (
     <div className="space-y-6">
-      <Card className="backdrop-blur-md bg-white/10 border-white/10 text-white">
+      <Card className="backdrop-blur-md bg-black/40 border-white/10 text-white">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <div>
             <CardTitle>Dashboard Overview</CardTitle>
@@ -145,7 +156,7 @@ const AdminOverview = () => {
             </CardDescription>
           </div>
           <Tabs defaultValue={period} onValueChange={(v) => setPeriod(v as "7" | "30" | "90")}>
-            <TabsList className="bg-white/10">
+            <TabsList className="bg-black/60">
               <TabsTrigger value="7">7d</TabsTrigger>
               <TabsTrigger value="30">30d</TabsTrigger>
               <TabsTrigger value="90">90d</TabsTrigger>
