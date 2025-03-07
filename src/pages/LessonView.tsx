@@ -82,12 +82,16 @@ const LessonView = () => {
         setCurrentPage(parsedProgress.currentPage);
       }
     }
+  }, [lessonId, lesson]);
+  
+  // Calculate progress in a separate useEffect to avoid infinite loop
+  useEffect(() => {
+    if (!sections) return;
     
-    // Calculate progress based on current position
     const totalPages = sections.reduce((acc, section) => acc + section.pages.length, 0);
     const pagesCompleted = sections.slice(0, currentSection).reduce((acc, section) => acc + section.pages.length, 0) + currentPage;
     setProgress(Math.round((pagesCompleted / totalPages) * 100));
-  }, [currentSection, currentPage, lessonId]);
+  }, [currentSection, currentPage, sections]);
   
   // Save progress to localStorage
   const saveProgress = () => {
