@@ -8,8 +8,8 @@ import { Check, ChevronsUpDown } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Explicitly define icon type
-type IconType = (props: any) => JSX.Element;
+// Explicitly define icon type for better type safety
+type IconType = React.ComponentType<{ size?: number, className?: string }>;
 
 // Create a cleaner list of icons by filtering out non-icon exports
 const iconList = Object.entries(LucideIcons)
@@ -32,7 +32,7 @@ const iconList = Object.entries(LucideIcons)
   })
   .map(([name, Icon]) => ({
     name,
-    icon: Icon as IconType, // Cast to our IconType
+    icon: Icon as IconType,
   }));
 
 interface IconSelectorProps {
@@ -82,7 +82,7 @@ const IconSelector = ({ selectedIcon, onSelectIcon }: IconSelectorProps) => {
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[300px] p-0 bg-black/90 backdrop-blur-md border-white/10 text-white">
+      <PopoverContent className="w-[300px] p-0" style={{ backgroundColor: 'rgba(0, 0, 0, 0.9)', borderColor: 'rgba(255, 255, 255, 0.1)', color: 'white' }}>
         <Command className="bg-transparent">
           <CommandInput 
             placeholder="Search icons..." 
@@ -105,7 +105,6 @@ const IconSelector = ({ selectedIcon, onSelectIcon }: IconSelectorProps) => {
                       key={name}
                       value={name}
                       onSelect={() => {
-                        // Create the icon as a JSX element directly instead of using createElement
                         const iconElement = <IconComponent size={24} />;
                         onSelectIcon(iconElement, name);
                         setOpen(false);
