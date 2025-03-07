@@ -10,7 +10,6 @@ import {
   Users, 
   BookOpen, 
   HelpCircle,
-  Settings, 
   Search, 
   Gift, 
   MoreHorizontal,
@@ -34,7 +33,6 @@ import { LessonEditor } from "@/components/admin/LessonEditor";
 import UserManagement from "@/components/admin/UserManagement";
 import LessonManagement from "@/components/admin/LessonManagement";
 import QuizManagement from "@/components/admin/QuizManagement";
-import SettingsPanel from "@/components/admin/SettingsPanel";
 import AdminOverview from "@/components/admin/AdminOverview";
 
 // Admin Sidebar Component
@@ -47,7 +45,6 @@ const AdminSidebar = () => {
     { path: "users", label: "Users", icon: <Users size={20} /> },
     { path: "lessons", label: "Lessons", icon: <BookOpen size={20} /> },
     { path: "quizzes", label: "Quizzes", icon: <HelpCircle size={20} /> },
-    { path: "settings", label: "Settings", icon: <Settings size={20} /> },
   ];
   
   return (
@@ -99,7 +96,6 @@ const AdminDashboard = () => {
               <Route path="/users" element={<UserManagement />} />
               <Route path="/lessons" element={<LessonManagement />} />
               <Route path="/quizzes" element={<QuizManagement />} />
-              <Route path="/settings" element={<SettingsPanel />} />
               {/* Redirect any unknown routes to dashboard */}
               <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
             </Routes>
