@@ -59,16 +59,17 @@ const FeatureCards = () => {
         {features.map((feature, index) => (
           <div 
             key={index} 
-            className="relative dark-glass rounded-xl p-6 transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-lg"
+            className="relative rounded-xl p-6 transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-lg"
           >
-            {/* Gradient stroke around the card - reduced by 70% from -inset-[1px] to -inset-[0.3px] */}
-            <div className={`absolute -inset-[0.3px] rounded-xl bg-gradient-to-r ${feature.gradient} opacity-70 z-0`}></div>
+            {/* Gradient border only */}
+            <div className={`absolute inset-0 rounded-xl bg-gradient-to-r ${feature.gradient} opacity-60 animate-spin-slow-4s`}></div>
+            <div className="absolute inset-[2px] rounded-xl bg-black z-[1]"></div>
             
-            {/* Card content with black background */}
-            <div className="relative bg-black/80 p-6 rounded-xl z-10">
+            {/* Card content */}
+            <div className="relative z-10">
               <div className="flex flex-col items-center text-center">
                 <div className="relative mb-4">
-                  <div className={`absolute -inset-1 rounded-full bg-gradient-to-r ${feature.gradient} opacity-70 animate-spin-slow`}></div>
+                  <div className={`absolute -inset-1 rounded-full bg-gradient-to-r ${feature.gradient} opacity-70 animate-spin-slow-4s`}></div>
                   <div className="relative bg-black p-4 rounded-full z-10">
                     <div className="text-white">{feature.icon}</div>
                   </div>
