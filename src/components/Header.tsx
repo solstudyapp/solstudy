@@ -74,7 +74,7 @@ const Header = () => {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-black/95 backdrop-blur-md border-b border-white/10">
+        <div className="md:hidden bg-black/95 backdrop-blur-md border-b border-white/10 z-40">
           <div className="px-2 pt-2 pb-3 space-y-1">
             <Link
               to="/"
