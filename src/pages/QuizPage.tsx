@@ -134,8 +134,20 @@ const QuizPage = () => {
     
     // Navigate based on what type of quiz this was
     if (isFinalTest) {
-      // If final test, go to dashboard or home
-      navigate("/dashboard");
+      // Mark course as completed
+      if (lessonId) {
+        lessonService.completeCourse(lessonId);
+      }
+      
+      // Show completion message and navigate to dashboard
+      toast({
+        title: "Course Completed!",
+        description: "Congratulations! You've completed the entire course.",
+        variant: "success",
+      });
+      
+      // Navigate to dashboard with a completed course parameter
+      navigate(`/dashboard?completed=${lessonId}`);
     } else if (sectionId && sectionId.startsWith('section')) {
       // If section quiz, go to next section
       const sectionNumber = parseInt(sectionId.replace('section', ''), 10);

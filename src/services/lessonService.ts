@@ -1,4 +1,3 @@
-
 import { Quiz, Section, UserProgress } from "@/types/lesson";
 
 // Mock data storage - in a real app, this would be a database
@@ -6,6 +5,7 @@ const userProgressStore: Record<string, UserProgress> = {};
 const completedQuizzesStore: Record<string, string[]> = {};
 const userPointsStore: Record<string, number> = {};
 const userFeedbackStore: Record<string, number> = {};
+const completedCoursesStore: Record<string, string[]> = {};
 
 // For demo, we'll use a fixed user ID
 const CURRENT_USER_ID = "user-123";
@@ -104,5 +104,30 @@ export const lessonService = {
   calculateLessonProgress: (lessonId: string, totalSections: number): number => {
     const progress = lessonService.getUserProgress(lessonId);
     return Math.round((progress.completedSections.length / totalSections) * 100);
+  },
+  
+  // Mark a course as fully completed
+  completeCourse: (lessonId: string): void => {
+    const key = `${CURRENT_USER_ID}-${lessonId}`;
+    const progress = lessonService.getUserProgress(lessonId);
+    
+    // Mark test as completed
+    progress.testCompleted = true;
+    
+    // Add to completed courses
+    if (!completedCoursesStore[CURRENT_USER_ID]) {
+      completedCoursesStore[CURRENT_USER_ID] = [];
+    }
+    
+    if (!completedCoursesStore[CURRENT_USER_ID].includes(lessonId)) {
+      completedCoursesStore[CURRENT_USER_ID].push(lessonId);
+    }
+    
+    userProgressStore[key] = progress;
+  },
+  
+  // Check if a course is completed
+  isCourseCompleted: (lessonId: string): boolean => {
+    return completedCoursesStore[CURRENT_USER_ID]?.includes(lessonId) || false;
   }
 };
