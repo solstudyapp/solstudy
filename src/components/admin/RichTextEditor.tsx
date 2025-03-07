@@ -294,15 +294,6 @@ export const RichTextEditor = ({ initialContent, onChange }: RichTextEditorProps
     onChange(e.target.value);
   };
   
-  // Fix for click issue - handle editor blur properly
-  const handleEditorBlur = (e: React.FocusEvent<HTMLDivElement>) => {
-    handleContentChange();
-    
-    // Ensure we're not capturing events outside the editor
-    // This addresses the issue with clicking inside then outside the editor
-    e.stopPropagation();
-  };
-  
   const ToolbarButton = ({ onClick, icon, title }: { onClick: () => void, icon: React.ReactNode, title: string }) => (
     <Button
       type="button"
@@ -370,7 +361,7 @@ export const RichTextEditor = ({ initialContent, onChange }: RichTextEditorProps
             contentEditable
             className="min-h-[300px] p-4 text-white focus:outline-none rich-text-editor-content"
             onInput={handleContentChange}
-            onBlur={handleEditorBlur}
+            onBlur={handleContentChange}
           />
         </TabsContent>
         
