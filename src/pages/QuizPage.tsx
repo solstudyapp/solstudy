@@ -1,8 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { lessonData } from "@/data/lessons";
 import { getQuizByLessonAndSection } from "@/data/quizzes";
+import { getSectionsForLesson } from "@/data/sections"; // Added this import
 import { lessonService } from "@/services/lessonService";
 import QuizHeader from "@/components/quiz/QuizHeader";
 import QuizQuestion from "@/components/quiz/QuizQuestion";
