@@ -106,17 +106,29 @@ const QuizPage = () => {
     if (quizType === "section" && sectionId) {
       // Mark section as completed
       const savedProgress = localStorage.getItem(`lesson_progress_${lessonId}`);
-      let progressData = savedProgress ? JSON.parse(savedProgress) : { completedSections: [] };
+      let progressData = savedProgress ? JSON.parse(savedProgress) : { completedSections: [], currentSection: 0, currentPage: 0 };
       
       if (!progressData.completedSections.includes(sectionId)) {
         progressData.completedSections.push(sectionId);
+      }
+      
+      // Move to next section if not the last one
+      // Parse section ID to get the numeric part (assuming format like "section1", "section2")
+      const currentSectionNumber = parseInt(sectionId.replace("section", ""));
+      const nextSectionNumber = currentSectionNumber + 1;
+      const nextSectionId = `section${nextSectionNumber}`;
+      
+      // Check if there might be a next section (up to section3 in our mock data)
+      if (nextSectionNumber <= 3) {
+        progressData.currentSection = nextSectionNumber - 1; // Array is 0-indexed
+        progressData.currentPage = 0; // Start at the first page of the new section
       }
       
       localStorage.setItem(`lesson_progress_${lessonId}`, JSON.stringify(progressData));
       
       toast({
         title: "Section completed!",
-        description: "You can now proceed to the next section.",
+        description: nextSectionNumber <= 3 ? "Moving to the next section." : "You can now take the final test.",
         variant: "default"
       });
       
