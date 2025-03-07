@@ -4,6 +4,29 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowUpRight, Users, BookOpen, Award, Activity, TrendingUp } from "lucide-react";
+import { format, subDays } from "date-fns";
+
+// Function to generate dates for the last 30 days
+const generateDateData = () => {
+  const data = [];
+  const today = new Date();
+  
+  // Generate data for the last 30 days
+  for (let i = 30; i >= 0; i -= 5) {
+    const date = subDays(today, i);
+    const formattedDate = format(date, "MMM d");
+    
+    data.push({
+      date: formattedDate,
+      day: i === 0 ? "Today" : `${i}d ago`,
+      users: Math.floor(Math.random() * 15) + 3, // Random data between 3-18
+      lessons: Math.floor(Math.random() * 30) + 10, // Random data between 10-40
+      points: Math.floor(Math.random() * 800) + 150, // Random data between 150-950
+    });
+  }
+  
+  return data;
+};
 
 // Mock data for dashboard stats
 const mockStats = {
@@ -17,17 +40,6 @@ const mockStats = {
   lessonCompletionGrowth: 8,
   pointsGrowth: 15,
 }
-
-// Mock chart data for the past 30 days
-const mockChartData = [
-  { day: "1", users: 4, lessons: 12, points: 250 },
-  { day: "5", users: 6, lessons: 15, points: 320 },
-  { day: "10", users: 8, lessons: 22, points: 420 },
-  { day: "15", users: 10, lessons: 28, points: 520 },
-  { day: "20", users: 12, lessons: 32, points: 650 },
-  { day: "25", users: 14, lessons: 36, points: 780 },
-  { day: "30", users: 18, lessons: 42, points: 950 },
-];
 
 const StatCard = ({ title, value, description, icon, trend }: { 
   title: string;
@@ -59,7 +71,7 @@ const StatCard = ({ title, value, description, icon, trend }: {
 
 const ChartCard = ({ title, data, dataProp }: { 
   title: string; 
-  data: Array<{ day: string; [key: string]: number | string }>; 
+  data: Array<{ date: string; day: string; [key: string]: number | string }>; 
   dataProp: string;
 }) => {
   // Simple visual representation of the chart
@@ -72,19 +84,41 @@ const ChartCard = ({ title, data, dataProp }: {
         <CardDescription className="text-white/70">Last 30 days</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="h-[200px] flex items-end justify-between gap-2">
-          {data.map((item, index) => {
-            const height = ((Number(item[dataProp]) / maxValue) * 100);
-            return (
-              <div key={index} className="flex flex-col items-center">
-                <div 
-                  className="w-8 bg-gradient-to-t from-purple-500/50 to-purple-500 rounded-t-sm" 
-                  style={{ height: `${height}%` }}
-                ></div>
-                <div className="text-xs mt-2 text-white/70">{item.day}</div>
+        <div className="h-[200px] flex flex-col">
+          <div className="flex-1 flex items-end justify-between gap-2 border-b border-white/10 pb-2 relative">
+            {/* Horizontal grid lines */}
+            <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
+              <div className="w-full h-px bg-white/10"></div>
+              <div className="w-full h-px bg-white/10"></div>
+              <div className="w-full h-px bg-white/10"></div>
+            </div>
+            
+            {data.map((item, index) => {
+              const height = ((Number(item[dataProp]) / maxValue) * 100);
+              return (
+                <div key={index} className="flex flex-col items-center">
+                  <div className="relative h-full w-8 flex items-end">
+                    <div 
+                      className="w-8 bg-gradient-to-t from-purple-500/50 to-purple-500 rounded-t-sm" 
+                      style={{ height: `${height}%` }}
+                    ></div>
+                    {index > 0 && (
+                      <div className="absolute left-0 bottom-[calc(${height}%+0.5rem)] w-full h-0.5 bg-purple-500/30"></div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          
+          {/* Date labels */}
+          <div className="flex justify-between mt-2">
+            {data.map((item, index) => (
+              <div key={index} className="text-xs text-white/70 w-8 text-center">
+                {item.date}
               </div>
-            );
-          })}
+            ))}
+          </div>
         </div>
       </CardContent>
     </Card>
@@ -93,6 +127,12 @@ const ChartCard = ({ title, data, dataProp }: {
 
 const AdminOverview = () => {
   const [period, setPeriod] = useState<"7" | "30" | "90">("30");
+  const [chartData, setChartData] = useState(generateDateData());
+  
+  // Update chart data when period changes
+  useEffect(() => {
+    setChartData(generateDateData());
+  }, [period]);
   
   return (
     <div className="space-y-6">
@@ -140,12 +180,12 @@ const AdminOverview = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
             <ChartCard 
               title="User Activity"
-              data={mockChartData}
+              data={chartData}
               dataProp="users"
             />
             <ChartCard 
               title="Points Distribution"
-              data={mockChartData}
+              data={chartData}
               dataProp="points"
             />
           </div>

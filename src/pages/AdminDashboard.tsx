@@ -100,6 +100,8 @@ const AdminDashboard = () => {
               <Route path="/lessons" element={<LessonManagement />} />
               <Route path="/quizzes" element={<QuizManagement />} />
               <Route path="/settings" element={<SettingsPanel />} />
+              {/* Redirect any unknown routes to dashboard */}
+              <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
             </Routes>
           </div>
         </div>

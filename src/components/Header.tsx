@@ -41,14 +41,6 @@ const Header = () => {
             >
               About
             </Link>
-            <Link
-              to="/dashboard"
-              className={`text-sm font-medium transition-colors hover:text-white ${
-                isActive("/dashboard") ? "text-white" : "text-white/70"
-              }`}
-            >
-              Dashboard
-            </Link>
           </nav>
 
           {/* Login/Register Button */}
@@ -105,17 +97,6 @@ const Header = () => {
               onClick={() => setMobileMenuOpen(false)}
             >
               About
-            </Link>
-            <Link
-              to="/dashboard"
-              className={`block px-3 py-2 rounded-md text-base font-medium ${
-                isActive("/dashboard")
-                  ? "bg-white/10 text-white"
-                  : "text-white/70 hover:bg-white/5 hover:text-white"
-              }`}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Dashboard
             </Link>
             <Link
               to="/auth"

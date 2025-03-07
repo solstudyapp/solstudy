@@ -14,37 +14,37 @@ const FeatureCards = () => {
       icon: <BookOpen className="h-10 w-10" />,
       title: "Structured Learning",
       description: "Progress through beginner, intermediate, and advanced lessons at your own pace.",
-      color: "from-green-400/10 to-emerald-500/20" // Beginner color scheme
+      color: "from-[#9945FF]/10 to-[#14F195]/10" // Updated to match Points Earned card
     },
     {
       icon: <ShieldCheck className="h-10 w-10" />,
       title: "Scam Protection",
       description: "Learn to identify and avoid common cryptocurrency scams and protect your assets.",
-      color: "from-blue-400/10 to-purple-500/20" // Intermediate color scheme
+      color: "from-[#9945FF]/10 to-[#14F195]/10" // Updated to match Points Earned card
     },
     {
       icon: <MessageSquare className="h-10 w-10" />,
       title: "Provide Feedback",
       description: "Provide valuable feedback about course content and help SolStudy evolve for future users.",
-      color: "from-green-400/10 to-emerald-500/20" // Changed to Beginner color scheme (green)
+      color: "from-[#9945FF]/10 to-[#14F195]/10" // Updated to match Points Earned card
     },
     {
       icon: <LineChart className="h-10 w-10" />,
       title: "Track Progress",
       description: "Monitor your learning journey with a personalized dashboard and progress tracking.",
-      color: "from-blue-400/10 to-purple-500/20" // Intermediate color scheme
+      color: "from-[#9945FF]/10 to-[#14F195]/10" // Updated to match Points Earned card
     },
     {
       icon: <BookText className="h-10 w-10" />,
       title: "Interactive Quizzes",
       description: "Test your knowledge with interactive quizzes and get immediate feedback.",
-      color: "from-green-400/10 to-emerald-500/20" // Beginner color scheme
+      color: "from-[#9945FF]/10 to-[#14F195]/10" // Updated to match Points Earned card
     },
     {
       icon: <Users className="h-10 w-10" />,
       title: "Community Learning",
       description: "Join a community of crypto enthusiasts and learn together through shared experiences.",
-      color: "from-blue-400/10 to-purple-500/20" // Changed to Intermediate color scheme (blue/purple)
+      color: "from-[#9945FF]/10 to-[#14F195]/10" // Updated to match Points Earned card
     }
   ];
 
