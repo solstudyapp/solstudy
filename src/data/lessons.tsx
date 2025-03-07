@@ -1,3 +1,4 @@
+
 import { ReactNode } from "react";
 import {
   Wallet,
@@ -38,6 +39,8 @@ export const lessonData: LessonType[] = [
     rating: 4.7,
     reviewCount: 156,
     icon: <Database size={24} />,
+    sponsored: true,
+    sponsorLogo: COINGECKO_LOGO,
   },
   {
     id: "crypto-trading-101",
@@ -66,6 +69,8 @@ export const lessonData: LessonType[] = [
     rating: 4.8,
     reviewCount: 132,
     icon: <BarChart size={24} />,
+    sponsored: true,
+    sponsorLogo: COINGECKO_LOGO,
   },
   {
     id: "nft-creation",
@@ -94,6 +99,8 @@ export const lessonData: LessonType[] = [
     rating: 4.9,
     reviewCount: 64,
     icon: <Code size={24} />,
+    sponsored: true,
+    sponsorLogo: COINGECKO_LOGO,
   },
   {
     id: "crypto-security",
@@ -107,6 +114,8 @@ export const lessonData: LessonType[] = [
     rating: 4.7,
     reviewCount: 112,
     icon: <ShieldCheck size={24} />,
+    sponsored: true,
+    sponsorLogo: COINGECKO_LOGO,
   },
   {
     id: "advanced-trading",
@@ -120,6 +129,8 @@ export const lessonData: LessonType[] = [
     rating: 4.4,
     reviewCount: 56,
     icon: <BarChart3 size={24} />,
+    sponsored: true,
+    sponsorLogo: COINGECKO_LOGO,
   },
   {
     id: "wallet-management",
@@ -133,6 +144,8 @@ export const lessonData: LessonType[] = [
     rating: 4.3,
     reviewCount: 94,
     icon: <Wallet size={24} />,
+    sponsored: true,
+    sponsorLogo: COINGECKO_LOGO,
   },
   {
     id: "solana-token",

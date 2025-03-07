@@ -12,8 +12,8 @@ interface QuizHeaderProps {
 }
 
 const QuizHeader = ({ lessonId, currentQuestion, totalQuestions, quizTitle }: QuizHeaderProps) => {
-  // Get lesson data to check if it's sponsored
-  const lesson = lessonId ? lessonData.find(l => l.id === lessonId) : undefined;
+  // Use CoinGecko logo for all quizzes
+  const sponsorLogo = "https://static.coingecko.com/s/coingecko-logo-8903d34ce19ca4be1c81f0db30e924154750d208683fad7ae6f2ce06c76d0a56.png";
 
   return (
     <div className="mb-6">
@@ -35,23 +35,17 @@ const QuizHeader = ({ lessonId, currentQuestion, totalQuestions, quizTitle }: Qu
         </div>
       </div>
 
-      {/* Display sponsor information if the lesson is sponsored */}
-      {lesson?.sponsored && (
-        <div className="mb-6 p-3 bg-gradient-to-r from-[#9945FF]/10 to-[#14F195]/10 rounded-lg">
-          <div className="text-white/70 text-xs mb-1 text-center">This Quiz is Brought to You By:</div>
-          <div className="flex items-center justify-center h-10 bg-black/20 rounded">
-            {lesson.sponsorLogo ? (
-              <img 
-                src={lesson.sponsorLogo} 
-                alt="Sponsor Logo" 
-                className="h-6 max-w-[100px] object-contain"
-              />
-            ) : (
-              <div className="text-sm text-white">Sponsor Name</div>
-            )}
-          </div>
+      {/* Always display sponsor information */}
+      <div className="mb-6 p-3 bg-gradient-to-r from-[#9945FF]/10 to-[#14F195]/10 rounded-lg">
+        <div className="text-white/70 text-xs mb-1 text-center">This Quiz is Brought to You By:</div>
+        <div className="flex items-center justify-center h-10 bg-black/20 rounded">
+          <img 
+            src={sponsorLogo} 
+            alt="CoinGecko Logo" 
+            className="h-6 max-w-[100px] object-contain"
+          />
         </div>
-      )}
+      </div>
     </div>
   );
 };
