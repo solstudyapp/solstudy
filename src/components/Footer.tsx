@@ -30,7 +30,7 @@ const Footer = () => {
     { icon: <Facebook size={32} />, url: "https://facebook.com", label: "Facebook" },
     { icon: <Instagram size={32} />, url: "https://instagram.com", label: "Instagram" },
     { icon: <Linkedin size={32} />, url: "https://linkedin.com", label: "LinkedIn" },
-    { icon: <X size={32} />, url: "https://x.com", label: "X" }
+    { icon: <X size={32} />, url: "https://x.com", label: "X" }  // Updated label from Twitter to X
   ];
 
   return (
