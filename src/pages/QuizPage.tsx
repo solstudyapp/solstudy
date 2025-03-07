@@ -26,6 +26,30 @@ const QuizPage = () => {
   // Get quiz data from our new file
   const quiz = sectionId && lessonId ? getQuizByLessonAndSection(lessonId, sectionId) : null;
   
+  // Check if user can access this quiz (should have completed previous quizzes)
+  useEffect(() => {
+    if (!lessonId || !sectionId) return;
+    
+    // Extract section number from sectionId (e.g., "section2" -> 2)
+    const currentSectionNum = parseInt(sectionId.replace("section", ""), 10);
+    
+    // If not the first section, check if previous quizzes are completed
+    if (currentSectionNum > 1) {
+      for (let i = 1; i < currentSectionNum; i++) {
+        const prevQuizId = `quiz-section${i}`;
+        if (!lessonService.isQuizCompleted(lessonId, prevQuizId)) {
+          toast({
+            title: "Quiz locked",
+            description: `You need to complete section ${i} and its quiz first.`,
+            variant: "destructive",
+          });
+          navigate(`/lesson/${lessonId}`);
+          return;
+        }
+      }
+    }
+  }, [lessonId, sectionId, navigate, toast]);
+  
   // If quiz or lesson not found, handle gracefully
   useEffect(() => {
     if (!lesson || !quiz) {
@@ -80,6 +104,9 @@ const QuizPage = () => {
   const handleFeedbackComplete = () => {
     setShowFeedback(false);
     
+    // Extract section number from sectionId (e.g., "section2" -> 2)
+    const currentSectionNum = parseInt(sectionId?.replace("section", "") || "0", 10);
+    
     toast({
       title: "Quiz completed!",
       description: "Great job! Your progress has been saved.",
@@ -89,6 +116,7 @@ const QuizPage = () => {
     if (quiz.isFinalTest) {
       navigate("/");
     } else {
+      // If there's a next section, navigate to it, otherwise go back to lesson view
       navigate(`/lesson/${lessonId}`);
     }
   };
