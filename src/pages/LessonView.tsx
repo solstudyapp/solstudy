@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import Header from "@/components/Header";
 import { DifficultyBadge } from "@/components/DifficultyBadge";
-import { lessonData } from "@/data/lessons";
+import { lessonData, lessonSections } from "@/data/lessons";
 import { toast } from "@/hooks/use-toast";
 
 const LessonView = () => {
@@ -25,42 +25,8 @@ const LessonView = () => {
   // Find the lesson based on the URL param
   const lesson = lessonData.find(l => l.id === lessonId);
   
-  // Mock sections data - in real app, this would come from an API
-  const sections = [
-    {
-      id: "section1",
-      title: "Getting Started",
-      pages: [
-        { id: "page1", title: "Introduction", content: "<h1>Welcome to this lesson!</h1><p>In this section, you'll learn the basics of cryptocurrency and blockchain technology.</p>" },
-        { id: "page2", title: "What is Blockchain?", content: "<h1>Blockchain Technology</h1><p>Blockchain is a distributed ledger technology that enables secure, transparent, and immutable record-keeping without central authority.</p>" },
-        { id: "page3", title: "Key Concepts", content: "<h1>Key Blockchain Concepts</h1><p>Let's explore decentralization, consensus mechanisms, and cryptographic security - the foundations of blockchain technology.</p>" },
-        { id: "page4", title: "History of Blockchain", content: "<h1>A Brief History</h1><p>From Bitcoin's creation in 2009 to the modern blockchain ecosystem - understanding how we got here helps predict where we're going.</p>" },
-      ],
-      quiz: { id: "section1-quiz" }
-    },
-    {
-      id: "section2",
-      title: "Core Components",
-      pages: [
-        { id: "page5", title: "Cryptography Basics", content: "<h1>Cryptography in Blockchain</h1><p>Public/private keys, hash functions, and digital signatures are the building blocks of blockchain security.</p>" },
-        { id: "page6", title: "Consensus Mechanisms", content: "<h1>How Blockchains Agree</h1><p>Proof of Work, Proof of Stake, and other mechanisms ensure that all participants can trust the blockchain's state.</p>" },
-        { id: "page7", title: "Transactions & Blocks", content: "<h1>The Anatomy of Blockchain</h1><p>Understanding how transactions are created, validated, and permanently recorded in blocks.</p>" },
-        { id: "page8", title: "Smart Contracts", content: "<h1>Self-Executing Agreements</h1><p>Smart contracts are programs stored on the blockchain that run when predetermined conditions are met.</p>" },
-      ],
-      quiz: { id: "section2-quiz" }
-    },
-    {
-      id: "section3",
-      title: "Applications & Future",
-      pages: [
-        { id: "page9", title: "DeFi Overview", content: "<h1>Decentralized Finance</h1><p>DeFi aims to recreate and improve traditional financial systems using blockchain technology.</p>" },
-        { id: "page10", title: "NFTs Explained", content: "<h1>Non-Fungible Tokens</h1><p>NFTs represent unique digital assets, enabling new forms of digital ownership and creator economies.</p>" },
-        { id: "page11", title: "DAOs & Governance", content: "<h1>Decentralized Autonomous Organizations</h1><p>DAOs enable community governance of blockchain protocols and projects through token voting.</p>" },
-        { id: "page12", title: "Future Trends", content: "<h1>Where Blockchain Is Heading</h1><p>Scalability solutions, institutional adoption, and emerging use cases are shaping the future of blockchain.</p>" },
-      ],
-      quiz: { id: "section3-quiz" }
-    }
-  ];
+  // Get the sections for this specific lesson, or use default if not found
+  const sections = lessonId && lessonSections[lessonId] ? lessonSections[lessonId] : lessonSections.default;
   
   // Check if all sections are completed to enable the final test
   const allSectionsCompleted = sections.length === completedSections.length;
@@ -110,7 +76,7 @@ const LessonView = () => {
   
   if (!lesson) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#9945FF] to-[#14F195]">
+      <div className="min-h-screen bg-black">
         <Header />
         <div className="max-w-3xl mx-auto px-4 py-16 text-center text-white">
           <h1 className="text-2xl font-bold mb-4">Lesson not found</h1>
@@ -158,7 +124,7 @@ const LessonView = () => {
   const isSectionCompleted = completedSections.includes(currentSectionData.id);
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#9945FF] to-[#14F195]">
+    <div className="min-h-screen bg-black">
       <Header />
       
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -198,7 +164,7 @@ const LessonView = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {/* Sidebar */}
           <div className="hidden md:block">
-            <div className="backdrop-blur-md bg-white/10 border border-white/10 rounded-lg p-4 sticky top-24">
+            <div className="bg-accent1 border border-white/10 rounded-lg p-4 sticky top-24">
               <h3 className="text-lg font-medium text-white mb-4">Lesson Contents</h3>
               <div className="space-y-4">
                 {sections.map((section, sectionIndex) => (
@@ -270,7 +236,7 @@ const LessonView = () => {
                       variant="outline"
                       size="sm"
                       asChild
-                      className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20"
+                      className="w-full bg-accent1 border-white/20 text-white hover:bg-white/20"
                     >
                       <Link to={`/quiz/${lessonId}-test?type=final`}>
                         <Trophy className="h-4 w-4 mr-2 text-[#14F195]" />
@@ -285,10 +251,10 @@ const LessonView = () => {
           
           {/* Main Content */}
           <div className="md:col-span-3">
-            <div className="backdrop-blur-md bg-white/10 border border-white/10 rounded-lg p-6 md:p-8">
+            <div className="bg-accent1 border border-white/10 rounded-lg p-6 md:p-8">
               {/* If this is a sponsored lesson, show sponsor */}
               {lesson.sponsored && (
-                <div className="mb-6 p-3 bg-white/10 rounded-md flex items-center justify-between">
+                <div className="mb-6 p-3 bg-accent2 rounded-md flex items-center justify-between">
                   <div className="text-white/70 text-sm">This lesson is sponsored by</div>
                   <div className="font-medium text-white">Sponsor Name</div>
                 </div>
