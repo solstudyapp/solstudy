@@ -85,11 +85,19 @@ const QuizPage = () => {
       description: "Great job! Your progress has been saved.",
     });
     
-    // Navigate back to lesson or to the next section
+    // Extract section number from sectionId (e.g., "section1" -> 1)
+    const currentSectionNumber = parseInt(sectionId?.replace('section', '') || '0', 10);
+    const nextSectionNumber = currentSectionNumber;
+    
+    // Navigate to next section or home if it's the final quiz
     if (quiz.isFinalTest) {
       navigate("/");
     } else {
+      // Navigate to the next section
       navigate(`/lesson/${lessonId}`);
+      
+      // This will update the lessonView to show the next section
+      lessonService.setCurrentSection(lessonId || '', currentSectionNumber);
     }
   };
   

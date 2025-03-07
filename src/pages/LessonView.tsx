@@ -16,6 +16,7 @@ const LessonView = () => {
   const [currentSection, setCurrentSection] = useState(0);
   const [currentPage, setCurrentPage] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [completedSections, setCompletedSections] = useState<string[]>([]);
   
   // Find the lesson based on the URL param
   const lesson = lessonData.find(l => l.id === lessonId);
@@ -26,11 +27,17 @@ const LessonView = () => {
   useEffect(() => {
     if (!lesson) return;
     
+    // Load completed sections from the lesson service
+    if (lessonId) {
+      const completed = lessonService.getCompletedSections(lessonId);
+      setCompletedSections(completed);
+    }
+    
     // Calculate progress based on current position
     const totalPages = sections.reduce((acc, section) => acc + section.pages.length, 0);
     const pagesCompleted = sections.slice(0, currentSection).reduce((acc, section) => acc + section.pages.length, 0) + currentPage;
     setProgress(Math.round((pagesCompleted / totalPages) * 100));
-  }, [currentSection, currentPage, lesson, sections]);
+  }, [currentSection, currentPage, lesson, sections, lessonId]);
   
   if (!lesson) {
     return (
@@ -54,22 +61,19 @@ const LessonView = () => {
     if (currentPage < currentSectionData.pages.length - 1) {
       setCurrentPage(currentPage + 1);
     } 
-    // If there are more sections
-    else if (currentSection < sections.length - 1) {
+    // If there are more sections and the current section's quiz is completed
+    else if (currentSection < sections.length - 1 && completedSections.includes(currentSectionData.id)) {
       setCurrentSection(currentSection + 1);
       setCurrentPage(0);
       
-      // Mark section as completed in the service
-      lessonService.completeSection(lesson.id, currentSectionData.id);
-      
       toast({
-        title: "Section completed!",
-        description: "Moving on to the next section.",
+        title: "Moving to next section",
+        description: "You've completed the previous section.",
       });
     } 
-    // If we're at the last page of the last section
-    else if (currentSection === sections.length - 1 && currentPage === currentSectionData.pages.length - 1) {
-      // Mark section as completed
+    // If we're at the last page of the section and haven't taken the quiz yet
+    else if (currentPage === currentSectionData.pages.length - 1) {
+      // Mark section as ready for quiz
       lessonService.completeSection(lesson.id, currentSectionData.id);
       
       toast({
@@ -95,7 +99,8 @@ const LessonView = () => {
   };
   
   const isFirstPage = currentSection === 0 && currentPage === 0;
-  const isLastPage = currentSection === sections.length - 1 && currentPage === currentSectionData.pages.length - 1;
+  const isLastPage = currentSection === sections.length - 1 && currentPage === currentSectionData.pages.length - 1 || 
+                      currentPage === currentSectionData.pages.length - 1;
   
   // Calculate total pages for the header
   const totalPages = sections.reduce((acc, section) => acc + section.pages.length, 0);
@@ -120,6 +125,7 @@ const LessonView = () => {
             currentPage={currentPage}
             setCurrentSection={setCurrentSection}
             setCurrentPage={setCurrentPage}
+            completedSections={completedSections}
           />
           
           {/* Main Content */}
