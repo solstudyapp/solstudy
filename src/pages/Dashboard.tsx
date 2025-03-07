@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,7 +38,6 @@ import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tool
 import { LessonType } from "@/types/lesson";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-// Mock data for the points chart
 const generateMockPointsData = () => {
   const data = [];
   const today = new Date();
@@ -58,7 +56,6 @@ const generateMockPointsData = () => {
   return data;
 };
 
-// Mock referral history data
 const mockReferrals = [
   {
     id: 1,
@@ -96,7 +93,6 @@ const Dashboard = () => {
   const [referrals, setReferrals] = useState(mockReferrals);
   const [referralLink, setReferralLink] = useState("");
   
-  // Function to get the appropriate icon for a lesson based on its ID
   const getLessonIcon = (lessonId: string) => {
     const iconMap: Record<string, JSX.Element> = {
       "intro-to-blockchain": <Database size={24} />,
@@ -114,15 +110,11 @@ const Dashboard = () => {
   };
   
   useEffect(() => {
-    // Get user points
     const points = lessonService.getUserPoints();
     setUserPoints(points);
     
-    // For demo purposes, let's ensure we have some in-progress courses
-    // If there are none in the actual user data, we'll add some
     const inProgress = lessonData
       .map(lesson => {
-        // Get actual progress from the service
         const progress = lessonService.calculateLessonProgress(lesson.id, 3);
         
         if (progress > 0 && progress < 100) {
@@ -135,28 +127,24 @@ const Dashboard = () => {
       })
       .filter(Boolean) as LessonType[];
     
-    // If no courses are in progress, add some for demonstration
     if (inProgress.length === 0) {
-      // Add some demo in-progress courses - make sure they're different from completed ones
       const demoCourses = [
-        { ...lessonData[2], progress: 66 },  // DeFi Essentials
-        { ...lessonData[4], progress: 33 }   // Solana Development
+        { ...lessonData[2], progress: 66 },
+        { ...lessonData[4], progress: 33 }
       ];
       setInProgressLessons(demoCourses);
     } else {
       setInProgressLessons(inProgress);
     }
     
-    // Mock completed courses (for demo purposes)
-    // Make sure these are different from the in-progress courses
     const completed = [
       { 
-        ...lessonData[0],  // Introduction to Blockchain
+        ...lessonData[0],
         completedDate: new Date(Date.now() - Math.random() * 10000000000).toLocaleDateString(),
         earnedPoints: Math.floor(Math.random() * 300) + 100
       },
       {
-        ...lessonData[7],  // Wallet Management
+        ...lessonData[7],
         completedDate: new Date(Date.now() - Math.random() * 5000000000).toLocaleDateString(),
         earnedPoints: Math.floor(Math.random() * 300) + 100
       }
@@ -164,12 +152,9 @@ const Dashboard = () => {
     
     setCompletedLessons(completed);
     
-    // Generate mock points data for the chart
     setPointsData(generateMockPointsData());
     
-    // Create the full referral link
-    const baseUrl = window.location.origin;
-    setReferralLink(`${baseUrl}/signup?ref=${referralCode}`);
+    setReferralLink(`https://solstudy.com/signup?ref=${referralCode}`);
   }, [referralCode]);
   
   const handleCopyReferralCode = () => {
@@ -208,10 +193,8 @@ const Dashboard = () => {
             </TabsTrigger>
           </TabsList>
           
-          {/* Overview Tab Content */}
           <TabsContent value="overview" className="mt-0">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              {/* Points Card */}
               <Card className="glass-card text-white col-span-1">
                 <CardHeader>
                   <CardTitle className="flex items-center">
@@ -225,7 +208,6 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
               
-              {/* Points Chart */}
               <Card className="glass-card text-white col-span-1 md:col-span-2">
                 <CardHeader>
                   <CardTitle className="flex items-center">
@@ -273,7 +255,6 @@ const Dashboard = () => {
               </Card>
             </div>
             
-            {/* Courses In Progress */}
             <Card className="glass-card text-white mb-8">
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -329,7 +310,6 @@ const Dashboard = () => {
               </CardContent>
             </Card>
             
-            {/* Completed Courses */}
             <Card className="glass-card text-white mb-8">
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -382,7 +362,6 @@ const Dashboard = () => {
             </Card>
           </TabsContent>
           
-          {/* Referrals Tab Content */}
           <TabsContent value="referrals" className="mt-0">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <Card className="glass-card text-white col-span-1">
