@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Question } from "@/types/lesson";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -48,6 +47,13 @@ const QuizQuestion = ({
         title: "Correct!",
         description: "Good job! Moving to next question soon...",
       });
+      
+      // Use shorter timeout for correct answers (1 second)
+      setTimeout(() => {
+        onNext();
+        setIsSubmitted(false);
+        setShowExplanation(false);
+      }, 1000);
     } else {
       // For wrong answers, show explanation if available
       setShowExplanation(true);
@@ -60,14 +66,14 @@ const QuizQuestion = ({
         title: "Incorrect",
         description: explanationText,
       });
+      
+      // Keep the longer timeout for wrong answers (5 seconds)
+      setTimeout(() => {
+        onNext();
+        setIsSubmitted(false);
+        setShowExplanation(false);
+      }, 5000);
     }
-    
-    // Wait for a moment to show feedback before moving to next question
-    setTimeout(() => {
-      onNext();
-      setIsSubmitted(false);
-      setShowExplanation(false);
-    }, 5000); // Increased from 3000 to 5000 (5 seconds) to allow more time for reading explanations
   };
 
   return (
