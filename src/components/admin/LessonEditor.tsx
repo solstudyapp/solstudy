@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -508,7 +509,8 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
                   {availableIcons.map((icon) => (
                     <SelectItem key={icon.name} value={icon.name} className="flex items-center">
                       <div className="flex items-center gap-2">
-                        <span className="flex-shrink-0">{React.cloneElement(icon.component as React.ReactElement, { size: 16 })}</span>
+                        {/* Fixed React reference issue by using JSX directly */}
+                        <span className="flex-shrink-0">{icon.component}</span>
                         <span>{icon.name}</span>
                       </div>
                     </SelectItem>
