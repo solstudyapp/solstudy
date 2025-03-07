@@ -119,7 +119,7 @@ const QuizPage = () => {
     }
   };
   
-  // New function to handle section quiz completion without feedback
+  // Function to handle section quiz completion without feedback
   const handleSectionQuizComplete = () => {
     // For section quizzes, determine if there's a next section
     const isLastSection = currentSectionIndex >= sections.length - 1;
@@ -138,22 +138,18 @@ const QuizPage = () => {
         description: "Moving on to the next section.",
       });
       
-      // Navigate to the next section, starting at the first page
-      navigate(`/lesson/${lessonId}`);
+      // First update the progress to the next section BEFORE navigation
+      const nextSectionId = sections[currentSectionIndex + 1].id;
+      const nextSectionFirstPageId = sections[currentSectionIndex + 1].pages[0].id;
       
-      // We need to ensure this gets applied after navigation
-      // This is a workaround since the LessonView component will initialize with stored progress
-      setTimeout(() => {
-        // Update progress to the next section
-        lessonService.updateProgress(
-          lessonId || "", 
-          sections[currentSectionIndex + 1].id, 
-          sections[currentSectionIndex + 1].pages[0].id
-        );
-        
-        // Force a reload to ensure the new section loads
-        window.location.reload();
-      }, 100);
+      lessonService.updateProgress(
+        lessonId || "", 
+        nextSectionId, 
+        nextSectionFirstPageId
+      );
+      
+      // Then navigate to the lesson page
+      navigate(`/lesson/${lessonId}`);
     }
   };
   
