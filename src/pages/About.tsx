@@ -35,7 +35,7 @@ const About = () => {
               <div className="flex-shrink-0">
                 <div className="relative">
                   <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#9945FF] to-[#14F195] opacity-70 animate-spin-slow"></div>
-                  <div className="relative bg-black p-6 rounded-full">
+                  <div className="relative bg-black p-6 rounded-full z-10">
                     <Rocket className="h-16 w-16 text-white" />
                   </div>
                 </div>
@@ -223,8 +223,9 @@ const About = () => {
               </Button>
             </div>
             <div className="md:w-1/2 flex justify-center">
-              <div className="relative p-1 rounded-full bg-gradient-to-r from-[#9945FF] to-[#14F195] animate-spin-slow">
-                <div className="bg-black rounded-full p-8">
+              <div className="relative">
+                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#9945FF] to-[#14F195] animate-spin-slow"></div>
+                <div className="relative bg-black rounded-full m-1 p-8 z-10">
                   <Rocket className="h-32 w-32 text-white" />
                 </div>
               </div>
