@@ -43,17 +43,13 @@ const Dashboard = () => {
     const points = lessonService.getUserPoints();
     setUserPoints(points);
     
-    // Get all user progress for all lessons
+    // Get in-progress courses
     const inProgress = lessonData.map(lesson => {
-      const progress = lessonService.getUserProgress(lesson.id);
-      const progressPercentage = lessonService.calculateLessonProgress(lesson.id, lesson.sections);
-      
-      // Consider a lesson "in progress" if it has ANY progress (visited at least one page)
-      // but not 100% completed
-      if (progressPercentage > 0 && progressPercentage < 100) {
+      const progress = lessonService.calculateLessonProgress(lesson.id, 3); // Assuming 3 sections per lesson
+      if (progress > 0 && progress < 100) {
         return {
           ...lesson,
-          progress: progressPercentage
+          progress
         };
       }
       return null;
@@ -61,20 +57,12 @@ const Dashboard = () => {
     
     setInProgressLessons(inProgress);
     
-    // Get completed courses
-    const completed = lessonData.map(lesson => {
-      const progressPercentage = lessonService.calculateLessonProgress(lesson.id, lesson.sections);
-      
-      if (progressPercentage === 100) {
-        const userProgress = lessonService.getUserProgress(lesson.id);
-        return {
-          ...lesson,
-          completedDate: new Date().toLocaleDateString(), // In a real app, we'd store this
-          earnedPoints: userProgress.earnedPoints || Math.floor(Math.random() * 300) + 100
-        };
-      }
-      return null;
-    }).filter(Boolean);
+    // Mock completed courses (for demo purposes)
+    const completed = lessonData.slice(0, 2).map(lesson => ({
+      ...lesson,
+      completedDate: new Date(Date.now() - Math.random() * 10000000000).toLocaleDateString(),
+      earnedPoints: Math.floor(Math.random() * 300) + 100
+    }));
     
     setCompletedLessons(completed);
     
