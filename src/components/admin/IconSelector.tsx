@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
@@ -7,27 +8,28 @@ import { Check, ChevronsUpDown } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Filter out non-icon exports from lucide-react and create a type-safe list
+// Create a cleaner list of icons by filtering out non-icon exports
 const iconList = Object.entries(LucideIcons)
-  .filter(([name]) => {
-    // Filter out non-icon exports and only keep actual icon components
+  .filter(([name, component]) => {
+    // Only include actual icon components (all icons should be React components)
     return (
-      name !== "createLucideIcon" && 
-      name !== "icons" && 
-      name !== "default" &&
-      !name.startsWith("__") &&
-      name !== "Icon" &&
-      name !== "createIcons" &&
-      name !== "replaceElement" &&
-      name !== "toKebabCase" &&
-      name !== "LucideIcon" &&
-      name !== "LucideProps" &&
-      typeof LucideIcons[name as keyof typeof LucideIcons] === 'function'
+      typeof component === 'function' &&
+      // Exclude utility functions and non-icon exports
+      name !== 'createLucideIcon' &&
+      name !== 'icons' &&
+      name !== 'default' &&
+      name !== 'Icon' &&
+      name !== 'createIcons' &&
+      name !== 'replaceElement' &&
+      name !== 'toKebabCase' &&
+      !name.startsWith('__') &&
+      name !== 'LucideIcon' &&
+      name !== 'LucideProps'
     );
   })
   .map(([name, Icon]) => ({
     name,
-    icon: Icon as React.ComponentType<any>,
+    icon: Icon,
   }));
 
 interface IconSelectorProps {
@@ -94,15 +96,14 @@ const IconSelector = ({ selectedIcon, onSelectIcon }: IconSelectorProps) => {
                 )
                 .map(({ name, icon: IconComponent }) => {
                   const isSelected = name === currentIconName;
-                  const IconElement = IconComponent;
-                  const iconElement = <IconElement size={24} />;
                   
                   return (
                     <CommandItem
                       key={name}
                       value={name}
                       onSelect={() => {
-                        onSelectIcon(iconElement, name);
+                        const element = React.createElement(IconComponent, { size: 24 });
+                        onSelectIcon(element, name);
                         setOpen(false);
                       }}
                       className={cn(
@@ -112,7 +113,7 @@ const IconSelector = ({ selectedIcon, onSelectIcon }: IconSelectorProps) => {
                     >
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 flex items-center justify-center">
-                          <IconElement size={20} />
+                          {React.createElement(IconComponent, { size: 20 })}
                         </div>
                         <span>{name}</span>
                       </div>
