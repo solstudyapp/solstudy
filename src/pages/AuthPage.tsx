@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Apple, Facebook, Github, Mail, Wallet } from "lucide-react";
+import { Apple, Facebook, Github, Mail } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 const AuthPage = () => {
@@ -28,32 +28,24 @@ const AuthPage = () => {
     // In a real app, you would connect to the social auth provider
   };
   
-  const handleWalletAuth = () => {
-    toast({
-      title: "Connect wallet",
-      description: "Please connect your Solana wallet to continue",
-    });
-    // In a real app, you would connect to wallet
-  };
-  
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#9945FF] to-[#14F195] p-4">
+    <div className="min-h-screen flex items-center justify-center bg-black p-4">
       <div className="max-w-md w-full">
         <div className="mb-8 text-center">
           <Link to="/" className="inline-block">
-            <h1 className="text-3xl font-bold text-white">SolStudy</h1>
+            <h1 className="text-3xl font-bold text-gradient">SolStudy</h1>
           </Link>
           <p className="text-white/70 mt-2">Learn, earn, and grow with crypto</p>
         </div>
         
         <Tabs defaultValue="signin" className="w-full">
-          <TabsList className="grid grid-cols-2 w-full bg-white/10 text-white">
-            <TabsTrigger value="signin" className="data-[state=active]:bg-white/20">Sign In</TabsTrigger>
-            <TabsTrigger value="signup" className="data-[state=active]:bg-white/20">Sign Up</TabsTrigger>
+          <TabsList className="grid grid-cols-2 w-full bg-white/5 backdrop-blur-md text-white border border-white/10">
+            <TabsTrigger value="signin" className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/70">Sign In</TabsTrigger>
+            <TabsTrigger value="signup" className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/70">Sign Up</TabsTrigger>
           </TabsList>
           
           <TabsContent value="signin">
-            <Card className="border-white/10 bg-white/10 backdrop-blur-md text-white">
+            <Card className="dark-glass border-white/10 text-white">
               <CardHeader>
                 <CardTitle>Sign In</CardTitle>
                 <CardDescription className="text-white/70">
@@ -67,14 +59,14 @@ const AuthPage = () => {
                     placeholder="Email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                    className="bg-white/5 border-white/10 text-white placeholder:text-white/50"
                   />
                   <Input
                     type="password"
                     placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                    className="bg-white/5 border-white/10 text-white placeholder:text-white/50"
                   />
                 </div>
                 <Button
@@ -87,17 +79,17 @@ const AuthPage = () => {
                 
                 <div className="relative my-4">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-white/20"></div>
+                    <div className="w-full border-t border-white/10"></div>
                   </div>
                   <div className="relative flex justify-center text-xs">
-                    <span className="bg-[#1A1F2C]/60 px-2 text-white/50 backdrop-blur-md">or continue with</span>
+                    <span className="bg-black/60 px-2 text-white/50 backdrop-blur-md">or continue with</span>
                   </div>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <Button
                     variant="outline"
-                    className="border-white/20 text-white hover:bg-white/10"
+                    className="border-white/10 text-white hover:bg-white/5 bg-white/5"
                     onClick={() => handleSocialAuth("Google")}
                   >
                     <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
@@ -122,7 +114,7 @@ const AuthPage = () => {
                   </Button>
                   <Button
                     variant="outline"
-                    className="border-white/20 text-white hover:bg-white/10"
+                    className="border-white/10 text-white hover:bg-white/5 bg-white/5"
                     onClick={() => handleSocialAuth("Apple")}
                   >
                     <Apple className="mr-2 h-4 w-4" />
@@ -130,7 +122,7 @@ const AuthPage = () => {
                   </Button>
                   <Button
                     variant="outline"
-                    className="border-white/20 text-white hover:bg-white/10"
+                    className="border-white/10 text-white hover:bg-white/5 bg-white/5"
                     onClick={() => handleSocialAuth("Facebook")}
                   >
                     <Facebook className="mr-2 h-4 w-4" />
@@ -138,28 +130,19 @@ const AuthPage = () => {
                   </Button>
                   <Button
                     variant="outline"
-                    className="border-white/20 text-white hover:bg-white/10"
+                    className="border-white/10 text-white hover:bg-white/5 bg-white/5"
                     onClick={() => handleSocialAuth("GitHub")}
                   >
                     <Github className="mr-2 h-4 w-4" />
                     GitHub
                   </Button>
                 </div>
-                
-                <Button
-                  variant="outline"
-                  className="w-full border-[#9945FF] text-white hover:bg-[#9945FF]/20"
-                  onClick={handleWalletAuth}
-                >
-                  <Wallet className="mr-2 h-4 w-4" />
-                  Connect Wallet
-                </Button>
               </CardContent>
             </Card>
           </TabsContent>
           
           <TabsContent value="signup">
-            <Card className="border-white/10 bg-white/10 backdrop-blur-md text-white">
+            <Card className="dark-glass border-white/10 text-white">
               <CardHeader>
                 <CardTitle>Sign Up</CardTitle>
                 <CardDescription className="text-white/70">
@@ -173,15 +156,20 @@ const AuthPage = () => {
                     placeholder="Email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                    className="bg-white/5 border-white/10 text-white placeholder:text-white/50"
                   />
                   <Input
                     type="password"
                     placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                    className="bg-white/5 border-white/10 text-white placeholder:text-white/50"
                   />
+                </div>
+                <div className="bg-[#14F195]/10 border border-[#14F195]/30 rounded-md p-3 text-sm">
+                  <p className="text-white">
+                    <strong>Bonus:</strong> Get 100 points just for signing up!
+                  </p>
                 </div>
                 <Button
                   className="w-full bg-[#14F195] text-[#1A1F2C] hover:bg-[#14F195]/90"
@@ -193,17 +181,17 @@ const AuthPage = () => {
                 
                 <div className="relative my-4">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-white/20"></div>
+                    <div className="w-full border-t border-white/10"></div>
                   </div>
                   <div className="relative flex justify-center text-xs">
-                    <span className="bg-[#1A1F2C]/60 px-2 text-white/50 backdrop-blur-md">or continue with</span>
+                    <span className="bg-black/60 px-2 text-white/50 backdrop-blur-md">or continue with</span>
                   </div>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <Button
                     variant="outline"
-                    className="border-white/20 text-white hover:bg-white/10"
+                    className="border-white/10 text-white hover:bg-white/5 bg-white/5"
                     onClick={() => handleSocialAuth("Google")}
                   >
                     <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
@@ -228,7 +216,7 @@ const AuthPage = () => {
                   </Button>
                   <Button
                     variant="outline"
-                    className="border-white/20 text-white hover:bg-white/10"
+                    className="border-white/10 text-white hover:bg-white/5 bg-white/5"
                     onClick={() => handleSocialAuth("Apple")}
                   >
                     <Apple className="mr-2 h-4 w-4" />
@@ -236,7 +224,7 @@ const AuthPage = () => {
                   </Button>
                   <Button
                     variant="outline"
-                    className="border-white/20 text-white hover:bg-white/10"
+                    className="border-white/10 text-white hover:bg-white/5 bg-white/5"
                     onClick={() => handleSocialAuth("Facebook")}
                   >
                     <Facebook className="mr-2 h-4 w-4" />
@@ -244,22 +232,13 @@ const AuthPage = () => {
                   </Button>
                   <Button
                     variant="outline"
-                    className="border-white/20 text-white hover:bg-white/10"
+                    className="border-white/10 text-white hover:bg-white/5 bg-white/5"
                     onClick={() => handleSocialAuth("GitHub")}
                   >
                     <Github className="mr-2 h-4 w-4" />
                     GitHub
                   </Button>
                 </div>
-                
-                <Button
-                  variant="outline"
-                  className="w-full border-[#9945FF] text-white hover:bg-[#9945FF]/20"
-                  onClick={handleWalletAuth}
-                >
-                  <Wallet className="mr-2 h-4 w-4" />
-                  Connect Wallet
-                </Button>
               </CardContent>
               <CardFooter className="text-white/70 text-sm text-center">
                 By signing up, you agree to our Terms of Service and Privacy Policy

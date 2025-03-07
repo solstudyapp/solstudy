@@ -1,86 +1,43 @@
 
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { 
-  ChevronLeft, 
-  ChevronRight,
-  BookOpen,
-  CheckCircle,
-  Trophy
-} from "lucide-react";
-import Header from "@/components/Header";
-import { DifficultyBadge } from "@/components/DifficultyBadge";
-import { lessonData, lessonSections } from "@/data/lessons";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { lessonData } from "@/data/lessons";
+import { getSectionsForLesson } from "@/data/sections";
 import { toast } from "@/hooks/use-toast";
+import { lessonService } from "@/services/lessonService";
+import LessonSidebar from "@/components/lesson/LessonSidebar";
+import LessonHeader from "@/components/lesson/LessonHeader";
+import LessonContent from "@/components/lesson/LessonContent";
+import { Button } from "@/components/ui/button";
 
 const LessonView = () => {
   const { lessonId } = useParams();
+  const navigate = useNavigate();
   const [currentSection, setCurrentSection] = useState(0);
   const [currentPage, setCurrentPage] = useState(0);
   const [progress, setProgress] = useState(0);
-  const [completedSections, setCompletedSections] = useState<string[]>([]);
   
   // Find the lesson based on the URL param
   const lesson = lessonData.find(l => l.id === lessonId);
   
-  // Get the sections for this specific lesson, or use default if not found
-  const sections = lessonId && lessonSections[lessonId] ? lessonSections[lessonId] : lessonSections.default;
-  
-  // Check if all sections are completed to enable the final test
-  const allSectionsCompleted = sections.length === completedSections.length;
+  // Get sections data from our new data file
+  const sections = lessonId ? getSectionsForLesson(lessonId) : [];
   
   useEffect(() => {
     if (!lesson) return;
     
-    // Load completed sections from localStorage
-    const savedProgress = localStorage.getItem(`lesson_progress_${lessonId}`);
-    if (savedProgress) {
-      const parsedProgress = JSON.parse(savedProgress);
-      setCompletedSections(parsedProgress.completedSections || []);
-      
-      // If there's a currentSection and currentPage in localStorage, use those
-      if (parsedProgress.currentSection !== undefined) {
-        setCurrentSection(parsedProgress.currentSection);
-      }
-      if (parsedProgress.currentPage !== undefined) {
-        setCurrentPage(parsedProgress.currentPage);
-      }
-    }
-  }, [lessonId, lesson]);
-  
-  // Calculate progress in a separate useEffect to avoid infinite loop
-  useEffect(() => {
-    if (!sections) return;
-    
+    // Calculate progress based on current position
     const totalPages = sections.reduce((acc, section) => acc + section.pages.length, 0);
     const pagesCompleted = sections.slice(0, currentSection).reduce((acc, section) => acc + section.pages.length, 0) + currentPage;
     setProgress(Math.round((pagesCompleted / totalPages) * 100));
-  }, [currentSection, currentPage, sections]);
-  
-  // Save progress to localStorage
-  const saveProgress = () => {
-    if (!lessonId) return;
-    
-    localStorage.setItem(`lesson_progress_${lessonId}`, JSON.stringify({
-      currentSection,
-      currentPage,
-      completedSections
-    }));
-  };
-  
-  useEffect(() => {
-    saveProgress();
-  }, [currentSection, currentPage, completedSections]);
+  }, [currentSection, currentPage, lesson, sections]);
   
   if (!lesson) {
     return (
       <div className="min-h-screen bg-black">
-        <Header />
         <div className="max-w-3xl mx-auto px-4 py-16 text-center text-white">
-          <h1 className="text-2xl font-bold mb-4">Lesson not found</h1>
-          <p className="mb-6">The lesson you're looking for doesn't exist or has been removed.</p>
+          <h1 className="text-2xl font-bold mb-4">Course not found</h1>
+          <p className="mb-6">The course you're looking for doesn't exist or has been removed.</p>
           <Button asChild>
             <Link to="/">Back to Courses</Link>
           </Button>
@@ -90,19 +47,38 @@ const LessonView = () => {
   }
 
   const currentSectionData = sections[currentSection];
-  const currentPageData = currentSectionData.pages[currentPage];
+  const currentPageData = currentSectionData?.pages[currentPage];
   
   const navigateNext = () => {
     // If there are more pages in the current section
     if (currentPage < currentSectionData.pages.length - 1) {
       setCurrentPage(currentPage + 1);
     } 
-    // If we're at the last page of the current section
-    else if (currentPage === currentSectionData.pages.length - 1) {
+    // If there are more sections
+    else if (currentSection < sections.length - 1) {
+      setCurrentSection(currentSection + 1);
+      setCurrentPage(0);
+      
+      // Mark section as completed in the service
+      lessonService.completeSection(lesson.id, currentSectionData.id);
+      
+      toast({
+        title: "Section completed!",
+        description: "Moving on to the next section.",
+      });
+    } 
+    // If we're at the last page of the last section
+    else if (currentSection === sections.length - 1 && currentPage === currentSectionData.pages.length - 1) {
+      // Mark section as completed
+      lessonService.completeSection(lesson.id, currentSectionData.id);
+      
       toast({
         title: "Section completed!",
         description: "You've completed this section. Time for the quiz!",
       });
+      
+      // Navigate to the quiz
+      navigate(`/quiz/${lesson.id}/section${currentSection + 1}`);
     }
   };
   
@@ -120,187 +96,43 @@ const LessonView = () => {
   
   const isFirstPage = currentSection === 0 && currentPage === 0;
   const isLastPage = currentSection === sections.length - 1 && currentPage === currentSectionData.pages.length - 1;
-  const isLastPageOfSection = currentPage === currentSectionData.pages.length - 1;
-  const isSectionCompleted = completedSections.includes(currentSectionData.id);
+  
+  // Calculate total pages for the header
+  const totalPages = sections.reduce((acc, section) => acc + section.pages.length, 0);
   
   return (
     <div className="min-h-screen bg-black">
-      <Header />
-      
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Lesson Header */}
-        <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center">
-          <div>
-            <div className="flex items-center mb-2">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                asChild 
-                className="text-white/80 hover:text-white p-0 h-auto font-normal"
-              >
-                <Link to="/">
-                  <ChevronLeft className="mr-1 h-4 w-4" />
-                  Back to Courses
-                </Link>
-              </Button>
-            </div>
-            <h1 className="text-2xl md:text-3xl font-bold text-white">{lesson.title}</h1>
-            <div className="flex items-center mt-2">
-              <DifficultyBadge difficulty={lesson.difficulty} />
-              <span className="text-white/70 text-sm ml-3">{sections.length} sections • {sections.reduce((acc, section) => acc + section.pages.length, 0)} pages</span>
-            </div>
-          </div>
-          
-          <div className="mt-4 md:mt-0">
-            <div className="flex items-center mb-1">
-              <span className="text-white text-sm mr-2">Progress</span>
-              <span className="text-white text-sm font-medium">{progress}%</span>
-            </div>
-            <Progress value={progress} className="w-32 md:w-40 h-2 bg-white/20" />
-          </div>
-        </div>
+        <LessonHeader 
+          lesson={lesson} 
+          progress={progress} 
+          totalSections={sections.length}
+          totalPages={totalPages}
+        />
         
         {/* Lesson Content */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {/* Sidebar */}
-          <div className="hidden md:block">
-            <div className="bg-accent1 border border-white/10 rounded-lg p-4 sticky top-24">
-              <h3 className="text-lg font-medium text-white mb-4">Lesson Contents</h3>
-              <div className="space-y-4">
-                {sections.map((section, sectionIndex) => (
-                  <div key={section.id}>
-                    <div className="flex items-center mb-2">
-                      {completedSections.includes(section.id) ? (
-                        <CheckCircle className="h-4 w-4 text-[#14F195] mr-2" />
-                      ) : sectionIndex === currentSection ? (
-                        <BookOpen className="h-4 w-4 text-white mr-2" />
-                      ) : (
-                        <div className="h-4 w-4 rounded-full border border-white/40 mr-2"></div>
-                      )}
-                      <span className="text-white font-medium">{section.title}</span>
-                    </div>
-                    <div className="ml-6 space-y-1">
-                      {section.pages.map((page, pageIndex) => (
-                        <button
-                          key={page.id}
-                          className={`text-sm w-full text-left py-1 px-2 rounded ${
-                            sectionIndex === currentSection && pageIndex === currentPage
-                              ? "bg-white/20 text-white"
-                              : sectionIndex < currentSection || (sectionIndex === currentSection && pageIndex < currentPage)
-                              ? "text-white/70 hover:text-white hover:bg-white/10"
-                              : "text-white/50"
-                          }`}
-                          onClick={() => {
-                            // Only allow navigating to completed pages or the current one
-                            if (
-                              sectionIndex < currentSection ||
-                              (sectionIndex === currentSection && pageIndex <= currentPage) ||
-                              completedSections.includes(section.id)
-                            ) {
-                              setCurrentSection(sectionIndex);
-                              setCurrentPage(pageIndex);
-                            }
-                          }}
-                        >
-                          {page.title}
-                        </button>
-                      ))}
-                      
-                      {/* Quiz link for the section */}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        asChild
-                        className={`text-sm w-full text-left py-1 px-2 rounded flex items-center ${
-                          completedSections.includes(section.id)
-                            ? "text-[#14F195]"
-                            : isLastPageOfSection && sectionIndex === currentSection
-                            ? "text-white hover:bg-white/10"
-                            : "text-white/50"
-                        }`}
-                        disabled={!completedSections.includes(section.id) && !(isLastPageOfSection && sectionIndex === currentSection)}
-                      >
-                        <Link to={`/quiz/${section.quiz.id}?type=section&sectionId=${section.id}`}>
-                          <Trophy className="h-3 w-3 mr-1" />
-                          Section Quiz
-                        </Link>
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-                
-                {/* Final Test Link */}
-                {allSectionsCompleted && (
-                  <div className="mt-6 pt-4 border-t border-white/10">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      asChild
-                      className="w-full bg-accent1 border-white/20 text-white hover:bg-white/20"
-                    >
-                      <Link to={`/quiz/${lessonId}-test?type=final`}>
-                        <Trophy className="h-4 w-4 mr-2 text-[#14F195]" />
-                        Take Final Test
-                      </Link>
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+          <LessonSidebar 
+            sections={sections}
+            currentSection={currentSection}
+            currentPage={currentPage}
+            setCurrentSection={setCurrentSection}
+            setCurrentPage={setCurrentPage}
+          />
           
           {/* Main Content */}
-          <div className="md:col-span-3">
-            <div className="bg-accent1 border border-white/10 rounded-lg p-6 md:p-8">
-              {/* If this is a sponsored lesson, show sponsor */}
-              {lesson.sponsored && (
-                <div className="mb-6 p-3 bg-accent2 rounded-md flex items-center justify-between">
-                  <div className="text-white/70 text-sm">This lesson is sponsored by</div>
-                  <div className="font-medium text-white">Sponsor Name</div>
-                </div>
-              )}
-              
-              <div 
-                className="prose prose-invert max-w-none mb-8"
-                dangerouslySetInnerHTML={{ __html: currentPageData.content }}
-              />
-              
-              {/* Navigation buttons */}
-              <div className="flex justify-between pt-4 border-t border-white/10">
-                <Button
-                  variant="outline"
-                  onClick={navigatePrev}
-                  disabled={isFirstPage}
-                  className={`border-white/20 text-white hover:bg-white/10 hover:text-white ${
-                    isFirstPage ? "invisible" : ""
-                  }`}
-                >
-                  <ChevronLeft className="mr-2 h-4 w-4" />
-                  Previous Page
-                </Button>
-                
-                {isLastPageOfSection ? (
-                  <Button 
-                    className="bg-[#14F195] text-[#1A1F2C] hover:bg-[#14F195]/90"
-                    asChild
-                  >
-                    <Link to={`/quiz/${currentSectionData.quiz.id}?type=section&sectionId=${currentSectionData.id}`}>
-                      Take Section Quiz
-                      <Trophy className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={navigateNext}
-                    className="bg-[#9945FF] hover:bg-[#9945FF]/90 text-white"
-                  >
-                    Next Page
-                    <ChevronRight className="ml-2 h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
+          <LessonContent 
+            lesson={lesson}
+            currentSection={currentSection}
+            currentPage={currentPage}
+            currentPageData={currentPageData}
+            navigatePrev={navigatePrev}
+            navigateNext={navigateNext}
+            isFirstPage={isFirstPage}
+            isLastPage={isLastPage}
+          />
         </div>
       </div>
     </div>

@@ -1,103 +1,113 @@
 
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Bell, Menu, LogIn } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 
 const Header = () => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // This would come from auth context
 
-  const navLinks = [
-    { name: "Courses", path: "/" },
-    { name: "Dashboard", path: "/dashboard" },
-    { name: "About", path: "/about" },
-  ];
+  const isActive = (path: string) => {
+    return location.pathname === path;
+  };
 
   return (
-    <header className="sticky top-0 z-50 bg-black/90 backdrop-blur-md border-b border-accent3/20">
+    <header className="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="flex items-center">
+          {/* Logo */}
+          <div className="flex-shrink-0">
             <Link to="/" className="flex items-center">
-              <span className="text-white font-bold text-xl">SolStudy</span>
+              <span className="text-xl font-bold text-gradient">SolStudy</span>
             </Link>
           </div>
 
-          {/* Desktop navigation */}
-          <nav className="hidden md:flex items-center space-x-4">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                to={link.path}
-                className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                  location.pathname === link.path
-                    ? "text-accent4 bg-accent1"
-                    : "text-white/70 hover:text-white hover:bg-accent1"
-                }`}
-              >
-                {link.name}
-              </Link>
-            ))}
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex space-x-4">
+            <Link
+              to="/"
+              className={`text-sm font-medium transition-colors hover:text-white ${
+                isActive("/") ? "text-white" : "text-white/70"
+              }`}
+            >
+              Home
+            </Link>
+            <Link
+              to="/about"
+              className={`text-sm font-medium transition-colors hover:text-white ${
+                isActive("/about") ? "text-white" : "text-white/70"
+              }`}
+            >
+              About
+            </Link>
           </nav>
 
-          <div className="flex items-center space-x-4">
-            {isLoggedIn ? (
-              <>
-                <Button variant="ghost" size="icon" className="text-white/70 hover:text-white relative">
-                  <Bell size={20} />
-                  <Badge className="absolute -top-1 -right-1 w-4 h-4 p-0 flex items-center justify-center bg-accent4 text-black">3</Badge>
-                </Button>
-                <Link to="/dashboard">
-                  <Avatar className="border-2 border-accent3/20">
-                    <AvatarImage src="https://github.com/shadcn.png" />
-                    <AvatarFallback>CN</AvatarFallback>
-                  </Avatar>
-                </Link>
-              </>
-            ) : (
-              <Link to="/auth">
-                <Button className="bg-accent4 text-black hover:bg-accent4/90">
-                  <LogIn className="mr-2 h-4 w-4" /> Sign In
-                </Button>
-              </Link>
-            )}
+          {/* Login/Register Button */}
+          <div className="hidden md:flex items-center space-x-4">
+            <Button 
+              variant="outline" 
+              className="text-white bg-transparent border-white/20 hover:bg-white/10"
+              asChild
+            >
+              <Link to="/auth">Login / Register</Link>
+            </Button>
+          </div>
 
-            {/* Mobile menu button */}
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden text-white">
-                  <Menu size={24} />
-                </Button>
-              </SheetTrigger>
-              <SheetContent className="bg-black/95 backdrop-blur-lg border-accent3/20 text-white">
-                <div className="flex flex-col gap-6 mt-8">
-                  {navLinks.map((link) => (
-                    <Link
-                      key={link.name}
-                      to={link.path}
-                      className="text-lg font-medium hover:text-accent4 transition-colors"
-                    >
-                      {link.name}
-                    </Link>
-                  ))}
-                  
-                  {!isLoggedIn && (
-                    <Link to="/auth">
-                      <Button className="w-full mt-4 bg-accent4 text-black hover:bg-accent4/90">
-                        <LogIn className="mr-2 h-4 w-4" /> Sign In
-                      </Button>
-                    </Link>
-                  )}
-                </div>
-              </SheetContent>
-            </Sheet>
+          {/* Mobile menu button */}
+          <div className="md:hidden">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="text-white"
+            >
+              {mobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </Button>
           </div>
         </div>
       </div>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden bg-black/95 backdrop-blur-md border-b border-white/10">
+          <div className="px-2 pt-2 pb-3 space-y-1">
+            <Link
+              to="/"
+              className={`block px-3 py-2 rounded-md text-base font-medium ${
+                isActive("/")
+                  ? "bg-white/10 text-white"
+                  : "text-white/70 hover:bg-white/5 hover:text-white"
+              }`}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Home
+            </Link>
+            <Link
+              to="/about"
+              className={`block px-3 py-2 rounded-md text-base font-medium ${
+                isActive("/about")
+                  ? "bg-white/10 text-white"
+                  : "text-white/70 hover:bg-white/5 hover:text-white"
+              }`}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              About
+            </Link>
+            <Link
+              to="/auth"
+              className="block px-3 py-2 rounded-md text-base font-medium text-white bg-gradient-to-r from-[#9945FF]/30 to-[#14F195]/30 hover:from-[#9945FF]/40 hover:to-[#14F195]/40"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Login / Register
+            </Link>
+          </div>
+        </div>
+      )}
     </header>
   );
 };

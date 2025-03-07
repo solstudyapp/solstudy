@@ -12,9 +12,9 @@ export const DifficultyBadge = ({ difficulty, size = "md" }: DifficultyBadgeProp
     <Badge
       className={cn(
         "font-medium transition-all",
-        difficulty === "beginner" && "bg-black border border-green-500/30 text-green-400 hover:bg-green-500/10",
-        difficulty === "intermediate" && "bg-black border border-blue-500/30 text-blue-400 hover:bg-blue-500/10",
-        difficulty === "advanced" && "bg-black border border-orange-500/30 text-orange-400 hover:bg-orange-500/10",
+        difficulty === "beginner" && "bg-green-500/30 text-green-50 hover:bg-green-500/40",
+        difficulty === "intermediate" && "bg-blue-500/30 text-blue-50 hover:bg-blue-500/40",
+        difficulty === "advanced" && "bg-orange-500/30 text-orange-50 hover:bg-orange-500/40",
         size === "sm" && "text-xs px-2 py-0"
       )}
     >

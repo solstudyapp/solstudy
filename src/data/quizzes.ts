@@ -1,169 +1,175 @@
 
-import { SectionQuiz, FinalTest } from "@/types/lesson";
+import { Quiz } from "@/types/lesson";
 
-// Section quizzes (2 questions each)
-export const sectionQuizzes: Record<string, SectionQuiz> = {
-  "section1-quiz": {
-    id: "section1-quiz",
-    title: "Getting Started Quiz",
+// Map of quizzes by quiz ID
+export const quizzesData: Record<string, Quiz> = {
+  "quiz-section1": {
+    id: "quiz-section1",
+    title: "Blockchain Fundamentals Quiz",
+    lessonId: "intro-to-blockchain",
+    sectionId: "section1",
+    rewardPoints: 100,
     questions: [
       {
-        id: "s1q1",
-        text: "What is the main purpose of blockchain technology?",
+        id: "q1",
+        text: "What is the main innovation of blockchain technology?",
         options: [
-          "To create cryptocurrencies only",
-          "To enable secure, transparent record-keeping without central authority",
-          "To replace traditional banking systems entirely",
-          "To make database queries faster"
+          "Fast transaction processing",
+          "Distributed, immutable ledger",
+          "Cheap international payments",
+          "Anonymous transactions"
         ],
         correctOptionIndex: 1
       },
       {
-        id: "s1q2",
-        text: "When was Bitcoin created?",
+        id: "q2",
+        text: "Which of these is NOT a key property of most blockchains?",
         options: [
-          "2005",
+          "Decentralization",
+          "Immutability",
+          "Central authority",
+          "Transparency"
+        ],
+        correctOptionIndex: 2
+      },
+      {
+        id: "q3",
+        text: "When was the Bitcoin whitepaper published?",
+        options: [
           "2007",
-          "2009",
+          "2008",
+          "2010",
           "2013"
         ],
-        correctOptionIndex: 2
-      }
-    ],
-    rewardPoints: 20
-  },
-  "section2-quiz": {
-    id: "section2-quiz",
-    title: "Core Components Quiz",
-    questions: [
-      {
-        id: "s2q1",
-        text: "What does a hash function do in blockchain?",
-        options: [
-          "Encrypts user passwords only",
-          "Creates a unique, fixed-size output from input data",
-          "Mines new cryptocurrencies",
-          "Connects blocks in sequential order"
-        ],
         correctOptionIndex: 1
       },
-      {
-        id: "s2q2",
-        text: "What is a smart contract?",
-        options: [
-          "A legal agreement about blockchain usage",
-          "A standard cryptocurrency transaction",
-          "Self-executing code that runs when predefined conditions are met",
-          "A secure wallet for storing cryptocurrency"
-        ],
-        correctOptionIndex: 2
-      }
-    ],
-    rewardPoints: 20
+    ]
   },
-  "section3-quiz": {
-    id: "section3-quiz",
-    title: "Applications & Future Quiz",
-    questions: [
-      {
-        id: "s3q1",
-        text: "What is DeFi?",
-        options: [
-          "Digital finance software",
-          "A type of cryptocurrency",
-          "Decentralized finance applications built on blockchain",
-          "Department of Financial Investigation"
-        ],
-        correctOptionIndex: 2
-      },
-      {
-        id: "s3q2",
-        text: "What does NFT stand for?",
-        options: [
-          "New Financial Transaction",
-          "Non-Fungible Token",
-          "Network File Transfer",
-          "National Fintech Technology"
-        ],
-        correctOptionIndex: 1
-      }
-    ],
-    rewardPoints: 20
-  }
-};
-
-// Final tests (5 questions each)
-export const finalTests: Record<string, FinalTest> = {
-  "intro-to-blockchain-test": {
-    id: "intro-to-blockchain-test",
+  "quiz-section2": {
+    id: "quiz-section2",
+    title: "Blockchain Core Components Quiz",
     lessonId: "intro-to-blockchain",
-    title: "Blockchain Fundamentals Final Test",
+    sectionId: "section2",
+    rewardPoints: 150,
     questions: [
       {
-        id: "ft1",
-        text: "What is blockchain?",
+        id: "q1",
+        text: "What is the purpose of a hash function in blockchain?",
         options: [
-          "A type of cryptocurrency",
-          "A distributed database that maintains a growing list of records",
-          "A cloud storage solution",
-          "A programming language for smart contracts"
+          "To encrypt user data",
+          "To generate a fixed-size output from variable input",
+          "To speed up transaction processing",
+          "To reduce network congestion"
         ],
         correctOptionIndex: 1
       },
       {
-        id: "ft2",
-        text: "What property of blockchain makes it secure?",
+        id: "q2",
+        text: "What is Proof of Stake?",
         options: [
-          "Centralization",
-          "Government regulation",
-          "Immutability",
-          "Fast transaction speed"
-        ],
-        correctOptionIndex: 2
-      },
-      {
-        id: "ft3",
-        text: "What is a consensus mechanism?",
-        options: [
-          "A way to achieve agreement on the blockchain's state",
-          "A type of cryptocurrency mining",
-          "A blockchain messaging system",
-          "A method to store private keys"
+          "A consensus mechanism where validators stake cryptocurrency",
+          "A method for proving ownership of tokens",
+          "A technique for validating transactions",
+          "A way to prove the stake of the network"
         ],
         correctOptionIndex: 0
       },
       {
-        id: "ft4",
-        text: "Which of these is NOT a common blockchain consensus mechanism?",
+        id: "q3",
+        text: "What is a smart contract?",
         options: [
-          "Proof of Work",
-          "Proof of Stake",
-          "Proof of Authority",
-          "Proof of Payment"
+          "A legal agreement between blockchain users",
+          "A self-executing program on the blockchain",
+          "A contract managed by AI",
+          "A method for securing private keys"
         ],
-        correctOptionIndex: 3
+        correctOptionIndex: 1
+      },
+    ]
+  },
+  "quiz-section3": {
+    id: "quiz-section3",
+    title: "Blockchain Applications Quiz",
+    lessonId: "intro-to-blockchain",
+    sectionId: "section3",
+    rewardPoints: 200,
+    questions: [
+      {
+        id: "q1",
+        text: "What is DeFi?",
+        options: [
+          "Decentralized Finance",
+          "Defined Financial Instruments",
+          "Digital Finance",
+          "Distributed Financial Technology"
+        ],
+        correctOptionIndex: 0
       },
       {
-        id: "ft5",
-        text: "What is a 'block' in blockchain?",
+        id: "q2",
+        text: "What does NFT stand for?",
         options: [
-          "A unit of cryptocurrency",
-          "A digital wallet",
-          "A collection of transactions bundled together",
-          "A type of smart contract"
+          "New Financial Token",
+          "Non-Fungible Token",
+          "Network For Trading",
+          "National FinTech Technology"
+        ],
+        correctOptionIndex: 1
+      },
+      {
+        id: "q3",
+        text: "What is a DAO?",
+        options: [
+          "Digital Asset Organization",
+          "Distributed Application Ownership",
+          "Decentralized Autonomous Organization",
+          "Direct Access Operation"
         ],
         correctOptionIndex: 2
-      }
-    ],
-    rewardPoints: 50
+      },
+    ]
+  },
+  // Default quiz when no specific quiz is found
+  "default-quiz": {
+    id: "default-quiz",
+    title: "Knowledge Check",
+    lessonId: "default",
+    sectionId: "default",
+    rewardPoints: 50,
+    questions: [
+      {
+        id: "q1",
+        text: "This is a sample question?",
+        options: [
+          "Option A",
+          "Option B",
+          "Option C",
+          "Option D"
+        ],
+        correctOptionIndex: 0
+      },
+      {
+        id: "q2",
+        text: "Another sample question?",
+        options: [
+          "Option 1",
+          "Option 2",
+          "Option 3",
+          "Option 4"
+        ],
+        correctOptionIndex: 1
+      },
+    ]
   }
 };
 
-// Helper functions to get quizzes and tests
-export const getSectionQuiz = (quizId: string): SectionQuiz | undefined => {
-  return sectionQuizzes[quizId];
+// Helper function to get a quiz by ID
+export const getQuizById = (quizId: string): Quiz => {
+  return quizzesData[quizId] || quizzesData["default-quiz"];
 };
 
-export const getFinalTest = (lessonId: string): FinalTest | undefined => {
-  return Object.values(finalTests).find(test => test.lessonId === lessonId);
+// Helper function to get a quiz by lesson ID and section ID
+export const getQuizByLessonAndSection = (lessonId: string, sectionId: string): Quiz => {
+  const quizId = `quiz-${sectionId}`;
+  return quizzesData[quizId] || quizzesData["default-quiz"];
 };
