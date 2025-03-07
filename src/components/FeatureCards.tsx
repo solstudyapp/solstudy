@@ -14,37 +14,37 @@ const FeatureCards = () => {
       icon: <BookOpen className="h-10 w-10" />,
       title: "Structured Learning",
       description: "Progress through beginner, intermediate, and advanced lessons at your own pace.",
-      color: "from-[#14F195] to-[#14F195]" // Green
+      gradient: "from-[#14F195] to-[#0EA5E9]" // Green to Blue
     },
     {
       icon: <ShieldCheck className="h-10 w-10" />,
       title: "Scam Protection",
       description: "Learn to identify and avoid common cryptocurrency scams and protect your assets.",
-      color: "from-[#0EA5E9] to-[#0EA5E9]" // Blue
+      gradient: "from-[#0EA5E9] to-[#9945FF]" // Blue to Purple
     },
     {
       icon: <MessageSquare className="h-10 w-10" />,
       title: "Provide Feedback",
       description: "Provide valuable feedback about course content and help SolStudy evolve for future users.",
-      color: "from-[#9945FF] to-[#9945FF]" // Purple
+      gradient: "from-[#9945FF] to-[#F97316]" // Purple to Orange
     },
     {
       icon: <LineChart className="h-10 w-10" />,
       title: "Track Progress",
       description: "Monitor your learning journey with a personalized dashboard and progress tracking.",
-      color: "from-[#9945FF] to-[#9945FF]" // Purple
+      gradient: "from-[#F97316] to-[#9945FF]" // Orange to Purple
     },
     {
       icon: <BookText className="h-10 w-10" />,
       title: "Interactive Quizzes",
       description: "Test your knowledge with interactive quizzes and get immediate feedback.",
-      color: "from-[#14F195] to-[#14F195]" // Green
+      gradient: "from-[#9945FF] to-[#14F195]" // Purple to Green
     },
     {
       icon: <Users className="h-10 w-10" />,
       title: "Community Learning",
       description: "Join a community of crypto enthusiasts and learn together through shared experiences.",
-      color: "from-[#0EA5E9] to-[#0EA5E9]" // Blue
+      gradient: "from-[#14F195] to-[#0EA5E9]" // Green to Blue
     }
   ];
 
@@ -63,7 +63,7 @@ const FeatureCards = () => {
           >
             <div className="flex flex-col items-center text-center">
               <div className="relative mb-4">
-                <div className={`absolute -inset-1 rounded-full bg-gradient-to-r ${feature.color} opacity-70 animate-spin-slow`}></div>
+                <div className={`absolute -inset-1 rounded-full bg-gradient-to-r ${feature.gradient} opacity-70 animate-spin-slow`}></div>
                 <div className="relative bg-black p-4 rounded-full z-10">
                   <div className="text-white">{feature.icon}</div>
                 </div>
