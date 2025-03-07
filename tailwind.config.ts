@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,7 +62,12 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// Specific accent colors we'll use for buttons and highlights
+				accent1: '#222222',
+				accent2: '#403E43',
+				accent3: '#9945FF',
+				accent4: '#14F195',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

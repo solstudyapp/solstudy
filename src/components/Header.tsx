@@ -18,7 +18,7 @@ const Header = () => {
   ];
 
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-md bg-white/10 border-b border-white/10">
+    <header className="sticky top-0 z-50 bg-black/90 backdrop-blur-md border-b border-accent3/20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
@@ -35,8 +35,8 @@ const Header = () => {
                 to={link.path}
                 className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                   location.pathname === link.path
-                    ? "text-white bg-white/10"
-                    : "text-white/70 hover:text-white hover:bg-white/10"
+                    ? "text-accent4 bg-accent1"
+                    : "text-white/70 hover:text-white hover:bg-accent1"
                 }`}
               >
                 {link.name}
@@ -49,10 +49,10 @@ const Header = () => {
               <>
                 <Button variant="ghost" size="icon" className="text-white/70 hover:text-white relative">
                   <Bell size={20} />
-                  <Badge className="absolute -top-1 -right-1 w-4 h-4 p-0 flex items-center justify-center bg-[#14F195]">3</Badge>
+                  <Badge className="absolute -top-1 -right-1 w-4 h-4 p-0 flex items-center justify-center bg-accent4 text-black">3</Badge>
                 </Button>
                 <Link to="/dashboard">
-                  <Avatar className="border-2 border-white/20">
+                  <Avatar className="border-2 border-accent3/20">
                     <AvatarImage src="https://github.com/shadcn.png" />
                     <AvatarFallback>CN</AvatarFallback>
                   </Avatar>
@@ -60,7 +60,7 @@ const Header = () => {
               </>
             ) : (
               <Link to="/auth">
-                <Button className="bg-[#14F195] text-[#1A1F2C] hover:bg-[#14F195]/90">
+                <Button className="bg-accent4 text-black hover:bg-accent4/90">
                   <LogIn className="mr-2 h-4 w-4" /> Sign In
                 </Button>
               </Link>
@@ -73,13 +73,13 @@ const Header = () => {
                   <Menu size={24} />
                 </Button>
               </SheetTrigger>
-              <SheetContent className="bg-[#1A1F2C]/95 backdrop-blur-lg border-white/10 text-white">
+              <SheetContent className="bg-black/95 backdrop-blur-lg border-accent3/20 text-white">
                 <div className="flex flex-col gap-6 mt-8">
                   {navLinks.map((link) => (
                     <Link
                       key={link.name}
                       to={link.path}
-                      className="text-lg font-medium hover:text-[#14F195] transition-colors"
+                      className="text-lg font-medium hover:text-accent4 transition-colors"
                     >
                       {link.name}
                     </Link>
@@ -87,7 +87,7 @@ const Header = () => {
                   
                   {!isLoggedIn && (
                     <Link to="/auth">
-                      <Button className="w-full mt-4 bg-[#14F195] text-[#1A1F2C] hover:bg-[#14F195]/90">
+                      <Button className="w-full mt-4 bg-accent4 text-black hover:bg-accent4/90">
                         <LogIn className="mr-2 h-4 w-4" /> Sign In
                       </Button>
                     </Link>

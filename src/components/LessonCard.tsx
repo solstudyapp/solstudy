@@ -24,17 +24,14 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
   return (
     <Card 
       className={cn(
-        "overflow-hidden transition-all duration-300 backdrop-blur-md border-0 group relative",
-        lesson.difficulty === "beginner" && "bg-gradient-to-br from-green-400/20 to-emerald-500/30 text-white",
-        lesson.difficulty === "intermediate" && "bg-gradient-to-br from-blue-400/20 to-purple-500/30 text-white",
-        lesson.difficulty === "advanced" && "bg-gradient-to-br from-orange-400/20 to-red-500/30 text-white",
-        isHovered && "transform-gpu translate-y-[-8px] shadow-lg"
+        "overflow-hidden transition-all duration-300 bg-accent1/60 border-accent3/20 text-white group relative",
+        isHovered && "transform-gpu translate-y-[-8px] shadow-lg shadow-accent3/10"
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {lesson.sponsored && (
-        <div className="absolute top-0 right-0 bg-white/20 backdrop-blur-sm text-white px-3 py-1 text-xs font-medium">
+        <div className="absolute top-0 right-0 bg-black/60 backdrop-blur-sm text-white px-3 py-1 text-xs font-medium">
           Sponsored
         </div>
       )}
@@ -43,9 +40,9 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
         <div className="flex justify-between items-start">
           <div className={cn(
             "p-3 rounded-lg transition-all mb-2 text-white",
-            lesson.difficulty === "beginner" && "bg-green-500/40",
-            lesson.difficulty === "intermediate" && "bg-blue-500/40",
-            lesson.difficulty === "advanced" && "bg-orange-500/40"
+            lesson.difficulty === "beginner" && "bg-accent1/80 border border-green-500/20",
+            lesson.difficulty === "intermediate" && "bg-accent1/80 border border-blue-500/20",
+            lesson.difficulty === "advanced" && "bg-accent1/80 border border-orange-500/20"
           )}>
             {lesson.icon}
           </div>
@@ -70,7 +67,7 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
             ))}
             <span className="text-white/70 text-xs ml-1">({lesson.reviewCount})</span>
           </div>
-          <Badge variant="outline" className="border-white/20 text-white/70">
+          <Badge variant="outline" className="border-accent3/20 text-white/70">
             {lesson.category}
           </Badge>
         </div>
@@ -79,7 +76,7 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
       <CardFooter className="p-0 mt-auto">
         <Button 
           variant="ghost" 
-          className="w-full bg-white/10 hover:bg-white/20 text-white rounded-none border-t border-white/10 h-12"
+          className="w-full bg-black/30 hover:bg-accent3/20 text-white rounded-none border-t border-accent3/20 h-12"
           onClick={handleStartLearning}
         >
           <span className="mr-auto">Start Learning</span>

@@ -47,7 +47,7 @@ const QuizPage = () => {
   
   if (!quizData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#9945FF] to-[#14F195]">
+      <div className="min-h-screen bg-background">
         <Header />
         <div className="max-w-3xl mx-auto px-4 py-16 text-center text-white">
           <h1 className="text-2xl font-bold mb-4">Quiz not found</h1>
@@ -152,7 +152,7 @@ const QuizPage = () => {
   };
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#9945FF] to-[#14F195]">
+    <div className="min-h-screen bg-background">
       <Header />
       
       <div className="max-w-3xl mx-auto px-4 py-8">
@@ -174,7 +174,7 @@ const QuizPage = () => {
           </div>
         </div>
         
-        <Card className="backdrop-blur-md bg-white/10 border-white/10 text-white">
+        <Card className="bg-accent1/60 border-accent3/20 text-white">
           <CardHeader>
             <CardTitle>{quizData.title}</CardTitle>
           </CardHeader>
@@ -190,10 +190,10 @@ const QuizPage = () => {
                         selectedOption === index
                           ? isSubmitted
                             ? index === currentQuestionData.correctOptionIndex
-                              ? "border-green-500 bg-green-500/20"
-                              : "border-red-500 bg-red-500/20"
-                            : "border-purple-400 bg-white/20"
-                          : "border-white/20 hover:border-white/40 hover:bg-white/10"
+                              ? "border-green-500 bg-green-500/10"
+                              : "border-red-500 bg-red-500/10"
+                            : "border-accent3 bg-accent1"
+                          : "border-white/20 hover:border-white/40 hover:bg-accent1"
                       }`}
                       onClick={() => handleOptionSelect(index)}
                     >
@@ -215,9 +215,9 @@ const QuizPage = () => {
                   </p>
                 </div>
                 
-                <div className="bg-white/10 rounded-lg p-4 mb-6">
+                <div className="bg-accent1 rounded-lg p-4 mb-6 border border-accent3/20">
                   <div className="flex items-center justify-center mb-2">
-                    <Award className="mr-2 h-5 w-5 text-[#14F195]" />
+                    <Award className="mr-2 h-5 w-5 text-accent4" />
                     <p className="font-medium">You earned {quizData.rewardPoints} points!</p>
                   </div>
                   <p className="text-sm text-white/70">Keep learning to earn more rewards</p>
@@ -225,19 +225,19 @@ const QuizPage = () => {
               </div>
             )}
           </CardContent>
-          <CardFooter className="justify-end border-t border-white/10 pt-4">
+          <CardFooter className="justify-end border-t border-accent3/20 pt-4">
             {!showResults ? (
               <Button
                 onClick={handleSubmit}
                 disabled={selectedOption === null || isSubmitted}
-                className="bg-[#14F195] text-[#1A1F2C] hover:bg-[#14F195]/90"
+                className="bg-accent4 text-black hover:bg-accent4/90"
               >
                 {isSubmitted ? "Next Question..." : "Submit Answer"}
               </Button>
             ) : (
               <Button
                 onClick={handleQuizComplete}
-                className="bg-[#14F195] text-[#1A1F2C] hover:bg-[#14F195]/90"
+                className="bg-accent4 text-black hover:bg-accent4/90"
               >
                 Complete {quizType === "section" ? "Quiz" : "Test"}
               </Button>
@@ -248,7 +248,7 @@ const QuizPage = () => {
       
       {/* Feedback Dialog */}
       <Dialog open={showFeedback} onOpenChange={setShowFeedback}>
-        <DialogContent className="bg-[#1A1F2C] text-white border-white/10">
+        <DialogContent className="bg-black text-white border-accent3/20">
           <DialogHeader>
             <DialogTitle>Rate this {quizType === "section" ? "section" : "course"}</DialogTitle>
             <DialogDescription className="text-white/70">
@@ -273,10 +273,10 @@ const QuizPage = () => {
           </div>
           
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowFeedback(false)} className="border-white/20 text-white hover:bg-white/10">
+            <Button variant="outline" onClick={() => setShowFeedback(false)} className="border-white/20 text-white hover:bg-accent1">
               Skip
             </Button>
-            <Button onClick={handleFeedbackComplete} className="bg-[#14F195] text-[#1A1F2C] hover:bg-[#14F195]/90">
+            <Button onClick={handleFeedbackComplete} className="bg-accent4 text-black hover:bg-accent4/90">
               Submit Feedback
             </Button>
           </DialogFooter>
