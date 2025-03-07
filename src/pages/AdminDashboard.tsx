@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Route, Routes, Link, useLocation } from "react-router-dom";
+import { Route, Routes, Link, useLocation, Navigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -91,7 +91,7 @@ const AdminDashboard = () => {
           
           <div className="flex-1">
             <Routes>
-              <Route path="/" element={<UserManagement />} />
+              <Route path="/" element={<Navigate to="/admin/users" replace />} />
               <Route path="/users" element={<UserManagement />} />
               <Route path="/lessons" element={<LessonManagement />} />
               <Route path="/quizzes" element={<QuizManagement />} />

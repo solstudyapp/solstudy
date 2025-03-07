@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -8,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Save, X, Plus, Trash, ChevronUp, ChevronDown, Edit, BookOpen } from "lucide-react";
+import { Save, X, Plus, Trash, ChevronUp, ChevronDown, Edit, BookOpen, Award } from "lucide-react";
 import { LessonType, Section, Page } from "@/types/lesson";
 import { getSectionsForLesson } from "@/data/sections";
 import { RichTextEditor } from "./RichTextEditor";
@@ -26,14 +25,12 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   
-  // Load sections for existing lessons
   useEffect(() => {
     if (lesson.id && lesson.id !== "lesson-new") {
       const existingSections = getSectionsForLesson(lesson.id);
       if (existingSections && existingSections.length > 0) {
         setSections(existingSections);
       } else {
-        // Create default sections if none exist
         const defaultSections: Section[] = [
           {
             id: `section1-${Date.now()}`,
@@ -47,7 +44,6 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
         setSections(defaultSections);
       }
     } else {
-      // For new lessons, create default structure
       const defaultSections: Section[] = [
         {
           id: `section1-${Date.now()}`,
@@ -62,7 +58,6 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
     }
   }, [lesson.id]);
   
-  // Update lesson pages count when sections change
   useEffect(() => {
     const totalPages = sections.reduce((total, section) => total + section.pages.length, 0);
     setEditedLesson(prev => ({...prev, pages: totalPages, sections: sections.length}));
@@ -73,8 +68,6 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
   };
   
   const handleSaveLesson = () => {
-    // In a real app, you would also save the sections to a database
-    // For this demo, we'll just update the lesson object
     onSave(editedLesson);
   };
   
@@ -101,7 +94,7 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
   
   const deleteSection = (index: number) => {
     if (sections.length <= 1) {
-      return; // Don't allow deleting the last section
+      return;
     }
     
     setSections(prev => prev.filter((_, i) => i !== index));
@@ -139,7 +132,6 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
       return updated;
     });
     
-    // Set the newly added page as active
     setCurrentPageIndex(sections[sectionIndex].pages.length);
   };
   
@@ -156,7 +148,7 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
   
   const deletePage = (sectionIndex: number, pageIndex: number) => {
     if (sections[sectionIndex].pages.length <= 1) {
-      return; // Don't allow deleting the last page
+      return;
     }
     
     setSections(prev => {
@@ -470,6 +462,23 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
                 min="0"
                 value={editedLesson.reviewCount}
                 onChange={(e) => handleInputChange('reviewCount', parseInt(e.target.value))}
+                className="bg-white/10 border-white/20 text-white"
+              />
+            </div>
+            
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium">
+                <span className="flex items-center">
+                  <Award size={16} className="mr-2 text-[#14F195]" /> 
+                  Points Reward
+                </span>
+              </label>
+              <Input
+                type="number"
+                min="0"
+                value={editedLesson.points || 0}
+                onChange={(e) => handleInputChange('points', parseInt(e.target.value))}
+                placeholder="Points awarded for completion"
                 className="bg-white/10 border-white/20 text-white"
               />
             </div>

@@ -41,6 +41,7 @@ export const lessonData: LessonType[] = [
     icon: <Database size={24} />,
     sponsored: true,
     sponsorLogo: COINGECKO_LOGO,
+    points: 100,
   },
   {
     id: "crypto-trading-101",
@@ -56,6 +57,7 @@ export const lessonData: LessonType[] = [
     icon: <LineChart size={24} />,
     sponsored: true,
     sponsorLogo: COINGECKO_LOGO,
+    points: 125,
   },
   {
     id: "defi-essentials",
@@ -71,6 +73,7 @@ export const lessonData: LessonType[] = [
     icon: <BarChart size={24} />,
     sponsored: true,
     sponsorLogo: COINGECKO_LOGO,
+    points: 150,
   },
   {
     id: "nft-creation",
@@ -86,6 +89,7 @@ export const lessonData: LessonType[] = [
     sponsored: true,
     sponsorLogo: COINGECKO_LOGO,
     icon: <PaintBucket size={24} />,
+    points: 175,
   },
   {
     id: "solana-dev",
@@ -101,6 +105,7 @@ export const lessonData: LessonType[] = [
     icon: <Code size={24} />,
     sponsored: true,
     sponsorLogo: COINGECKO_LOGO,
+    points: 250,
   },
   {
     id: "crypto-security",
@@ -116,6 +121,7 @@ export const lessonData: LessonType[] = [
     icon: <ShieldCheck size={24} />,
     sponsored: true,
     sponsorLogo: COINGECKO_LOGO,
+    points: 150,
   },
   {
     id: "advanced-trading",
@@ -131,6 +137,7 @@ export const lessonData: LessonType[] = [
     icon: <BarChart3 size={24} />,
     sponsored: true,
     sponsorLogo: COINGECKO_LOGO,
+    points: 200,
   },
   {
     id: "wallet-management",
@@ -146,6 +153,7 @@ export const lessonData: LessonType[] = [
     icon: <Wallet size={24} />,
     sponsored: true,
     sponsorLogo: COINGECKO_LOGO,
+    points: 100,
   },
   {
     id: "solana-token",
@@ -161,5 +169,6 @@ export const lessonData: LessonType[] = [
     sponsored: true,
     sponsorLogo: COINGECKO_LOGO,
     icon: <Sparkles size={24} />,
+    points: 300,
   },
 ];
