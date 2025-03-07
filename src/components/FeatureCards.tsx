@@ -37,7 +37,7 @@ const FeatureCards = () => {
     {
       icon: <BookText className="h-10 w-10" />,
       title: "Interactive Quizzes",
-      description: "Test your knowledge with interactive quizzes and get immediate feedback.",
+      description: "Test your knowledge with interactive quizzes after each section and end of course test for immediate feedback.",
       gradient: "from-[#9945FF] to-[#14F195]" // Purple to Green
     },
     {
