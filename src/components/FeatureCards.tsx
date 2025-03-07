@@ -59,17 +59,23 @@ const FeatureCards = () => {
         {features.map((feature, index) => (
           <div 
             key={index} 
-            className="dark-glass rounded-xl p-6 transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-lg bg-gradient-to-br from-white/5 to-white/10"
+            className="relative dark-glass rounded-xl p-6 transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-lg"
           >
-            <div className="flex flex-col items-center text-center">
-              <div className="relative mb-4">
-                <div className={`absolute -inset-1 rounded-full bg-gradient-to-r ${feature.gradient} opacity-70 animate-spin-slow`}></div>
-                <div className="relative bg-black p-4 rounded-full z-10">
-                  <div className="text-white">{feature.icon}</div>
+            {/* Gradient stroke around the card */}
+            <div className={`absolute -inset-[1px] rounded-xl bg-gradient-to-r ${feature.gradient} opacity-70 z-0`}></div>
+            
+            {/* Card content with black background */}
+            <div className="relative bg-black/80 p-6 rounded-xl z-10">
+              <div className="flex flex-col items-center text-center">
+                <div className="relative mb-4">
+                  <div className={`absolute -inset-1 rounded-full bg-gradient-to-r ${feature.gradient} opacity-70 animate-spin-slow`}></div>
+                  <div className="relative bg-black p-4 rounded-full z-10">
+                    <div className="text-white">{feature.icon}</div>
+                  </div>
                 </div>
+                <h3 className="text-xl font-bold text-white mb-2">{feature.title}</h3>
+                <p className="text-white/80">{feature.description}</p>
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">{feature.title}</h3>
-              <p className="text-white/80">{feature.description}</p>
             </div>
           </div>
         ))}
