@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -18,6 +17,7 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
   const navigate = useNavigate();
 
   const handleStartLesson = () => {
+    window.scrollTo(0, 0);
     navigate(`/lesson/${lesson.id}`);
   };
 

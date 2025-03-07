@@ -24,6 +24,9 @@ const LessonView = () => {
   const sections = lessonId ? getSectionsForLesson(lessonId) : [];
   
   useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
+    
     if (!lesson) return;
     
     // Calculate progress based on current position
@@ -31,6 +34,11 @@ const LessonView = () => {
     const pagesCompleted = sections.slice(0, currentSection).reduce((acc, section) => acc + section.pages.length, 0) + currentPage;
     setProgress(Math.round((pagesCompleted / totalPages) * 100));
   }, [currentSection, currentPage, lesson, sections]);
+  
+  // Also scroll to top when sections or pages change
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentSection, currentPage]);
   
   if (!lesson) {
     return (

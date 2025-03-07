@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -27,7 +26,8 @@ const Index = () => {
   });
 
   const handleStartLearning = () => {
-    // Navigate to the first course
+    window.scrollTo(0, 0);
+    
     if (lessonData.length > 0) {
       navigate(`/lesson/${lessonData[0].id}`);
     } else {
