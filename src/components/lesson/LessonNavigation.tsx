@@ -39,7 +39,7 @@ const LessonNavigation = ({
       {isLastPage ? (
         <Button 
           className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0"
-          onClick={() => navigate(`/quiz/${lessonId}/${currentSection + 1}`)}
+          onClick={() => navigate(`/quiz/${lessonId}/section${currentSection + 1}`)}
         >
           Take Section Quiz
           <FileQuestion className="ml-2 h-4 w-4" />

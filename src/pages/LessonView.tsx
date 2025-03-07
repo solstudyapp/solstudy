@@ -64,15 +64,15 @@ const LessonView = () => {
     } 
     // If there are more sections
     else if (currentSection < sections.length - 1) {
-      setCurrentSection(currentSection + 1);
-      setCurrentPage(0);
+      // Go to quiz instead of automatically proceeding to next section
+      navigate(`/quiz/${lesson.id}/section${currentSection + 1}`);
       
       // Mark section as completed in the service
       lessonService.completeSection(lesson.id, currentSectionData.id);
       
       toast({
         title: "Section completed!",
-        description: "Moving on to the next section.",
+        description: "Now take the section quiz.",
       });
     } 
     // If we're at the last page of the last section
