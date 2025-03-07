@@ -8,11 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Save, X, Plus, Trash, ChevronUp, ChevronDown, Edit, BookOpen, Award } from "lucide-react";
-import * as LucideIcons from "lucide-react";
 import { LessonType, Section, Page } from "@/types/lesson";
 import { getSectionsForLesson } from "@/data/sections";
 import { RichTextEditor } from "./RichTextEditor";
-import IconSelector from "./IconSelector";
 
 interface LessonEditorProps {
   lesson: LessonType;
@@ -26,18 +24,6 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
   const [activeTab, setActiveTab] = useState("details");
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
-  
-  useEffect(() => {
-    if (lesson.iconName && !lesson.icon) {
-      const IconComponent = (LucideIcons as any)[lesson.iconName];
-      if (IconComponent) {
-        setEditedLesson(prev => ({
-          ...prev,
-          icon: <IconComponent size={24} />
-        }));
-      }
-    }
-  }, [lesson]);
   
   useEffect(() => {
     if (lesson.id && lesson.id !== "lesson-new") {
@@ -79,14 +65,6 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
   
   const handleInputChange = (field: keyof LessonType, value: any) => {
     setEditedLesson(prev => ({...prev, [field]: value}));
-  };
-  
-  const handleIconChange = (icon: React.ReactNode, iconName: string) => {
-    setEditedLesson(prev => ({
-      ...prev,
-      icon,
-      iconName
-    }));
   };
   
   const handleSaveLesson = () => {
@@ -444,14 +422,6 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
                 value={editedLesson.category}
                 onChange={(e) => handleInputChange('category', e.target.value)}
                 className="bg-white/10 border-white/20 text-white"
-              />
-            </div>
-            
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium">Icon</label>
-              <IconSelector
-                selectedIcon={editedLesson.icon}
-                onSelectIcon={handleIconChange}
               />
             </div>
             

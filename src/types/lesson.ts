@@ -26,7 +26,6 @@ export interface LessonType {
   rating: number;
   reviewCount: number;
   icon: ReactNode;
-  iconName?: string;  // Store the name of the icon for future editing
   sponsored?: boolean;
   sponsorLogo?: string;
   points?: number; // Points field for lesson completion reward
