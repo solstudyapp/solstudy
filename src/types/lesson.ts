@@ -22,7 +22,7 @@ export interface Section {
   id: string;
   title: string;
   pages: Page[];
-  quizId: string;
+  quiz: SectionQuiz;
 }
 
 export interface Page {
@@ -31,8 +31,16 @@ export interface Page {
   content: string;
 }
 
-export interface Quiz {
+export interface SectionQuiz {
   id: string;
+  title: string;
+  questions: Question[];
+  rewardPoints: number;
+}
+
+export interface FinalTest {
+  id: string;
+  lessonId: string;
   title: string;
   questions: Question[];
   rewardPoints: number;

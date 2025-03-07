@@ -1,15 +1,22 @@
 
-import { useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Star, Award, ChevronLeft } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
+import { SectionQuiz, FinalTest } from "@/types/lesson";
+import { getSectionQuiz, getFinalTest } from "@/data/quizzes";
 
 const QuizPage = () => {
   const { quizId } = useParams();
+  const [searchParams] = useSearchParams();
+  const quizType = searchParams.get("type") || "section";
+  const sectionId = searchParams.get("sectionId");
+  const lessonId = searchParams.get("lessonId") || "intro-to-blockchain";
+  
   const navigate = useNavigate();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
@@ -19,74 +26,41 @@ const QuizPage = () => {
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackRating, setFeedbackRating] = useState(0);
   
-  // Mock quiz data - would come from API in real app
-  const quiz = {
-    id: quizId,
-    title: "Blockchain Fundamentals Quiz",
-    description: "Test your knowledge of blockchain fundamentals",
-    lessonId: "intro-to-blockchain",
-    sectionId: "section1",
-    rewardPoints: 50,
-    questions: [
-      {
-        id: "q1",
-        text: "What is blockchain?",
-        options: [
-          "A type of cryptocurrency",
-          "A distributed database that maintains a growing list of records",
-          "A cloud storage solution",
-          "A programming language for smart contracts"
-        ],
-        correctOptionIndex: 1
-      },
-      {
-        id: "q2",
-        text: "What property of blockchain makes it secure?",
-        options: [
-          "Centralization",
-          "Government regulation",
-          "Immutability",
-          "Fast transaction speed"
-        ],
-        correctOptionIndex: 2
-      },
-      {
-        id: "q3",
-        text: "What is a consensus mechanism?",
-        options: [
-          "A way to achieve agreement on the blockchain's state",
-          "A type of cryptocurrency mining",
-          "A blockchain messaging system",
-          "A method to store private keys"
-        ],
-        correctOptionIndex: 0
-      },
-      {
-        id: "q4",
-        text: "Which of these is NOT a common blockchain consensus mechanism?",
-        options: [
-          "Proof of Work",
-          "Proof of Stake",
-          "Proof of Authority",
-          "Proof of Payment"
-        ],
-        correctOptionIndex: 3
-      },
-      {
-        id: "q5",
-        text: "What is a 'block' in blockchain?",
-        options: [
-          "A unit of cryptocurrency",
-          "A digital wallet",
-          "A collection of transactions bundled together",
-          "A type of smart contract"
-        ],
-        correctOptionIndex: 2
-      }
-    ]
-  };
+  // Get the appropriate quiz data based on type
+  const [quizData, setQuizData] = useState<SectionQuiz | FinalTest | null>(null);
   
-  const currentQuestionData = quiz.questions[currentQuestion];
+  useEffect(() => {
+    if (!quizId) return;
+    
+    if (quizType === "section") {
+      const sectionQuiz = getSectionQuiz(quizId);
+      if (sectionQuiz) {
+        setQuizData(sectionQuiz);
+      }
+    } else if (quizType === "final") {
+      const finalTest = getFinalTest(lessonId);
+      if (finalTest) {
+        setQuizData(finalTest);
+      }
+    }
+  }, [quizId, quizType, lessonId]);
+  
+  if (!quizData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#9945FF] to-[#14F195]">
+        <Header />
+        <div className="max-w-3xl mx-auto px-4 py-16 text-center text-white">
+          <h1 className="text-2xl font-bold mb-4">Quiz not found</h1>
+          <p className="mb-6">The quiz you're looking for doesn't exist or has been removed.</p>
+          <Button asChild>
+            <Link to="/">Back to Dashboard</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+  
+  const currentQuestionData = quizData.questions[currentQuestion];
   
   const handleOptionSelect = (optionIndex: number) => {
     if (!isSubmitted) {
@@ -106,7 +80,7 @@ const QuizPage = () => {
     
     // Wait for a moment to show feedback before moving to next question
     setTimeout(() => {
-      if (currentQuestion < quiz.questions.length - 1) {
+      if (currentQuestion < quizData.questions.length - 1) {
         setCurrentQuestion(currentQuestion + 1);
         setSelectedOption(null);
         setIsSubmitted(false);
@@ -121,22 +95,48 @@ const QuizPage = () => {
     // In a real app, you would save results to backend
     toast({
       title: "Quiz completed!",
-      description: `You earned ${quiz.rewardPoints} points for completing this quiz.`,
+      description: `You earned ${quizData.rewardPoints} points.`,
     });
     
     setShowFeedback(true);
   };
   
-  const submitFeedback = () => {
-    // In a real app, you would send feedback to backend
-    toast({
-      title: "Thanks for your feedback!",
-      description: "Your feedback helps us improve our content.",
-    });
-    setShowFeedback(false);
+  const handleFeedbackComplete = () => {
+    // Handle the completion based on quiz type
+    if (quizType === "section" && sectionId) {
+      // Mark section as completed
+      const savedProgress = localStorage.getItem(`lesson_progress_${lessonId}`);
+      let progressData = savedProgress ? JSON.parse(savedProgress) : { completedSections: [] };
+      
+      if (!progressData.completedSections.includes(sectionId)) {
+        progressData.completedSections.push(sectionId);
+      }
+      
+      localStorage.setItem(`lesson_progress_${lessonId}`, JSON.stringify(progressData));
+      
+      toast({
+        title: "Section completed!",
+        description: "You can now proceed to the next section.",
+        variant: "default"
+      });
+      
+      // Navigate back to the lesson
+      navigate(`/lesson/${lessonId}`);
+    } else if (quizType === "final") {
+      // Mark lesson as completed
+      localStorage.setItem(`lesson_${lessonId}_completed`, "true");
+      
+      toast({
+        title: "Congratulations!",
+        description: "You've completed the entire course!",
+        variant: "default"
+      });
+      
+      // Navigate to dashboard with completed message
+      navigate(`/dashboard?completed=${lessonId}`);
+    }
     
-    // Navigate back to the course
-    navigate(`/lesson/${quiz.lessonId}`);
+    setShowFeedback(false);
   };
   
   return (
@@ -151,20 +151,20 @@ const QuizPage = () => {
             asChild 
             className="text-white/80 hover:text-white"
           >
-            <Link to={`/lesson/${quiz.lessonId}`}>
+            <Link to={`/lesson/${lessonId}`}>
               <ChevronLeft className="mr-1 h-4 w-4" />
               Back to Lesson
             </Link>
           </Button>
           
           <div className="text-white text-sm">
-            Question {currentQuestion + 1} of {quiz.questions.length}
+            Question {currentQuestion + 1} of {quizData.questions.length}
           </div>
         </div>
         
         <Card className="backdrop-blur-md bg-white/10 border-white/10 text-white">
           <CardHeader>
-            <CardTitle>{quiz.title}</CardTitle>
+            <CardTitle>{quizData.title}</CardTitle>
           </CardHeader>
           <CardContent>
             {!showResults ? (
@@ -193,11 +193,11 @@ const QuizPage = () => {
             ) : (
               <div className="text-center py-8">
                 <div className="mb-6">
-                  <div className="text-5xl font-bold mb-2">{score}/{quiz.questions.length}</div>
+                  <div className="text-5xl font-bold mb-2">{score}/{quizData.questions.length}</div>
                   <p className="text-white/70">
-                    {score / quiz.questions.length >= 0.8 
+                    {score / quizData.questions.length >= 0.8 
                       ? "Great job! You've mastered this section." 
-                      : score / quiz.questions.length >= 0.6 
+                      : score / quizData.questions.length >= 0.6 
                       ? "Good effort! Keep studying to improve." 
                       : "Need more practice. Review the material and try again."}
                   </p>
@@ -206,7 +206,7 @@ const QuizPage = () => {
                 <div className="bg-white/10 rounded-lg p-4 mb-6">
                   <div className="flex items-center justify-center mb-2">
                     <Award className="mr-2 h-5 w-5 text-[#14F195]" />
-                    <p className="font-medium">You earned {quiz.rewardPoints} points!</p>
+                    <p className="font-medium">You earned {quizData.rewardPoints} points!</p>
                   </div>
                   <p className="text-sm text-white/70">Keep learning to earn more rewards</p>
                 </div>
@@ -227,7 +227,7 @@ const QuizPage = () => {
                 onClick={handleQuizComplete}
                 className="bg-[#14F195] text-[#1A1F2C] hover:bg-[#14F195]/90"
               >
-                Complete Quiz
+                Complete {quizType === "section" ? "Quiz" : "Test"}
               </Button>
             )}
           </CardFooter>
@@ -238,7 +238,7 @@ const QuizPage = () => {
       <Dialog open={showFeedback} onOpenChange={setShowFeedback}>
         <DialogContent className="bg-[#1A1F2C] text-white border-white/10">
           <DialogHeader>
-            <DialogTitle>Rate this lesson</DialogTitle>
+            <DialogTitle>Rate this {quizType === "section" ? "section" : "course"}</DialogTitle>
             <DialogDescription className="text-white/70">
               Your feedback helps us improve our content
             </DialogDescription>
@@ -264,7 +264,7 @@ const QuizPage = () => {
             <Button variant="outline" onClick={() => setShowFeedback(false)} className="border-white/20 text-white hover:bg-white/10">
               Skip
             </Button>
-            <Button onClick={submitFeedback} className="bg-[#14F195] text-[#1A1F2C] hover:bg-[#14F195]/90">
+            <Button onClick={handleFeedbackComplete} className="bg-[#14F195] text-[#1A1F2C] hover:bg-[#14F195]/90">
               Submit Feedback
             </Button>
           </DialogFooter>
