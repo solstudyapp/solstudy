@@ -68,11 +68,6 @@ export const lessonService = {
       
       // Update user total points
       userPointsStore[CURRENT_USER_ID] = (userPointsStore[CURRENT_USER_ID] || 0) + earnedPoints;
-      
-      // Mark final test completion if applicable
-      if (quiz.isFinalTest) {
-        progress.testCompleted = true;
-      }
     }
     
     userProgressStore[key] = progress;

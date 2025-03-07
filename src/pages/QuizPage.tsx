@@ -20,6 +20,7 @@ const QuizPage = () => {
   const [userAnswers, setUserAnswers] = useState<number[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Find lesson data
   const lesson = lessonData.find(l => l.id === lessonId);
@@ -36,6 +37,17 @@ const QuizPage = () => {
     parseInt(sectionId.replace('section', '')) - 1 : 
     sections.length - 1;
   
+  // Reset state when quiz changes
+  useEffect(() => {
+    if (quiz) {
+      setCurrentQuestion(0);
+      setUserAnswers([]);
+      setShowResults(false);
+      setShowFeedback(false);
+      setIsLoading(false);
+    }
+  }, [quiz?.id]);
+  
   // If quiz or lesson not found, handle gracefully
   useEffect(() => {
     if (!lesson || !quiz) {
@@ -51,6 +63,11 @@ const QuizPage = () => {
   useEffect(() => {
     // For the final test, check if all section quizzes are completed
     if (isFinalTest) {
+      // Skip checking for already completed final tests
+      if (lessonService.isFinalTestCompleted(lessonId || "")) {
+        return;
+      }
+      
       const allSectionsCompleted = sections.every(section => 
         lessonService.isSectionCompleted(lessonId || "", section.id)
       );
@@ -66,7 +83,7 @@ const QuizPage = () => {
     }
   }, [isFinalTest, sections, lessonId, navigate, toast]);
   
-  if (!lesson || !quiz) {
+  if (!lesson || !quiz || isLoading) {
     return <div className="min-h-screen bg-black text-white p-8">Loading...</div>;
   }
   
@@ -92,8 +109,17 @@ const QuizPage = () => {
   };
   
   const calculateScore = () => {
+    // Ensure we have both quiz questions and user answers before calculating
+    if (!quiz?.questions || userAnswers.length === 0) {
+      return 0;
+    }
+    
     return userAnswers.reduce((score, answer, index) => {
-      return answer === quiz.questions[index].correctOptionIndex ? score + 1 : score;
+      // Make sure we have a question at this index before accessing its properties
+      if (quiz.questions[index]) {
+        return answer === quiz.questions[index].correctOptionIndex ? score + 1 : score;
+      }
+      return score;
     }, 0);
   };
   
@@ -102,12 +128,13 @@ const QuizPage = () => {
     
     // Mark the section as completed or record final test completion
     if (isFinalTest) {
-      lessonService.completeQuiz(quiz, score);
+      // Only complete the test if it hasn't been completed before
+      if (!lessonService.isFinalTestCompleted(lessonId || "")) {
+        lessonService.completeQuiz(quiz, score);
+        lessonService.completeFinalTest(lessonId || "");
+      }
       
-      // Mark the lesson as fully completed if final test
-      lessonService.completeFinalTest(lessonId || "");
-      
-      // Only show feedback dialog after the final test
+      // Show feedback dialog after the final test
       setShowFeedback(true);
     } else {
       // For section quizzes, mark the section as completed
