@@ -59,7 +59,7 @@ const FeatureCards = () => {
         {features.map((feature, index) => (
           <div 
             key={index} 
-            className="dark-glass rounded-xl p-6 transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-lg bg-gradient-to-br from-black/40 to-black/40"
+            className={`dark-glass rounded-xl p-6 transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-lg bg-gradient-to-br ${feature.color}`}
           >
             <div className="flex flex-col items-center text-center">
               <div className={`bg-gradient-to-r ${feature.color} p-4 rounded-full mb-4`}>

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -92,12 +93,9 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
 
       <CardFooter className="p-0 mt-auto">
         <Button 
-          variant="ghost" 
+          variant="gradient" 
           className={cn(
-            "w-full hover:bg-white/10 text-white rounded-none border-t border-white/10 h-12",
-            lesson.difficulty === "beginner" && "bg-green-500/30",
-            lesson.difficulty === "intermediate" && "bg-blue-500/30",
-            lesson.difficulty === "advanced" && "bg-orange-500/30"
+            "w-full rounded-none border-t border-white/10 h-12",
           )}
           onClick={(e) => {
             e.stopPropagation(); // Prevent triggering the card's onClick
