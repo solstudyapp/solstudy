@@ -8,6 +8,9 @@ import { Check, ChevronsUpDown } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import { cn } from "@/lib/utils";
 
+// Explicitly define icon type
+type IconType = (props: any) => JSX.Element;
+
 // Create a cleaner list of icons by filtering out non-icon exports
 const iconList = Object.entries(LucideIcons)
   .filter(([name, component]) => {
@@ -29,7 +32,7 @@ const iconList = Object.entries(LucideIcons)
   })
   .map(([name, Icon]) => ({
     name,
-    icon: Icon,
+    icon: Icon as IconType, // Cast to our IconType
   }));
 
 interface IconSelectorProps {
@@ -102,8 +105,9 @@ const IconSelector = ({ selectedIcon, onSelectIcon }: IconSelectorProps) => {
                       key={name}
                       value={name}
                       onSelect={() => {
-                        const element = React.createElement(IconComponent, { size: 24 });
-                        onSelectIcon(element, name);
+                        // Create the icon as a JSX element directly instead of using createElement
+                        const iconElement = <IconComponent size={24} />;
+                        onSelectIcon(iconElement, name);
                         setOpen(false);
                       }}
                       className={cn(
@@ -113,7 +117,7 @@ const IconSelector = ({ selectedIcon, onSelectIcon }: IconSelectorProps) => {
                     >
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 flex items-center justify-center">
-                          {React.createElement(IconComponent, { size: 20 })}
+                          <IconComponent size={20} />
                         </div>
                         <span>{name}</span>
                       </div>
