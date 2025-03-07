@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
-import { lessonData } from "@/data/lessons";
+import { lessonData, dailyBonusLesson } from "@/data/lessons";
 import { getSectionsForLesson } from "@/data/sections";
 import { toast } from "@/hooks/use-toast";
 import { lessonService } from "@/services/lessonService";
@@ -18,8 +18,10 @@ const LessonView = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [progress, setProgress] = useState(0);
   
-  // Find the lesson based on the URL param
-  const lesson = lessonData.find(l => l.id === lessonId);
+  // Find the lesson based on the URL param - also check if it's the daily bonus lesson
+  const lesson = lessonId === "daily-bonus-lesson" 
+    ? dailyBonusLesson 
+    : lessonData.find(l => l.id === lessonId);
   
   // Get sections data from our new data file
   const sections = lessonId ? getSectionsForLesson(lessonId) : [];
