@@ -36,7 +36,35 @@ export const lessonSections: Record<string, Section[]> = {
         { id: "intro-page3", title: "Key Concepts", content: "<h1>Key Blockchain Concepts</h1><p>Let's explore decentralization, consensus mechanisms, and cryptographic security - the foundations of blockchain technology.</p>" },
         { id: "intro-page4", title: "History of Blockchain", content: "<h1>A Brief History</h1><p>From Bitcoin's creation in 2009 to the modern blockchain ecosystem - understanding how we got here helps predict where we're going.</p>" },
       ],
-      quiz: { id: "intro-section1-quiz" }
+      quiz: { 
+        id: "intro-section1-quiz", 
+        title: "Getting Started Quiz", 
+        questions: [
+          {
+            id: "s1q1",
+            text: "What is the main purpose of blockchain technology?",
+            options: [
+              "To create cryptocurrencies only",
+              "To enable secure, transparent record-keeping without central authority",
+              "To replace traditional banking systems entirely",
+              "To make database queries faster"
+            ],
+            correctOptionIndex: 1
+          },
+          {
+            id: "s1q2",
+            text: "When was Bitcoin created?",
+            options: [
+              "2005",
+              "2007",
+              "2009",
+              "2013"
+            ],
+            correctOptionIndex: 2
+          }
+        ],
+        rewardPoints: 20
+      }
     },
     {
       id: "intro-section2",
@@ -47,7 +75,35 @@ export const lessonSections: Record<string, Section[]> = {
         { id: "intro-page7", title: "Transactions & Blocks", content: "<h1>The Anatomy of Blockchain</h1><p>Understanding how transactions are created, validated, and permanently recorded in blocks.</p>" },
         { id: "intro-page8", title: "Smart Contracts", content: "<h1>Self-Executing Agreements</h1><p>Smart contracts are programs stored on the blockchain that run when predetermined conditions are met.</p>" },
       ],
-      quiz: { id: "intro-section2-quiz" }
+      quiz: { 
+        id: "intro-section2-quiz", 
+        title: "Core Components Quiz", 
+        questions: [
+          {
+            id: "s2q1",
+            text: "What does a hash function do in blockchain?",
+            options: [
+              "Encrypts user passwords only",
+              "Creates a unique, fixed-size output from input data",
+              "Mines new cryptocurrencies",
+              "Connects blocks in sequential order"
+            ],
+            correctOptionIndex: 1
+          },
+          {
+            id: "s2q2",
+            text: "What is a smart contract?",
+            options: [
+              "A legal agreement about blockchain usage",
+              "A standard cryptocurrency transaction",
+              "Self-executing code that runs when predefined conditions are met",
+              "A secure wallet for storing cryptocurrency"
+            ],
+            correctOptionIndex: 2
+          }
+        ],
+        rewardPoints: 20
+      }
     },
     {
       id: "intro-section3",
@@ -58,7 +114,35 @@ export const lessonSections: Record<string, Section[]> = {
         { id: "intro-page11", title: "DAOs & Governance", content: "<h1>Decentralized Autonomous Organizations</h1><p>DAOs enable community governance of blockchain protocols and projects through token voting.</p>" },
         { id: "intro-page12", title: "Future Trends", content: "<h1>Where Blockchain Is Heading</h1><p>Scalability solutions, institutional adoption, and emerging use cases are shaping the future of blockchain.</p>" },
       ],
-      quiz: { id: "intro-section3-quiz" }
+      quiz: { 
+        id: "intro-section3-quiz", 
+        title: "Applications & Future Quiz", 
+        questions: [
+          {
+            id: "s3q1",
+            text: "What is DeFi?",
+            options: [
+              "Digital finance software",
+              "A type of cryptocurrency",
+              "Decentralized finance applications built on blockchain",
+              "Department of Financial Investigation"
+            ],
+            correctOptionIndex: 2
+          },
+          {
+            id: "s3q2",
+            text: "What does NFT stand for?",
+            options: [
+              "New Financial Transaction",
+              "Non-Fungible Token",
+              "Network File Transfer",
+              "National Fintech Technology"
+            ],
+            correctOptionIndex: 1
+          }
+        ],
+        rewardPoints: 20
+      }
     }
   ],
   "crypto-trading-101": [
@@ -71,7 +155,35 @@ export const lessonSections: Record<string, Section[]> = {
         { id: "trading-page3", title: "Types of Orders", content: "<h1>Order Types Explained</h1><p>Explore market, limit, stop, and other order types that will help you trade effectively.</p>" },
         { id: "trading-page4", title: "Reading Charts", content: "<h1>Chart Analysis Basics</h1><p>Learn how to read candlestick charts and understand basic price action patterns.</p>" },
       ],
-      quiz: { id: "trading-section1-quiz" }
+      quiz: { 
+        id: "trading-section1-quiz", 
+        title: "Trading Fundamentals Quiz", 
+        questions: [
+          {
+            id: "t1q1",
+            text: "What is a market order?",
+            options: [
+              "An order to buy/sell at a specific price",
+              "An order to buy/sell at the best available current price",
+              "An order that executes only when certain conditions are met",
+              "A subscription to market data"
+            ],
+            correctOptionIndex: 1
+          },
+          {
+            id: "t1q2",
+            text: "What does 'trading volume' represent?",
+            options: [
+              "The total number of traders active in a market",
+              "The price difference between buy and sell orders",
+              "The amount of an asset traded during a specific period",
+              "The maximum amount you can trade on an exchange"
+            ],
+            correctOptionIndex: 2
+          }
+        ],
+        rewardPoints: 20
+      }
     },
     {
       id: "trading-section2",
@@ -82,7 +194,35 @@ export const lessonSections: Record<string, Section[]> = {
         { id: "trading-page7", title: "Chart Patterns", content: "<h1>Common Chart Patterns</h1><p>Discover head and shoulders, triangles, flags, and other patterns that signal potential price movements.</p>" },
         { id: "trading-page8", title: "Support & Resistance", content: "<h1>Support and Resistance Levels</h1><p>Learn how to identify these critical price levels that often influence market direction.</p>" },
       ],
-      quiz: { id: "trading-section2-quiz" }
+      quiz: { 
+        id: "trading-section2-quiz", 
+        title: "Technical Analysis Quiz", 
+        questions: [
+          {
+            id: "t2q1",
+            text: "What does RSI stand for?",
+            options: [
+              "Really Simple Indicator",
+              "Relative Strength Index",
+              "Resistance Support Indicator",
+              "Repeating Signal Identifier"
+            ],
+            correctOptionIndex: 1
+          },
+          {
+            id: "t2q2",
+            text: "Which pattern often signals a trend reversal?",
+            options: [
+              "Flag pattern",
+              "Triangle pattern",
+              "Head and shoulders pattern",
+              "Channel pattern"
+            ],
+            correctOptionIndex: 2
+          }
+        ],
+        rewardPoints: 20
+      }
     },
     {
       id: "trading-section3",
@@ -93,7 +233,35 @@ export const lessonSections: Record<string, Section[]> = {
         { id: "trading-page11", title: "Swing Trading", content: "<h1>Swing Trading Approaches</h1><p>Learn how to capture medium-term market moves lasting days to weeks.</p>" },
         { id: "trading-page12", title: "Building Your Strategy", content: "<h1>Creating Your Trading Plan</h1><p>Put everything together to create a personalized trading strategy that fits your goals.</p>" },
       ],
-      quiz: { id: "trading-section3-quiz" }
+      quiz: { 
+        id: "trading-section3-quiz", 
+        title: "Trading Strategies Quiz", 
+        questions: [
+          {
+            id: "t3q1",
+            text: "What is a stop-loss order?",
+            options: [
+              "An order to buy when prices start rising",
+              "An order to sell when prices start falling",
+              "An order that automatically closes your position at a specified loss limit",
+              "An order that prevents you from trading anymore"
+            ],
+            correctOptionIndex: 2
+          },
+          {
+            id: "t3q2",
+            text: "Which trading style typically holds positions for several days or weeks?",
+            options: [
+              "Scalping",
+              "Day trading",
+              "Swing trading",
+              "Position trading"
+            ],
+            correctOptionIndex: 2
+          }
+        ],
+        rewardPoints: 20
+      }
     }
   ],
   "defi-essentials": [
@@ -106,7 +274,35 @@ export const lessonSections: Record<string, Section[]> = {
         { id: "defi-page3", title: "DeFi Ecosystem", content: "<h1>The DeFi Landscape</h1><p>Explore the various categories of DeFi applications and how they interact with each other.</p>" },
         { id: "defi-page4", title: "Smart Contracts in DeFi", content: "<h1>Smart Contract Foundations</h1><p>Understand how smart contracts enable trustless financial applications in DeFi.</p>" },
       ],
-      quiz: { id: "defi-section1-quiz" }
+      quiz: { 
+        id: "defi-section1-quiz", 
+        title: "DeFi Fundamentals Quiz", 
+        questions: [
+          {
+            id: "d1q1",
+            text: "What is the main advantage of DeFi over traditional finance?",
+            options: [
+              "Government oversight and regulation",
+              "Lower transaction fees in all cases",
+              "Permissionless access and elimination of intermediaries",
+              "Complete security with no risks"
+            ],
+            correctOptionIndex: 2
+          },
+          {
+            id: "d1q2",
+            text: "Which blockchain hosts the majority of DeFi applications?",
+            options: [
+              "Bitcoin",
+              "Ethereum",
+              "Solana",
+              "Ripple"
+            ],
+            correctOptionIndex: 1
+          }
+        ],
+        rewardPoints: 20
+      }
     },
     {
       id: "defi-section2",
@@ -117,7 +313,35 @@ export const lessonSections: Record<string, Section[]> = {
         { id: "defi-page7", title: "Yield Farming", content: "<h1>Maximizing DeFi Returns</h1><p>Learn strategies for earning yield through liquidity provision and farming.</p>" },
         { id: "defi-page8", title: "Stablecoins", content: "<h1>Crypto Stability</h1><p>Understand different types of stablecoins and their role in the DeFi ecosystem.</p>" },
       ],
-      quiz: { id: "defi-section2-quiz" }
+      quiz: { 
+        id: "defi-section2-quiz", 
+        title: "DeFi Applications Quiz", 
+        questions: [
+          {
+            id: "d2q1",
+            text: "What is an Automated Market Maker (AMM)?",
+            options: [
+              "A robot that automatically trades cryptocurrency",
+              "A type of decentralized exchange that uses liquidity pools and algorithms",
+              "A person who manages market trading operations",
+              "A centralized exchange feature"
+            ],
+            correctOptionIndex: 1
+          },
+          {
+            id: "d2q2",
+            text: "Which of these is a stablecoin?",
+            options: [
+              "Bitcoin",
+              "Ethereum",
+              "USDC",
+              "Dogecoin"
+            ],
+            correctOptionIndex: 2
+          }
+        ],
+        rewardPoints: 20
+      }
     },
     {
       id: "defi-section3",
@@ -128,7 +352,35 @@ export const lessonSections: Record<string, Section[]> = {
         { id: "defi-page11", title: "DAOs in DeFi", content: "<h1>Governance Models</h1><p>Understand how decentralized autonomous organizations govern DeFi protocols.</p>" },
         { id: "defi-page12", title: "DeFi Security", content: "<h1>Staying Safe in DeFi</h1><p>Learn best practices for security and risk management when using DeFi applications.</p>" },
       ],
-      quiz: { id: "defi-section3-quiz" }
+      quiz: { 
+        id: "defi-section3-quiz", 
+        title: "Advanced DeFi Quiz", 
+        questions: [
+          {
+            id: "d3q1",
+            text: "What is a flash loan?",
+            options: [
+              "A loan with extremely high interest rates",
+              "A loan that must be repaid within the same transaction block",
+              "A loan that is approved instantly",
+              "A loan offered only to premium users"
+            ],
+            correctOptionIndex: 1
+          },
+          {
+            id: "d3q2",
+            text: "What is the primary purpose of a DAO in DeFi?",
+            options: [
+              "To ensure regulatory compliance",
+              "To centralize decision-making",
+              "To enable community governance of protocols",
+              "To eliminate the need for users"
+            ],
+            correctOptionIndex: 2
+          }
+        ],
+        rewardPoints: 20
+      }
     }
   ],
   "nft-creation": [
@@ -141,7 +393,35 @@ export const lessonSections: Record<string, Section[]> = {
         { id: "nft-page3", title: "NFT Use Cases", content: "<h1>Applications of NFTs</h1><p>Explore how NFTs are being used in art, gaming, music, collectibles, and beyond.</p>" },
         { id: "nft-page4", title: "NFT Marketplaces", content: "<h1>Where NFTs are Traded</h1><p>Learn about popular NFT marketplaces and how they work.</p>" },
       ],
-      quiz: { id: "nft-section1-quiz" }
+      quiz: { 
+        id: "nft-section1-quiz", 
+        title: "NFT Basics Quiz", 
+        questions: [
+          {
+            id: "n1q1",
+            text: "What does NFT stand for?",
+            options: [
+              "New Financial Token",
+              "Non-Fungible Token",
+              "Network File Transfer",
+              "Newly Formed Technology"
+            ],
+            correctOptionIndex: 1
+          },
+          {
+            id: "n1q2",
+            text: "What is the most widely used Ethereum standard for NFTs?",
+            options: [
+              "ERC-20",
+              "ERC-721",
+              "ERC-777",
+              "ERC-1155"
+            ],
+            correctOptionIndex: 1
+          }
+        ],
+        rewardPoints: 20
+      }
     },
     {
       id: "nft-section2",
@@ -152,7 +432,35 @@ export const lessonSections: Record<string, Section[]> = {
         { id: "nft-page7", title: "Metadata & Properties", content: "<h1>NFT Attributes</h1><p>Learn how to design and implement traits and properties for your NFTs.</p>" },
         { id: "nft-page8", title: "Storytelling with NFTs", content: "<h1>Narrative-Driven NFTs</h1><p>Understand how to create compelling stories that add value to your NFT projects.</p>" },
       ],
-      quiz: { id: "nft-section2-quiz" }
+      quiz: { 
+        id: "nft-section2-quiz", 
+        title: "Creating NFT Art Quiz", 
+        questions: [
+          {
+            id: "n2q1",
+            text: "What is generative art in the context of NFTs?",
+            options: [
+              "Art created by AI only",
+              "Algorithmically created art with randomized traits",
+              "Art that grows over time",
+              "Art that generates passive income"
+            ],
+            correctOptionIndex: 1
+          },
+          {
+            id: "n2q2",
+            text: "What is NFT metadata?",
+            options: [
+              "The blockchain where the NFT exists",
+              "The price history of the NFT",
+              "Additional data describing the NFT's properties and attributes",
+              "The marketing strategy for the NFT"
+            ],
+            correctOptionIndex: 2
+          }
+        ],
+        rewardPoints: 20
+      }
     },
     {
       id: "nft-section3",
@@ -163,7 +471,35 @@ export const lessonSections: Record<string, Section[]> = {
         { id: "nft-page11", title: "Marketing Your NFTs", content: "<h1>Building an Audience</h1><p>Learn effective strategies for promoting your NFT collection and building community.</p>" },
         { id: "nft-page12", title: "Launching a Collection", content: "<h1>Successful NFT Drops</h1><p>Explore best practices for launching and selling your NFT collection.</p>" },
       ],
-      quiz: { id: "nft-section3-quiz" }
+      quiz: { 
+        id: "nft-section3-quiz", 
+        title: "Minting & Marketing Quiz", 
+        questions: [
+          {
+            id: "n3q1",
+            text: "What is 'minting' an NFT?",
+            options: [
+              "Creating physical copies of digital art",
+              "The process of creating and registering an NFT on the blockchain",
+              "Setting the price for an NFT",
+              "Earning rewards from your NFT"
+            ],
+            correctOptionIndex: 1
+          },
+          {
+            id: "n3q2",
+            text: "What is a gas fee in the context of NFTs?",
+            options: [
+              "A fee paid to the artist",
+              "A fee paid to the marketplace",
+              "A transaction fee paid to blockchain validators",
+              "A subscription fee for NFT services"
+            ],
+            correctOptionIndex: 2
+          }
+        ],
+        rewardPoints: 20
+      }
     }
   ],
   "solana-dev": [
@@ -176,7 +512,35 @@ export const lessonSections: Record<string, Section[]> = {
         { id: "solana-page3", title: "Account Model", content: "<h1>Solana Account System</h1><p>Learn about Solana's account structure which differs from Ethereum's model.</p>" },
         { id: "solana-page4", title: "Transaction Flow", content: "<h1>How Transactions Work</h1><p>Understand how transactions are processed and confirmed on Solana.</p>" },
       ],
-      quiz: { id: "solana-section1-quiz" }
+      quiz: { 
+        id: "solana-section1-quiz", 
+        title: "Solana Fundamentals Quiz", 
+        questions: [
+          {
+            id: "sol1q1",
+            text: "What is Proof of History (PoH) in Solana?",
+            options: [
+              "A consensus mechanism that replaces Proof of Stake",
+              "A way to verify the historical accuracy of the blockchain",
+              "A verifiable delay function that creates a historical record of transactions",
+              "A method to prove ownership of NFTs"
+            ],
+            correctOptionIndex: 2
+          },
+          {
+            id: "sol1q2",
+            text: "What programming language is primarily used for Solana development?",
+            options: [
+              "JavaScript",
+              "Solidity",
+              "Python",
+              "Rust"
+            ],
+            correctOptionIndex: 3
+          }
+        ],
+        rewardPoints: 20
+      }
     },
     {
       id: "solana-section2",
@@ -187,7 +551,36 @@ export const lessonSections: Record<string, Section[]> = {
         { id: "solana-page7", title: "Instruction Processing", content: "<h1>Handling Instructions</h1><p>Understand how to process instructions in Solana programs.</p>" },
         { id: "solana-page8", title: "Program Derived Addresses", content: "<h1>PDAs Explained</h1><p>Learn about PDAs and how they enable cross-program invocation.</p>" },
       ],
-      quiz: { id: "solana-section2-quiz" }
+      quiz: { 
+        id: "solana-section2-quiz", 
+        title: "Solana Programming Quiz", 
+        questions: [
+          {
+            id: "sol2q1",
+            text: "What is a Program Derived Address (PDA) in Solana?",
+            options: [
+              "A user's wallet address",
+              "An address derived from a program's ID that doesn't lie on the Ed25519
+ curve",
+              "The location where program code is stored",
+              "A special address for staking SOL"
+            ],
+            correctOptionIndex: 1
+          },
+          {
+            id: "sol2q2",
+            text: "What Solana feature allows programs to call other programs?",
+            options: [
+              "Program Linking",
+              "Cross-Program Invocation (CPI)",
+              "Program Integration",
+              "Inter-Program Communication (IPC)"
+            ],
+            correctOptionIndex: 1
+          }
+        ],
+        rewardPoints: 20
+      }
     },
     {
       id: "solana-section3",
@@ -198,7 +591,35 @@ export const lessonSections: Record<string, Section[]> = {
         { id: "solana-page11", title: "DApps Integration", content: "<h1>Frontend Integration</h1><p>Learn how to connect Solana programs to web applications with JavaScript.</p>" },
         { id: "solana-page12", title: "Testing & Deployment", content: "<h1>Going to Production</h1><p>Understand testing strategies and deployment processes for Solana programs.</p>" },
       ],
-      quiz: { id: "solana-section3-quiz" }
+      quiz: { 
+        id: "solana-section3-quiz", 
+        title: "Building on Solana Quiz", 
+        questions: [
+          {
+            id: "sol3q1",
+            text: "What is the Solana Program Library (SPL)?",
+            options: [
+              "A collection of books about Solana",
+              "A collection of on-chain programs/smart contracts",
+              "A JavaScript library for frontend development",
+              "The official Solana documentation"
+            ],
+            correctOptionIndex: 1
+          },
+          {
+            id: "sol3q2",
+            text: "What JavaScript library is commonly used to interact with Solana from web applications?",
+            options: [
+              "@solana/web3.js",
+              "solana-js",
+              "sol-connect",
+              "solana-react"
+            ],
+            correctOptionIndex: 0
+          }
+        ],
+        rewardPoints: 20
+      }
     }
   ],
   // Default sections for other lessons not explicitly defined
@@ -212,7 +633,35 @@ export const lessonSections: Record<string, Section[]> = {
         { id: "default-page3", title: "Topic 2", content: "<h1>Second Topic</h1><p>Content for the second topic will be available soon.</p>" },
         { id: "default-page4", title: "Topic 3", content: "<h1>Third Topic</h1><p>Content for the third topic will be available soon.</p>" },
       ],
-      quiz: { id: "default-section1-quiz" }
+      quiz: { 
+        id: "default-section1-quiz", 
+        title: "Section 1 Quiz", 
+        questions: [
+          {
+            id: "def1q1",
+            text: "Sample question 1",
+            options: [
+              "Option A",
+              "Option B",
+              "Option C",
+              "Option D"
+            ],
+            correctOptionIndex: 1
+          },
+          {
+            id: "def1q2",
+            text: "Sample question 2",
+            options: [
+              "Option A",
+              "Option B",
+              "Option C",
+              "Option D"
+            ],
+            correctOptionIndex: 2
+          }
+        ],
+        rewardPoints: 20
+      }
     },
     {
       id: "default-section2",
@@ -223,7 +672,35 @@ export const lessonSections: Record<string, Section[]> = {
         { id: "default-page7", title: "Advanced Topic 3", content: "<h1>Advanced Topic 3</h1><p>Content for this advanced topic will be available soon.</p>" },
         { id: "default-page8", title: "Advanced Topic 4", content: "<h1>Advanced Topic 4</h1><p>Content for this advanced topic will be available soon.</p>" },
       ],
-      quiz: { id: "default-section2-quiz" }
+      quiz: { 
+        id: "default-section2-quiz", 
+        title: "Section 2 Quiz", 
+        questions: [
+          {
+            id: "def2q1",
+            text: "Sample question 1",
+            options: [
+              "Option A",
+              "Option B",
+              "Option C",
+              "Option D"
+            ],
+            correctOptionIndex: 1
+          },
+          {
+            id: "def2q2",
+            text: "Sample question 2",
+            options: [
+              "Option A",
+              "Option B",
+              "Option C",
+              "Option D"
+            ],
+            correctOptionIndex: 2
+          }
+        ],
+        rewardPoints: 20
+      }
     },
     {
       id: "default-section3",
@@ -234,7 +711,35 @@ export const lessonSections: Record<string, Section[]> = {
         { id: "default-page11", title: "Final Topic 3", content: "<h1>Final Topic 3</h1><p>Content for this final topic will be available soon.</p>" },
         { id: "default-page12", title: "Conclusion", content: "<h1>Course Conclusion</h1><p>Congratulations on completing this course! A summary will be available soon.</p>" },
       ],
-      quiz: { id: "default-section3-quiz" }
+      quiz: { 
+        id: "default-section3-quiz", 
+        title: "Section 3 Quiz", 
+        questions: [
+          {
+            id: "def3q1",
+            text: "Sample question 1",
+            options: [
+              "Option A",
+              "Option B",
+              "Option C",
+              "Option D"
+            ],
+            correctOptionIndex: 1
+          },
+          {
+            id: "def3q2",
+            text: "Sample question 2",
+            options: [
+              "Option A",
+              "Option B",
+              "Option C",
+              "Option D"
+            ],
+            correctOptionIndex: 2
+          }
+        ],
+        rewardPoints: 20
+      }
     }
   ]
 };
