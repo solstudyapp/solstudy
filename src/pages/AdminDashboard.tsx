@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Route, Routes, Link, useLocation, Navigate } from "react-router-dom";
+import { Route, Routes, Link, useLocation } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -21,8 +21,7 @@ import {
   Trash,
   Pencil,
   Save,
-  X,
-  LayoutDashboard
+  X
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -35,15 +34,13 @@ import UserManagement from "@/components/admin/UserManagement";
 import LessonManagement from "@/components/admin/LessonManagement";
 import QuizManagement from "@/components/admin/QuizManagement";
 import SettingsPanel from "@/components/admin/SettingsPanel";
-import AdminOverview from "@/components/admin/AdminOverview";
 
 // Admin Sidebar Component
 const AdminSidebar = () => {
   const location = useLocation();
-  const currentPath = location.pathname.split("/").pop() || "dashboard";
+  const currentPath = location.pathname.split("/").pop() || "users";
   
   const navItems = [
-    { path: "dashboard", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
     { path: "users", label: "Users", icon: <Users size={20} /> },
     { path: "lessons", label: "Lessons", icon: <BookOpen size={20} /> },
     { path: "quizzes", label: "Quizzes", icon: <HelpCircle size={20} /> },
@@ -94,14 +91,11 @@ const AdminDashboard = () => {
           
           <div className="flex-1">
             <Routes>
-              <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
-              <Route path="/dashboard" element={<AdminOverview />} />
+              <Route path="/" element={<UserManagement />} />
               <Route path="/users" element={<UserManagement />} />
               <Route path="/lessons" element={<LessonManagement />} />
               <Route path="/quizzes" element={<QuizManagement />} />
               <Route path="/settings" element={<SettingsPanel />} />
-              {/* Redirect any unknown routes to dashboard */}
-              <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
             </Routes>
           </div>
         </div>

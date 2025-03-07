@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Apple, Facebook, Github, Mail } from "lucide-react";
+import { Apple, Facebook, Github, Mail, Wallet } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 const AuthPage = () => {
@@ -26,6 +26,14 @@ const AuthPage = () => {
       description: `Signing in with ${provider}...`,
     });
     // In a real app, you would connect to the social auth provider
+  };
+  
+  const handleWalletAuth = () => {
+    toast({
+      title: "Connect wallet",
+      description: "Please connect your Solana wallet to continue",
+    });
+    // In a real app, you would connect to wallet
   };
   
   return (
@@ -137,6 +145,15 @@ const AuthPage = () => {
                     GitHub
                   </Button>
                 </div>
+                
+                <Button
+                  variant="outline"
+                  className="w-full border-[#9945FF] text-white hover:bg-[#9945FF]/10 bg-[#9945FF]/5"
+                  onClick={handleWalletAuth}
+                >
+                  <Wallet className="mr-2 h-4 w-4" />
+                  Connect Wallet
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
@@ -239,6 +256,15 @@ const AuthPage = () => {
                     GitHub
                   </Button>
                 </div>
+                
+                <Button
+                  variant="outline"
+                  className="w-full border-[#9945FF] text-white hover:bg-[#9945FF]/10 bg-[#9945FF]/5"
+                  onClick={handleWalletAuth}
+                >
+                  <Wallet className="mr-2 h-4 w-4" />
+                  Connect Wallet
+                </Button>
               </CardContent>
               <CardFooter className="text-white/70 text-sm text-center">
                 By signing up, you agree to our Terms of Service and Privacy Policy

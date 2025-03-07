@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Search, Plus, Pencil, Trash, MoreVertical, Save, X, ExternalLink, Award } from "lucide-react";
+import { Search, Plus, Pencil, Trash, MoreVertical, Save, X, ExternalLink } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { lessonData } from "@/data/lessons";
 import { Section, LessonType } from "@/types/lesson";
@@ -98,7 +98,7 @@ const LessonManagement = () => {
   
   return (
     <div className="space-y-6">
-      <Card className="admin-card">
+      <Card className="backdrop-blur-md bg-white/10 border-white/10 text-white">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <div>
             <CardTitle>Lessons Management</CardTitle>
@@ -129,13 +129,12 @@ const LessonManagement = () => {
           
           <div className="rounded-md border border-white/20 overflow-hidden">
             <Table>
-              <TableHeader className="bg-black/20">
+              <TableHeader className="bg-white/10">
                 <TableRow className="hover:bg-white/5 border-white/10">
                   <TableHead>Title</TableHead>
                   <TableHead>Difficulty</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead>Rating</TableHead>
-                  <TableHead>Points</TableHead>
                   <TableHead>Sponsored</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -162,18 +161,6 @@ const LessonManagement = () => {
                       {lesson.rating}
                       <span className="text-yellow-400 ml-1">★</span>
                       <span className="text-xs text-white/50 ml-1">({lesson.reviewCount})</span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center">
-                        {lesson.points ? (
-                          <>
-                            <Award size={16} className="text-[#14F195] mr-1" />
-                            <span>{lesson.points}</span>
-                          </>
-                        ) : (
-                          <span className="text-white/50">-</span>
-                        )}
-                      </div>
                     </TableCell>
                     <TableCell>
                       {lesson.sponsored ? (
@@ -219,7 +206,7 @@ const LessonManagement = () => {
                 
                 {filteredLessons.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-6 text-white/50">
+                    <TableCell colSpan={6} className="text-center py-6 text-white/50">
                       No lessons found
                     </TableCell>
                   </TableRow>

@@ -9,7 +9,6 @@ import AuthPage from "./pages/AuthPage";
 import LessonView from "./pages/LessonView";
 import QuizPage from "./pages/QuizPage";
 import NotFound from "./pages/NotFound";
-import About from "./pages/About";
 
 function App() {
   return (
@@ -26,7 +25,6 @@ function App() {
                 <Route path="/admin/*" element={<AdminDashboard />} />
                 <Route path="/lesson/:lessonId" element={<LessonView />} />
                 <Route path="/quiz/:lessonId/:sectionId" element={<QuizPage />} />
-                <Route path="/about" element={<About />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>

@@ -100,7 +100,7 @@ const QuizManagement = () => {
   
   return (
     <div className="space-y-6">
-      <Card className="admin-card">
+      <Card className="backdrop-blur-md bg-white/10 border-white/10 text-white">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <div>
             <CardTitle>Quizzes Management</CardTitle>
@@ -131,7 +131,7 @@ const QuizManagement = () => {
           
           <div className="rounded-md border border-white/20 overflow-hidden">
             <Table>
-              <TableHeader className="bg-black/20">
+              <TableHeader className="bg-white/10">
                 <TableRow className="hover:bg-white/5 border-white/10">
                   <TableHead>Title</TableHead>
                   <TableHead>Lesson</TableHead>

@@ -1,40 +1,25 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Search, Gift, MoreVertical, Trash, Settings, CheckCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
-const currentDate = new Date();
-const thirtyDaysAgo = new Date(currentDate);
-thirtyDaysAgo.setDate(currentDate.getDate() - 30);
-
+// Mock user data
 const users = [
-  { id: "user1", name: "Alex Johnson", email: "alex@example.com", points: 750, lessonsCompleted: 5, lastActivity: new Date(currentDate.getTime() - 5 * 24 * 60 * 60 * 1000) },
-  { id: "user2", name: "Sara Williams", email: "sara@example.com", points: 1250, lessonsCompleted: 8, lastActivity: new Date(currentDate.getTime() - 2 * 24 * 60 * 60 * 1000) },
-  { id: "user3", name: "Michael Brown", email: "michael@example.com", points: 500, lessonsCompleted: 3, lastActivity: new Date(currentDate.getTime() - 45 * 24 * 60 * 60 * 1000) },
-  { id: "user4", name: "Jessica Lee", email: "jessica@example.com", points: 950, lessonsCompleted: 6, lastActivity: new Date(currentDate.getTime() - 15 * 24 * 60 * 60 * 1000) },
-  { id: "user5", name: "David Wilson", email: "david@example.com", points: 1100, lessonsCompleted: 7, lastActivity: new Date(currentDate.getTime() - 8 * 24 * 60 * 60 * 1000) },
-  { id: "user6", name: "Emma Davis", email: "emma@example.com", points: 350, lessonsCompleted: 2, lastActivity: new Date(currentDate.getTime() - 60 * 24 * 60 * 60 * 1000) },
-  { id: "user7", name: "James Martin", email: "james@example.com", points: 800, lessonsCompleted: 5, lastActivity: new Date(currentDate.getTime() - 22 * 24 * 60 * 60 * 1000) },
-  { id: "user8", name: "Olivia Taylor", email: "olivia@example.com", points: 1500, lessonsCompleted: 10, lastActivity: new Date(currentDate.getTime() - 1 * 24 * 60 * 60 * 1000) },
+  { id: "user1", name: "Alex Johnson", email: "alex@example.com", points: 750, lessonsCompleted: 5 },
+  { id: "user2", name: "Sara Williams", email: "sara@example.com", points: 1250, lessonsCompleted: 8 },
+  { id: "user3", name: "Michael Brown", email: "michael@example.com", points: 500, lessonsCompleted: 3 },
+  { id: "user4", name: "Jessica Lee", email: "jessica@example.com", points: 950, lessonsCompleted: 6 },
+  { id: "user5", name: "David Wilson", email: "david@example.com", points: 1100, lessonsCompleted: 7 },
+  { id: "user6", name: "Emma Davis", email: "emma@example.com", points: 350, lessonsCompleted: 2 },
+  { id: "user7", name: "James Martin", email: "james@example.com", points: 800, lessonsCompleted: 5 },
+  { id: "user8", name: "Olivia Taylor", email: "olivia@example.com", points: 1500, lessonsCompleted: 10 },
 ];
-
-const formatDate = (date: Date): string => {
-  return date.toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'short', 
-    day: 'numeric' 
-  });
-};
-
-const isUserActive = (lastActivity: Date): boolean => {
-  return lastActivity >= thirtyDaysAgo;
-};
 
 const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -140,7 +125,7 @@ const UserManagement = () => {
   
   return (
     <div className="space-y-6">
-      <Card className="admin-card">
+      <Card className="backdrop-blur-md bg-white/10 border-white/10 text-white">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <div>
             <CardTitle>Users Management</CardTitle>
@@ -176,7 +161,7 @@ const UserManagement = () => {
           
           <div className="rounded-md border border-white/20 overflow-hidden">
             <Table>
-              <TableHeader className="bg-black/20">
+              <TableHeader className="bg-white/10">
                 <TableRow className="hover:bg-white/5 border-white/10">
                   <TableHead className="w-12">
                     <div className="flex items-center">
@@ -192,8 +177,6 @@ const UserManagement = () => {
                   <TableHead>Email</TableHead>
                   <TableHead>Points</TableHead>
                   <TableHead>Lessons</TableHead>
-                  <TableHead>Last Activity</TableHead>
-                  <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -212,14 +195,6 @@ const UserManagement = () => {
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{user.points}</TableCell>
                     <TableCell>{user.lessonsCompleted}</TableCell>
-                    <TableCell>{formatDate(user.lastActivity)}</TableCell>
-                    <TableCell>
-                      <Badge className={isUserActive(user.lastActivity) 
-                        ? "bg-green-500/70 hover:bg-green-500" 
-                        : "bg-gray-500/70 hover:bg-gray-500"}>
-                        {isUserActive(user.lastActivity) ? "Active" : "Inactive"}
-                      </Badge>
-                    </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -255,7 +230,7 @@ const UserManagement = () => {
                 
                 {paginatedUsers.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-6 text-white/50">
+                    <TableCell colSpan={6} className="text-center py-6 text-white/50">
                       No users found
                     </TableCell>
                   </TableRow>
@@ -292,6 +267,7 @@ const UserManagement = () => {
         </CardContent>
       </Card>
       
+      {/* Airdrop Dialog */}
       <Dialog open={showAirdropDialog} onOpenChange={setShowAirdropDialog}>
         <DialogContent className="bg-[#1A1F2C] text-white border-white/10">
           <DialogHeader>
@@ -335,6 +311,7 @@ const UserManagement = () => {
         </DialogContent>
       </Dialog>
       
+      {/* Delete User Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent className="bg-[#1A1F2C] text-white border-white/10">
           <DialogHeader>
@@ -356,6 +333,7 @@ const UserManagement = () => {
         </DialogContent>
       </Dialog>
       
+      {/* User Settings Dialog */}
       <Dialog open={showUserSettingsDialog} onOpenChange={setShowUserSettingsDialog}>
         <DialogContent className="bg-[#1A1F2C] text-white border-white/10">
           <DialogHeader>
@@ -386,14 +364,6 @@ const UserManagement = () => {
                 value={currentUser?.points.toString()}
                 className="bg-white/10 border-white/20 text-white"
                 type="number"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Last Activity</label>
-              <Input
-                value={currentUser?.lastActivity.toISOString().split('T')[0]}
-                className="bg-white/10 border-white/20 text-white"
-                type="date"
               />
             </div>
           </div>

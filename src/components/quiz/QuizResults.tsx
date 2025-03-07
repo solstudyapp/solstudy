@@ -13,36 +13,19 @@ interface QuizResultsProps {
 const QuizResults = ({ quiz, score, onComplete }: QuizResultsProps) => {
   const earnedPoints = Math.round((score / quiz.questions.length) * quiz.rewardPoints);
   
-  // Determine the message based on score and whether this is a final test
-  const getMessage = () => {
-    const percentage = score / quiz.questions.length;
-    
-    if (quiz.isFinalTest) {
-      if (percentage >= 0.8) {
-        return "Congratulations! You've mastered this course!";
-      } else if (percentage >= 0.6) {
-        return "Good job completing the course! You've learned a lot.";
-      } else {
-        return "You've completed the course. Consider reviewing the material to reinforce your knowledge.";
-      }
-    } else {
-      if (percentage >= 0.8) {
-        return "Great job! You've mastered this section.";
-      } else if (percentage >= 0.6) {
-        return "Good effort! Keep studying to improve.";
-      } else {
-        return "Need more practice. Review the material and try again.";
-      }
-    }
-  };
-  
   return (
     <Card className="backdrop-blur-md bg-white/10 border border-white/10 text-white">
       <CardContent className="pt-6">
         <div className="text-center py-8">
           <div className="mb-6">
             <div className="text-5xl font-bold mb-2">{score}/{quiz.questions.length}</div>
-            <p className="text-white/70">{getMessage()}</p>
+            <p className="text-white/70">
+              {score / quiz.questions.length >= 0.8 
+                ? "Great job! You've mastered this section." 
+                : score / quiz.questions.length >= 0.6 
+                ? "Good effort! Keep studying to improve." 
+                : "Need more practice. Review the material and try again."}
+            </p>
           </div>
           
           <div className="bg-white/10 rounded-lg p-4 mb-6">
@@ -57,9 +40,7 @@ const QuizResults = ({ quiz, score, onComplete }: QuizResultsProps) => {
             onClick={onComplete}
             className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0 mt-4"
           >
-            {quiz.isFinalTest 
-              ? "Complete Course" 
-              : "Continue to Next Section"}
+            {quiz.isFinalTest ? "Complete Course" : "Complete Quiz"}
           </Button>
         </div>
       </CardContent>

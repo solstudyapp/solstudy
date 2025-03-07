@@ -21,9 +21,6 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
     navigate(`/lesson/${lesson.id}`);
   };
 
-  // Use CoinGecko logo for all lessons
-  const sponsorLogo = "https://static.coingecko.com/s/coingecko-logo-8903d34ce19ca4be1c81f0db30e924154750d208683fad7ae6f2ce06c76d0a56.png";
-
   return (
     <Card 
       className={cn(
@@ -37,9 +34,11 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleStartLesson}
     >
-      <div className="absolute top-0 right-0 bg-black/40 backdrop-blur-sm text-white px-3 py-1 text-xs font-medium">
-        Sponsored
-      </div>
+      {lesson.sponsored && (
+        <div className="absolute top-0 right-0 bg-black/40 backdrop-blur-sm text-white px-3 py-1 text-xs font-medium">
+          Sponsored
+        </div>
+      )}
 
       <CardHeader className="pb-0">
         <div className="flex justify-between items-start">
@@ -77,17 +76,23 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
           </Badge>
         </div>
 
-        {/* Sponsor area - show for all lessons */}
-        <div className="mt-4 pt-3 border-t border-white/10">
-          <div className="text-xs text-white/60 mb-1">This Course is Brought to You By:</div>
-          <div className="h-8 bg-black/20 rounded flex items-center justify-center p-1">
-            <img 
-              src={sponsorLogo} 
-              alt="CoinGecko Logo" 
-              className="h-6 max-w-[100px] object-contain"
-            />
+        {/* Sponsor area - only show if sponsored */}
+        {lesson.sponsored && (
+          <div className="mt-4 pt-3 border-t border-white/10">
+            <div className="text-xs text-white/60 mb-1">This Course is Brought to You By:</div>
+            <div className="h-8 bg-black/20 rounded flex items-center justify-center p-1">
+              {lesson.sponsorLogo ? (
+                <img 
+                  src={lesson.sponsorLogo} 
+                  alt="Sponsor Logo" 
+                  className="h-6 max-w-[100px] object-contain"
+                />
+              ) : (
+                <div className="text-xs text-white/40">Sponsor</div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </CardContent>
 
       <CardFooter className="p-0 mt-auto">
