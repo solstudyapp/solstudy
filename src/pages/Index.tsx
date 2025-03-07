@@ -43,13 +43,13 @@ const Index = () => {
     <div className="min-h-screen bg-black p-6">
       <div className="max-w-7xl mx-auto">
         {/* Hero Section */}
-        <div className="relative mb-12 overflow-hidden rounded-xl p-8 text-white">
+        <div className="relative mb-12 overflow-hidden rounded-xl p-4 text-white">
           {/* Gradient border/outline for the hero card */}
           <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-[#9945FF] to-[#14F195] opacity-70"></div>
           {/* Dark inner content background */}
           <div className="absolute inset-[1px] rounded-xl bg-black/80 backdrop-blur-sm"></div>
           
-          <div className="relative z-10 flex flex-col items-center text-center mx-auto max-w-3xl">
+          <div className="relative z-10 flex flex-col items-center text-center mx-auto max-w-5xl px-2">
             <h1 className="text-4xl font-bold mb-4">
               <span className="bg-gradient-to-r from-[#9945FF] to-[#14F195] bg-clip-text text-transparent">SolStudy</span>
             </h1>
