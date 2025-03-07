@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { 
   Bold, 
   Italic, 
@@ -40,6 +40,7 @@ export const RichTextEditor = ({ initialContent, onChange }: RichTextEditorProps
   const [linkUrl, setLinkUrl] = useState("");
   const [linkText, setLinkText] = useState("");
   const [hasSelection, setHasSelection] = useState(false);
+  const [selectedRange, setSelectedRange] = useState<Range | null>(null);
   
   // Image dialog state
   const [showImageDialog, setShowImageDialog] = useState(false);
@@ -76,8 +77,10 @@ export const RichTextEditor = ({ initialContent, onChange }: RichTextEditorProps
     
     if (hasSelectedText) {
       setLinkText(selection.toString());
+      setSelectedRange(selection.getRangeAt(0).cloneRange());
     } else {
       setLinkText("");
+      setSelectedRange(null);
     }
     setLinkUrl("");
     setShowLinkDialog(true);
@@ -86,24 +89,54 @@ export const RichTextEditor = ({ initialContent, onChange }: RichTextEditorProps
   const insertLink = () => {
     if (!linkUrl) return;
     
-    if (hasSelection) {
-      execCommand('createLink', false, linkUrl);
-    } else if (linkText) {
-      // First insert the text, then select it and create the link
-      const sel = window.getSelection();
-      const range = sel.getRangeAt(0);
-      const textNode = document.createTextNode(linkText);
-      range.insertNode(textNode);
+    if (editorRef.current) {
+      // Focus the editor to ensure we're working within it
+      editorRef.current.focus();
       
-      range.selectNodeContents(textNode);
-      sel.removeAllRanges();
-      sel.addRange(range);
-      
-      execCommand('createLink', false, linkUrl);
+      if (hasSelection && selectedRange) {
+        // Restore the saved selection
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(selectedRange);
+        
+        // Now execute the command on the restored selection
+        execCommand('createLink', false, linkUrl);
+        toast({
+          title: "Link inserted",
+          description: "The link has been added to the selected text",
+        });
+      } else if (linkText) {
+        // Insert new text with the link
+        const linkElement = document.createElement('a');
+        linkElement.href = linkUrl;
+        linkElement.textContent = linkText;
+        linkElement.target = "_blank";
+        linkElement.rel = "noopener noreferrer";
+        
+        // Insert at cursor position
+        const selection = window.getSelection();
+        if (selection.rangeCount > 0) {
+          selection.getRangeAt(0).insertNode(linkElement);
+          // Move cursor to end of inserted link
+          const range = document.createRange();
+          range.setStartAfter(linkElement);
+          range.collapse(true);
+          selection.removeAllRanges();
+          selection.addRange(range);
+        } else {
+          // If no selection, append to end
+          editorRef.current.appendChild(linkElement);
+        }
+        
+        handleContentChange();
+        toast({
+          title: "Link inserted",
+          description: "A new link has been inserted",
+        });
+      }
     }
     
     setShowLinkDialog(false);
-    handleContentChange();
   };
   
   // Image functionality
@@ -164,9 +197,35 @@ export const RichTextEditor = ({ initialContent, onChange }: RichTextEditorProps
     if (!imageUrl) return;
     
     if (editorRef.current) {
-      const imgHtml = `<img src="${imageUrl}" alt="Uploaded image" style="max-width: 100%;" />`;
-      document.execCommand('insertHTML', false, imgHtml);
+      // Focus the editor first
+      editorRef.current.focus();
+      
+      // Create image element
+      const imgElement = document.createElement('img');
+      imgElement.src = imageUrl;
+      imgElement.alt = "Uploaded image";
+      imgElement.style.maxWidth = "100%";
+      
+      // Insert at cursor position
+      const selection = window.getSelection();
+      if (selection.rangeCount > 0) {
+        selection.getRangeAt(0).insertNode(imgElement);
+        // Move cursor after the inserted image
+        const range = document.createRange();
+        range.setStartAfter(imgElement);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      } else {
+        // If no selection, append to end
+        editorRef.current.appendChild(imgElement);
+      }
+      
       handleContentChange();
+      toast({
+        title: "Image inserted",
+        description: "The image has been added to your content",
+      });
     }
     
     setShowImageDialog(false);
@@ -271,6 +330,9 @@ export const RichTextEditor = ({ initialContent, onChange }: RichTextEditorProps
         <DialogContent className="bg-[#1A1F2C] text-white border-white/10">
           <DialogHeader>
             <DialogTitle>Insert Link</DialogTitle>
+            <DialogDescription className="text-white/70">
+              {hasSelection ? "Add a link to the selected text" : "Create a new link"}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             {!hasSelection && (
@@ -316,6 +378,9 @@ export const RichTextEditor = ({ initialContent, onChange }: RichTextEditorProps
         <DialogContent className="bg-[#1A1F2C] text-white border-white/10">
           <DialogHeader>
             <DialogTitle>Insert Image</DialogTitle>
+            <DialogDescription className="text-white/70">
+              Upload an image or enter a URL
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <Button
