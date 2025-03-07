@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -29,6 +30,11 @@ const QuizPage = () => {
   // Get quiz data - handling both section quizzes and final test
   const isFinalTest = sectionId === 'final';
   const quiz = lessonId && sectionId ? getQuizByLessonAndSection(lessonId, sectionId, isFinalTest) : null;
+  
+  // Parse the current section number from the sectionId (e.g., "section1" -> 0)
+  const currentSectionIndex = !isFinalTest && sectionId ? 
+    parseInt(sectionId.replace('section', '')) - 1 : 
+    sections.length - 1;
   
   // If quiz or lesson not found, handle gracefully
   useEffect(() => {
@@ -113,31 +119,48 @@ const QuizPage = () => {
   const handleFeedbackComplete = () => {
     setShowFeedback(false);
     
-    toast({
-      title: "Quiz completed!",
-      description: "Great job! Your progress has been saved.",
-    });
-    
     // Navigate based on quiz type
     if (isFinalTest) {
+      toast({
+        title: "Course completed!",
+        description: "Congratulations! You've completed the entire course.",
+      });
       // After final test, go to dashboard
       navigate("/dashboard");
     } else {
-      // Check if all sections are completed
-      const allSectionsCompleted = sections.every(section => 
-        lessonService.isSectionCompleted(lessonId || "", section.id)
-      );
+      // For section quizzes, determine if there's a next section
+      const isLastSection = currentSectionIndex >= sections.length - 1;
       
-      if (allSectionsCompleted) {
-        // If all sections are completed, offer the final test
+      if (isLastSection) {
+        // If this was the last section quiz, offer the final test
         toast({
           title: "All sections completed!",
           description: "You can now take the final test for this lesson.",
         });
         navigate(`/quiz/${lessonId}/final`);
       } else {
-        // Otherwise, continue to next section
+        // If there are more sections, navigate to the next section
+        toast({
+          title: "Section completed!",
+          description: "Moving on to the next section.",
+        });
+        
+        // Navigate to the next section, starting at the first page
         navigate(`/lesson/${lessonId}`);
+        
+        // We need to ensure this gets applied after navigation
+        // This is a workaround since the LessonView component will initialize with stored progress
+        setTimeout(() => {
+          // Update progress to the next section
+          lessonService.updateProgress(
+            lessonId || "", 
+            sections[currentSectionIndex + 1].id, 
+            sections[currentSectionIndex + 1].pages[0].id
+          );
+          
+          // Force a reload to ensure the new section loads
+          window.location.reload();
+        }, 100);
       }
     }
   };
