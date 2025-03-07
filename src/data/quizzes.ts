@@ -1,4 +1,3 @@
-
 import { Quiz } from "@/types/lesson";
 
 // Map of quizzes by quiz ID
@@ -245,6 +244,100 @@ export const quizzesData: Record<string, Quiz> = {
   }
 };
 
+// Add quiz data for the daily bonus lesson
+export const dailyBonusQuizzes = [
+  {
+    id: "daily-bonus-quiz-section1",
+    title: "Market Analysis Fundamentals Quiz",
+    lessonId: "daily-bonus-lesson",
+    sectionId: "daily-bonus-section1",
+    rewardPoints: 175,
+    questions: [
+      {
+        id: "db-q1",
+        text: "Which of the following is NOT typically considered a key market indicator?",
+        options: [
+          "Trading Volume",
+          "Market Dominance",
+          "Fear and Greed Index",
+          "Block Size"
+        ],
+        correctOptionIndex: 3,
+        explanation: "Block size is primarily a technical characteristic of a blockchain and not typically used as a direct market indicator, unlike volume, market dominance, and the Fear and Greed Index."
+      },
+      {
+        id: "db-q2",
+        text: "What does RSI stand for in technical analysis?",
+        options: [
+          "Real Strength Indicator",
+          "Relative Strength Index",
+          "Risk System Integration",
+          "Rate of Sustainable Investment"
+        ],
+        correctOptionIndex: 1,
+        explanation: "RSI stands for Relative Strength Index, which is a momentum oscillator that measures the speed and change of price movements."
+      },
+      {
+        id: "db-q3",
+        text: "Which on-chain metric measures the amount of cryptocurrency moving in and out of exchanges?",
+        options: [
+          "Network Hash Rate",
+          "Active Addresses",
+          "Exchange Flows",
+          "Chain Value"
+        ],
+        correctOptionIndex: 2,
+        explanation: "Exchange Flows track the amount of cryptocurrency flowing in and out of exchanges, which can indicate accumulation or distribution patterns."
+      }
+    ]
+  },
+  {
+    id: "daily-bonus-quiz-section2",
+    title: "Advanced Trading Strategies Quiz",
+    lessonId: "daily-bonus-lesson",
+    sectionId: "daily-bonus-section2",
+    rewardPoints: 175,
+    questions: [
+      {
+        id: "db-q4",
+        text: "What is the recommended maximum percentage of your portfolio to risk on a single trade?",
+        options: [
+          "10-15%",
+          "5-10%",
+          "1-2%",
+          "25%"
+        ],
+        correctOptionIndex: 2,
+        explanation: "Risk management best practices suggest limiting exposure to 1-2% of your portfolio on any single trade to protect against significant losses."
+      },
+      {
+        id: "db-q5",
+        text: "Which of the following is a strategy that involves investing fixed amounts at regular intervals?",
+        options: [
+          "Market Timing",
+          "Dollar-Cost Averaging",
+          "Day Trading",
+          "Swing Trading"
+        ],
+        correctOptionIndex: 1,
+        explanation: "Dollar-Cost Averaging involves investing a fixed amount at regular intervals, regardless of the asset's price, which can reduce the impact of volatility."
+      },
+      {
+        id: "db-q6",
+        text: "Which market sentiment indicator shows the positioning of traders in perpetual futures markets?",
+        options: [
+          "Google Trends",
+          "Social Media Volume",
+          "Funding Rates",
+          "Market Capitalization"
+        ],
+        correctOptionIndex: 2,
+        explanation: "Funding Rates in perpetual futures markets indicate whether traders are predominantly long (bullish) or short (bearish) based on the premiums paid."
+      }
+    ]
+  }
+];
+
 // Helper function to get a quiz by ID
 export const getQuizById = (quizId: string): Quiz => {
   return quizzesData[quizId] || quizzesData["default-quiz"];
@@ -263,4 +356,13 @@ export const getQuizByLessonAndSection = (
   
   const quizId = `quiz-${sectionId}`;
   return quizzesData[quizId] || quizzesData["default-quiz"];
+};
+
+// Update the getQuizzes function
+export const getQuizzes = (lessonId: string) => {
+  if (lessonId === "daily-bonus-lesson") {
+    return dailyBonusQuizzes;
+  }
+  
+  return quizzesData[lessonId] || quizzesData["default-quiz"];
 };
