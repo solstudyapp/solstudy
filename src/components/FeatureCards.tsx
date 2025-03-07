@@ -26,7 +26,7 @@ const FeatureCards = () => {
       icon: <MessageSquare className="h-10 w-10" />,
       title: "Provide Feedback",
       description: "Provide valuable feedback about course content and help SolStudy evolve for future users.",
-      color: "from-orange-400/10 to-red-500/20" // Advanced color scheme
+      color: "from-green-400/10 to-emerald-500/20" // Changed to Beginner color scheme (green)
     },
     {
       icon: <LineChart className="h-10 w-10" />,
@@ -44,7 +44,7 @@ const FeatureCards = () => {
       icon: <Users className="h-10 w-10" />,
       title: "Community Learning",
       description: "Join a community of crypto enthusiasts and learn together through shared experiences.",
-      color: "from-orange-400/10 to-red-500/20" // Advanced color scheme
+      color: "from-blue-400/10 to-purple-500/20" // Changed to Intermediate color scheme (blue/purple)
     }
   ];
 
