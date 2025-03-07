@@ -1,4 +1,3 @@
-
 import {
   Wallet,
   LineChart,
@@ -41,6 +40,7 @@ export const lessonData: LessonType[] = [
     sponsored: true,
     sponsorLogo: COINGECKO_LOGO,
     points: 100,
+    bonusLesson: true,
   },
   {
     id: "crypto-trading-101",
@@ -57,6 +57,7 @@ export const lessonData: LessonType[] = [
     sponsored: true,
     sponsorLogo: COINGECKO_LOGO,
     points: 125,
+    bonusLesson: false,
   },
   {
     id: "defi-essentials",

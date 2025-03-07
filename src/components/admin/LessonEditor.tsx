@@ -659,6 +659,20 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
                 <Label htmlFor="sponsored">Sponsored Lesson</Label>
               </div>
               
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="bonusLesson"
+                  checked={!!editedLesson.bonusLesson}
+                  onCheckedChange={(checked) => handleInputChange('bonusLesson', checked)}
+                />
+                <Label htmlFor="bonusLesson">
+                  <span className="flex items-center">
+                    <Sparkles size={16} className="mr-2 text-[#14F195]" /> 
+                    Bonus Lesson of the Day
+                  </span>
+                </Label>
+              </div>
+              
               {editedLesson.sponsored && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Sponsor Logo</label>

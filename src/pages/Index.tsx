@@ -54,6 +54,7 @@ const Index = () => {
             <Button 
               variant="gradient" 
               onClick={handleStartLearning}
+              className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white"
             >
               Start Learning
             </Button>

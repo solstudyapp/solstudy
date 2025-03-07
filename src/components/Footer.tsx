@@ -1,12 +1,23 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Facebook, Instagram, Linkedin, X, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
+import { lessonData } from "@/data/lessons";
+import { LessonType } from "@/types/lesson";
 
 const Footer = () => {
   const [email, setEmail] = useState("");
+  const [bonusLesson, setBonusLesson] = useState<LessonType | null>(null);
+
+  useEffect(() => {
+    // Find the lesson marked as bonusLesson
+    const lessonOfTheDay = lessonData.find(lesson => lesson.bonusLesson === true);
+    
+    // If no lesson is marked as bonus, default to the first lesson
+    setBonusLesson(lessonOfTheDay || lessonData[0]);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,21 +84,23 @@ const Footer = () => {
           {/* Column 3: Bonus Lesson */}
           <div>
             <h3 className="text-xl font-semibold mb-4 text-white">Bonus Lesson of the Day</h3>
-            <div className="dark-glass rounded-lg p-4 bg-gradient-to-br from-[#9945FF]/10 to-[#14F195]/10">
-              <div className="flex items-center gap-3 mb-3">
-                <Sparkles className="text-[#14F195]" size={24} />
-                <h4 className="text-lg font-medium text-white">NFT Market Trends</h4>
+            {bonusLesson && (
+              <div className="dark-glass rounded-lg p-4 bg-gradient-to-br from-[#9945FF]/10 to-[#14F195]/10">
+                <div className="flex items-center gap-3 mb-3">
+                  <Sparkles className="text-[#14F195]" size={24} />
+                  <h4 className="text-lg font-medium text-white">{bonusLesson.title}</h4>
+                </div>
+                <p className="text-white/70 mb-4">{bonusLesson.description.substring(0, 100)}...</p>
+                <div className="flex justify-between items-center">
+                  <span className="text-white/70 text-sm">10 mins • +{bonusLesson.points} points</span>
+                  <Link to={`/lesson/${bonusLesson.id}`}>
+                    <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
+                      Start Now
+                    </Button>
+                  </Link>
+                </div>
               </div>
-              <p className="text-white/70 mb-4">Learn about the latest NFT market trends and earn extra points.</p>
-              <div className="flex justify-between items-center">
-                <span className="text-white/70 text-sm">10 mins • +25 points</span>
-                <Link to="/bonus-lesson">
-                  <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
-                    Start Now
-                  </Button>
-                </Link>
-              </div>
-            </div>
+            )}
           </div>
         </div>
         
