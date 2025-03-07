@@ -52,7 +52,7 @@ const Index = () => {
               Learn about crypto from fundamentals to advanced trading strategies. With our course feedback component you play an important role helping evolve the material for future users. Earn rewards for completing courses and referring others to do so. Rewards will be converted to tokens upon SocialFiLy TGE. We are part of the growing SocialFiLy ecosystem and look forward to having you in our community.
             </p>
             <Button 
-              variant="gradient" 
+              variant="default" 
               onClick={handleStartLearning}
               className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white"
             >
