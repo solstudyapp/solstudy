@@ -12,11 +12,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { 
   Save, X, Plus, Trash, ChevronUp, ChevronDown, Edit, BookOpen, Award,
   Database, LineChart, BarChart, Key, Rocket, Lock, ShieldCheck, Network,
-  Code, BarChart3, Wallet, Layers, Bird, Gem, PaintBucket, Sparkles, Share2, GraduationCap
+  Code, BarChart3, Wallet, Layers, Bird, Gem, PaintBucket, Sparkles, Share2, GraduationCap,
+  Upload, AlertCircle
 } from "lucide-react";
 import { LessonType, Section, Page } from "@/types/lesson";
 import { getSectionsForLesson } from "@/data/sections";
 import { RichTextEditor } from "./RichTextEditor";
+import { lessonData } from "@/data/lessons";
 
 interface LessonEditorProps {
   lesson: LessonType;
@@ -53,6 +55,12 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [selectedIconName, setSelectedIconName] = useState<string>("");
+  const [newCategory, setNewCategory] = useState<string>("");
+  const [showNewCategoryInput, setShowNewCategoryInput] = useState<boolean>(false);
+  const [sponsorLogoUrl, setSponsorLogoUrl] = useState<string>(lesson.sponsorLogo || "");
+  
+  // Extract existing categories from lesson data
+  const existingCategories = Array.from(new Set(lessonData.map(lesson => lesson.category)));
 
   useEffect(() => {
     if (lesson.id && lesson.id !== "lesson-new") {
@@ -88,7 +96,8 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
     
     const initialIconName = determineInitialIconName(lesson.icon);
     setSelectedIconName(initialIconName);
-  }, [lesson.id, lesson.icon]);
+    setSponsorLogoUrl(lesson.sponsorLogo || "");
+  }, [lesson.id, lesson.icon, lesson.sponsorLogo]);
 
   const determineInitialIconName = (iconElement: React.ReactNode): string => {
     const iconString = String(iconElement);
@@ -118,6 +127,44 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
     
     if (selectedIcon) {
       handleInputChange('icon', selectedIcon.component);
+    }
+  };
+
+  const handleAddCategory = () => {
+    if (newCategory.trim() === "") return;
+    
+    // Update categories list
+    existingCategories.push(newCategory.trim());
+    
+    // Set the new category as selected
+    handleInputChange('category', newCategory.trim());
+    
+    // Reset
+    setNewCategory("");
+    setShowNewCategoryInput(false);
+  };
+
+  const handleSponsoredChange = (checked: boolean) => {
+    handleInputChange('sponsored', checked);
+    if (!checked) {
+      handleInputChange('sponsorLogo', "");
+      setSponsorLogoUrl("");
+    }
+  };
+
+  const handleSponsorLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files[0]) {
+      const file = files[0];
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setSponsorLogoUrl(result);
+        handleInputChange('sponsorLogo', result);
+      };
+      
+      reader.readAsDataURL(file);
     }
   };
 
@@ -472,11 +519,53 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
             
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium">Category</label>
-              <Input
-                value={editedLesson.category}
-                onChange={(e) => handleInputChange('category', e.target.value)}
-                className="bg-white/10 border-white/20 text-white"
-              />
+              {showNewCategoryInput ? (
+                <div className="flex gap-2">
+                  <Input
+                    value={newCategory}
+                    onChange={(e) => setNewCategory(e.target.value)}
+                    placeholder="New category name"
+                    className="bg-white/10 border-white/20 text-white"
+                  />
+                  <Button 
+                    onClick={handleAddCategory} 
+                    className="bg-[#14F195] text-[#1A1F2C] hover:bg-[#14F195]/90"
+                  >
+                    <Plus size={16} className="mr-2" />
+                    Add
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowNewCategoryInput(false)}
+                    className="border-white/20 text-white hover:bg-white/10"
+                  >
+                    <X size={16} />
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Select 
+                    value={editedLesson.category} 
+                    onValueChange={(value) => handleInputChange('category', value)}
+                  >
+                    <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-black/80 backdrop-blur-md border-white/10 text-white">
+                      {existingCategories.map(category => (
+                        <SelectItem key={category} value={category}>{category}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowNewCategoryInput(true)}
+                    className="border-white/20 text-white hover:bg-white/10"
+                  >
+                    <Plus size={16} />
+                  </Button>
+                </div>
+              )}
             </div>
             
             <div className="flex flex-col gap-2">
@@ -560,13 +649,54 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
               />
             </div>
             
-            <div className="flex items-center space-x-2 pt-7">
-              <Switch
-                id="sponsored"
-                checked={!!editedLesson.sponsored}
-                onCheckedChange={(checked) => handleInputChange('sponsored', checked)}
-              />
-              <Label htmlFor="sponsored">Sponsored Lesson</Label>
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="sponsored"
+                  checked={!!editedLesson.sponsored}
+                  onCheckedChange={handleSponsoredChange}
+                />
+                <Label htmlFor="sponsored">Sponsored Lesson</Label>
+              </div>
+              
+              {editedLesson.sponsored && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Sponsor Logo</label>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      <Label 
+                        htmlFor="sponsorLogo" 
+                        className="flex items-center px-4 py-2 bg-white/10 border border-white/20 rounded-md cursor-pointer hover:bg-white/20 transition-colors"
+                      >
+                        <Upload size={16} className="mr-2" />
+                        {sponsorLogoUrl ? "Change Logo" : "Upload Logo"}
+                      </Label>
+                      <Input
+                        id="sponsorLogo"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleSponsorLogoChange}
+                      />
+                    </div>
+                    
+                    {sponsorLogoUrl ? (
+                      <div className="p-4 bg-white/5 rounded-md">
+                        <img 
+                          src={sponsorLogoUrl} 
+                          alt="Sponsor Logo" 
+                          className="h-12 object-contain mx-auto"
+                        />
+                      </div>
+                    ) : (
+                      <div className="p-4 bg-white/5 rounded-md flex items-center justify-center text-white/50">
+                        <AlertCircle size={16} className="mr-2" />
+                        No logo uploaded
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           
