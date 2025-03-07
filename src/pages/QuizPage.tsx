@@ -51,18 +51,11 @@ const QuizPage = () => {
   useEffect(() => {
     // For the final test, check if all section quizzes are completed
     if (isFinalTest) {
-      // Check if all sections except the last one (which is the final test section) are completed
-      const allSectionsCompleted = sections.slice(0, -1).every(section => 
+      const allSectionsCompleted = sections.every(section => 
         lessonService.isSectionCompleted(lessonId || "", section.id)
       );
       
-      // Also check if all section quizzes are completed
-      const allQuizzesCompleted = sections.slice(0, -1).every(section => {
-        const quizId = `quiz-${section.id}`;
-        return lessonService.isQuizCompleted(lessonId || "", quizId);
-      });
-      
-      if (!allSectionsCompleted || !allQuizzesCompleted) {
+      if (!allSectionsCompleted) {
         toast({
           title: "Complete all sections first",
           description: "You need to complete all section quizzes before taking the final test.",
@@ -129,7 +122,7 @@ const QuizPage = () => {
   // Function to handle section quiz completion without feedback
   const handleSectionQuizComplete = () => {
     // For section quizzes, determine if there's a next section
-    const isLastSection = currentSectionIndex >= sections.length - 2; // Adjust to account for final test section
+    const isLastSection = currentSectionIndex >= sections.length - 1;
     
     if (isLastSection) {
       // If this was the last section quiz, offer the final test
