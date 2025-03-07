@@ -99,10 +99,10 @@ const Dashboard = () => {
     
     // If no courses are in progress, add some for demonstration
     if (inProgress.length === 0) {
-      // Add some demo in-progress courses
+      // Add some demo in-progress courses - make sure they're different from completed ones
       const demoCourses = [
-        { ...lessonData[0], progress: 33 },
-        { ...lessonData[2], progress: 66 }
+        { ...lessonData[2], progress: 66 },  // DeFi Essentials
+        { ...lessonData[4], progress: 33 }   // Solana Development
       ];
       setInProgressLessons(demoCourses);
     } else {
@@ -110,11 +110,19 @@ const Dashboard = () => {
     }
     
     // Mock completed courses (for demo purposes)
-    const completed = lessonData.slice(0, 2).map(lesson => ({
-      ...lesson,
-      completedDate: new Date(Date.now() - Math.random() * 10000000000).toLocaleDateString(),
-      earnedPoints: Math.floor(Math.random() * 300) + 100
-    }));
+    // Make sure these are different from the in-progress courses
+    const completed = [
+      { 
+        ...lessonData[0],  // Introduction to Blockchain
+        completedDate: new Date(Date.now() - Math.random() * 10000000000).toLocaleDateString(),
+        earnedPoints: Math.floor(Math.random() * 300) + 100
+      },
+      {
+        ...lessonData[7],  // Wallet Management
+        completedDate: new Date(Date.now() - Math.random() * 5000000000).toLocaleDateString(),
+        earnedPoints: Math.floor(Math.random() * 300) + 100
+      }
+    ];
     
     setCompletedLessons(completed);
     
