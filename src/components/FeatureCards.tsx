@@ -61,10 +61,12 @@ const FeatureCards = () => {
             key={index} 
             className="relative rounded-xl p-6 transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-lg"
           >
-            {/* Gradient border container */}
+            {/* Gradient border only */}
             <div className={`absolute inset-0 rounded-xl bg-gradient-to-r ${feature.gradient} opacity-60 animate-spin-slow-4s`}></div>
+            <div className="absolute inset-[2px] rounded-xl bg-black z-[1]"></div>
+            
             {/* Card content */}
-            <div className="relative bg-black/80 rounded-xl p-6 z-10">
+            <div className="relative z-10">
               <div className="flex flex-col items-center text-center">
                 <div className="relative mb-4">
                   <div className={`absolute -inset-1 rounded-full bg-gradient-to-r ${feature.gradient} opacity-70 animate-spin-slow-4s`}></div>
