@@ -1,3 +1,4 @@
+
 import {
   Wallet,
   LineChart,
@@ -18,11 +19,29 @@ import {
   Sparkles,
   Share2,
   GraduationCap,
+  Coins,
 } from "lucide-react";
 import { LessonType } from "@/types/lesson";
 
 // Sponsor logos
 const COINGECKO_LOGO = "https://static.coingecko.com/s/coingecko-logo-8903d34ce19ca4be1c81f0db30e924154750d208683fad7ae6f2ce06c76d0a56.png";
+
+// Add a new lesson specifically for the bonus lesson of the day
+const dailyBonusLesson: LessonType = {
+  id: "daily-bonus-lesson",
+  title: "Crypto Market Analysis",
+  description: "Exclusive daily insights into the latest crypto market trends and how to capitalize on them. This bonus lesson is only available for 24 hours!",
+  difficulty: "intermediate",
+  category: "trading",
+  sections: 2,
+  pages: 8,
+  completedSections: 0,
+  rating: 4.9,
+  reviewCount: 42,
+  icon: <Coins size={24} />,
+  points: 350, // Higher points since this is a special daily bonus
+  bonusLesson: true, // Mark this as the bonus lesson
+};
 
 export const lessonData: LessonType[] = [
   {
@@ -40,7 +59,7 @@ export const lessonData: LessonType[] = [
     sponsored: true,
     sponsorLogo: COINGECKO_LOGO,
     points: 100,
-    bonusLesson: true,
+    bonusLesson: false, // Make sure this is not a bonus lesson
   },
   {
     id: "crypto-trading-101",
@@ -172,3 +191,6 @@ export const lessonData: LessonType[] = [
     points: 300,
   },
 ];
+
+// Export the daily bonus lesson separately
+export { dailyBonusLesson };

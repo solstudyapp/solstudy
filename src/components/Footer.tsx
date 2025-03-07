@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Facebook, Instagram, Linkedin, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
-import { lessonData } from "@/data/lessons";
+import { lessonData, dailyBonusLesson } from "@/data/lessons";
 import { LessonType } from "@/types/lesson";
 
 const Footer = () => {
@@ -12,11 +11,8 @@ const Footer = () => {
   const [bonusLesson, setBonusLesson] = useState<LessonType | null>(null);
 
   useEffect(() => {
-    // Find the lesson marked as bonusLesson
-    const lessonOfTheDay = lessonData.find(lesson => lesson.bonusLesson === true);
-    
-    // If no lesson is marked as bonus, default to the first lesson
-    setBonusLesson(lessonOfTheDay || lessonData[0]);
+    // Use the dedicated daily bonus lesson instead of searching through regular lessons
+    setBonusLesson(dailyBonusLesson);
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
