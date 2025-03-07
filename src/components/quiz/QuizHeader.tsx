@@ -2,16 +2,16 @@
 import { Link } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { lessonData } from "@/data/lessons";
 
 interface QuizHeaderProps {
   lessonId: string | undefined;
   currentQuestion: number;
   totalQuestions: number;
   quizTitle: string;
+  isFinalTest?: boolean;
 }
 
-const QuizHeader = ({ lessonId, currentQuestion, totalQuestions, quizTitle }: QuizHeaderProps) => {
+const QuizHeader = ({ lessonId, currentQuestion, totalQuestions, quizTitle, isFinalTest }: QuizHeaderProps) => {
   // Use CoinGecko logo for all quizzes
   const sponsorLogo = "https://static.coingecko.com/s/coingecko-logo-8903d34ce19ca4be1c81f0db30e924154750d208683fad7ae6f2ce06c76d0a56.png";
 
@@ -33,6 +33,13 @@ const QuizHeader = ({ lessonId, currentQuestion, totalQuestions, quizTitle }: Qu
         <div className="text-white text-sm">
           Question {currentQuestion + 1} of {totalQuestions}
         </div>
+      </div>
+
+      {/* Quiz type indicator */}
+      <div className="text-center mb-2">
+        <span className="inline-block px-3 py-1 bg-white/10 rounded-full text-xs font-medium text-white/80">
+          {isFinalTest ? "Final Test" : "Section Quiz"}
+        </span>
       </div>
 
       {/* Always display sponsor information */}
