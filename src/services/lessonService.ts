@@ -16,11 +16,21 @@ export const lessonService = {
     const key = `${CURRENT_USER_ID}-${lessonId}`;
     
     if (!userProgressStore[key]) {
+      // Initialize with appropriate first section/page based on lesson type
+      let initialSectionId = "section1";
+      let initialPageId = "page1";
+      
+      // For daily bonus lesson, use different initial values
+      if (lessonId === "daily-bonus-lesson") {
+        initialSectionId = "daily-bonus-section1";
+        initialPageId = "daily-bonus-page1";
+      }
+      
       userProgressStore[key] = {
         userId: CURRENT_USER_ID,
         lessonId,
-        currentSectionId: "section1",
-        currentPageId: "page1",
+        currentSectionId: initialSectionId,
+        currentPageId: initialPageId,
         completedSections: [],
         completedQuizzes: [],
         testCompleted: false,

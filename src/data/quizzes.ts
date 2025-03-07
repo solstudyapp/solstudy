@@ -137,7 +137,6 @@ export const quizzesData: Record<string, Quiz> = {
       },
     ]
   },
-  // Final comprehensive test for the blockchain course
   "final-test-intro-to-blockchain": {
     id: "final-test-intro-to-blockchain",
     title: "Blockchain Mastery Final Test",
@@ -208,7 +207,6 @@ export const quizzesData: Record<string, Quiz> = {
       }
     ]
   },
-  // Default quiz when no specific quiz is found
   "default-quiz": {
     id: "default-quiz",
     title: "Knowledge Check",
@@ -338,8 +336,88 @@ export const dailyBonusQuizzes = [
   }
 ];
 
+// Final test for the daily bonus lesson
+export const dailyBonusFinalTest: Quiz = {
+  id: "final-test-daily-bonus-lesson",
+  title: "Crypto Market Analysis Final Test",
+  lessonId: "daily-bonus-lesson",
+  sectionId: "final",
+  rewardPoints: 350,
+  isFinalTest: true,
+  questions: [
+    {
+      id: "dbft-q1",
+      text: "Which of the following best describes market correlation analysis?",
+      options: [
+        "The study of price charts to identify patterns",
+        "Analysis of how different assets move in relation to each other",
+        "Prediction of market tops and bottoms",
+        "Calculating moving averages to determine trends"
+      ],
+      correctOptionIndex: 1,
+      explanation: "Market correlation analysis studies how different assets move in relation to each other, which helps traders understand risk and diversification opportunities."
+    },
+    {
+      id: "dbft-q2",
+      text: "What is the primary purpose of risk management in crypto trading?",
+      options: [
+        "To maximize returns on every trade",
+        "To eliminate all potential losses",
+        "To protect capital from significant losses",
+        "To avoid volatile market conditions"
+      ],
+      correctOptionIndex: 2,
+      explanation: "The primary purpose of risk management is to protect your capital from significant losses, ensuring you can continue trading through market cycles."
+    },
+    {
+      id: "dbft-q3",
+      text: "Which on-chain metric is most useful for identifying accumulation by large holders?",
+      options: [
+        "Transaction count",
+        "Exchange flows",
+        "Network hash rate",
+        "Block size"
+      ],
+      correctOptionIndex: 1,
+      explanation: "Exchange flows (particularly outflows) can indicate large holders moving crypto off exchanges into cold storage, often signaling accumulation patterns."
+    },
+    {
+      id: "dbft-q4",
+      text: "What does the crypto Fear and Greed Index measure?",
+      options: [
+        "The technical strength of the market",
+        "The emotional state and sentiment of crypto investors",
+        "The rate of new users entering the market",
+        "The amount of leverage in the futures market"
+      ],
+      correctOptionIndex: 1,
+      explanation: "The Fear and Greed Index measures the emotional state and sentiment of crypto investors, ranging from extreme fear to extreme greed."
+    },
+    {
+      id: "dbft-q5",
+      text: "Which trading strategy would be most appropriate during periods of high uncertainty?",
+      options: [
+        "All-in investing at market bottoms",
+        "Maximum leverage trading",
+        "Dollar-cost averaging with small position sizes",
+        "Day trading with tight stop losses"
+      ],
+      correctOptionIndex: 2,
+      explanation: "During periods of high uncertainty, dollar-cost averaging with small position sizes helps manage risk while still maintaining market exposure."
+    }
+  ]
+};
+
 // Helper function to get a quiz by ID
 export const getQuizById = (quizId: string): Quiz => {
+  // First check daily bonus quizzes
+  const dailyBonus = dailyBonusQuizzes.find(quiz => quiz.id === quizId);
+  if (dailyBonus) return dailyBonus;
+  
+  // Check if it's the daily bonus final test
+  if (quizId === dailyBonusFinalTest.id) return dailyBonusFinalTest;
+  
+  // Otherwise check regular quizzes
   return quizzesData[quizId] || quizzesData["default-quiz"];
 };
 
@@ -349,6 +427,17 @@ export const getQuizByLessonAndSection = (
   sectionId: string,
   isFinalTest = false
 ): Quiz => {
+  // Handle daily bonus lesson
+  if (lessonId === "daily-bonus-lesson") {
+    if (isFinalTest || sectionId === 'final') {
+      return dailyBonusFinalTest;
+    }
+    
+    const dailyQuiz = dailyBonusQuizzes.find(quiz => quiz.sectionId === sectionId);
+    if (dailyQuiz) return dailyQuiz;
+  }
+  
+  // Handle regular lessons
   if (isFinalTest || sectionId === 'final') {
     const finalQuizId = `final-test-${lessonId}`;
     return quizzesData[finalQuizId] || quizzesData["default-quiz"];
@@ -361,8 +450,8 @@ export const getQuizByLessonAndSection = (
 // Update the getQuizzes function
 export const getQuizzes = (lessonId: string) => {
   if (lessonId === "daily-bonus-lesson") {
-    return dailyBonusQuizzes;
+    return [...dailyBonusQuizzes, dailyBonusFinalTest];
   }
   
-  return quizzesData[lessonId] || quizzesData["default-quiz"];
+  return Object.values(quizzesData).filter(quiz => quiz.lessonId === lessonId);
 };
