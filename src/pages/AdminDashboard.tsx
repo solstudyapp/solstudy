@@ -25,6 +25,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
+import { DifficultyBadge } from "@/components/DifficultyBadge";
 import { lessonData } from "@/data/lessons";
 
 // Mock user data
@@ -53,7 +54,7 @@ const AdminSidebar = () => {
   ];
   
   return (
-    <div className="w-full lg:w-64 bg-white/10 backdrop-blur-md rounded-lg p-4 sticky top-6">
+    <div className="w-full lg:w-64 bg-accent1 rounded-lg p-4 sticky top-6">
       <div className="p-2 mb-6">
         <h2 className="text-xl font-bold text-white">Admin Dashboard</h2>
       </div>
@@ -65,8 +66,8 @@ const AdminSidebar = () => {
             to={`/admin/${item.path}`}
             className={`flex items-center px-3 py-2 rounded-md transition-colors ${
               currentPath === item.path
-                ? "bg-white/20 text-white"
-                : "text-white/70 hover:text-white hover:bg-white/10"
+                ? "bg-accent2 text-white"
+                : "text-white/70 hover:text-white hover:bg-accent2/50"
             }`}
           >
             <span className="mr-3">{item.icon}</span>
@@ -144,7 +145,7 @@ const UsersTab = () => {
   
   return (
     <div className="space-y-6">
-      <Card className="backdrop-blur-md bg-white/10 border-white/10 text-white">
+      <Card className="bg-accent1 border-border text-white">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <div>
             <CardTitle>Users Management</CardTitle>
@@ -156,7 +157,7 @@ const UsersTab = () => {
             <Button 
               variant="outline" 
               size="sm" 
-              className="border-white/20 text-white hover:bg-white/10"
+              className="border-white/20 text-white hover:bg-accent2/50"
               onClick={() => setShowAirdropDialog(true)}
               disabled={selectedUsers.length === 0}
             >
@@ -171,7 +172,7 @@ const UsersTab = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60" />
               <Input
                 placeholder="Search users..."
-                className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/60"
+                className="pl-10 bg-accent2 border-white/20 text-white placeholder:text-white/60"
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
               />
@@ -180,15 +181,15 @@ const UsersTab = () => {
           
           <div className="rounded-md border border-white/20 overflow-hidden">
             <Table>
-              <TableHeader className="bg-white/10">
-                <TableRow className="hover:bg-white/5 border-white/10">
+              <TableHeader className="bg-accent2">
+                <TableRow className="hover:bg-accent2/80 border-white/10">
                   <TableHead className="w-12">
                     <div className="flex items-center">
                       <input
                         type="checkbox"
                         checked={selectedUsers.length === paginatedUsers.length && paginatedUsers.length > 0}
                         onChange={selectAll}
-                        className="rounded border-white/20 bg-white/10 text-[#9945FF] focus:ring-0 focus:ring-offset-0"
+                        className="rounded border-white/20 bg-black/20 text-accent3 focus:ring-0 focus:ring-offset-0"
                       />
                     </div>
                   </TableHead>
@@ -201,13 +202,13 @@ const UsersTab = () => {
               </TableHeader>
               <TableBody>
                 {paginatedUsers.map(user => (
-                  <TableRow key={user.id} className="hover:bg-white/5 border-white/10">
+                  <TableRow key={user.id} className="hover:bg-accent2/50 border-white/10">
                     <TableCell>
                       <input
                         type="checkbox"
                         checked={selectedUsers.includes(user.id)}
                         onChange={() => toggleUserSelection(user.id)}
-                        className="rounded border-white/20 bg-white/10 text-[#9945FF] focus:ring-0 focus:ring-offset-0"
+                        className="rounded border-white/20 bg-black/20 text-accent3 focus:ring-0 focus:ring-offset-0"
                       />
                     </TableCell>
                     <TableCell className="font-medium">{user.name}</TableCell>
@@ -218,7 +219,7 @@ const UsersTab = () => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="text-white/70 hover:text-white hover:bg-white/10"
+                        className="text-white/70 hover:text-white hover:bg-accent2/80"
                         onClick={() => handleSingleAirdrop(user.id)}
                       >
                         <Gift size={16} />
@@ -226,7 +227,7 @@ const UsersTab = () => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="text-white/70 hover:text-white hover:bg-white/10"
+                        className="text-white/70 hover:text-white hover:bg-accent2/80"
                       >
                         <MoreVertical size={16} />
                       </Button>
@@ -250,7 +251,7 @@ const UsersTab = () => {
               <Button
                 variant="outline"
                 size="sm"
-                className="border-white/20 text-white hover:bg-white/10"
+                className="border-white/20 text-white hover:bg-accent2/50"
                 onClick={() => setCurrentPage(page => Math.max(1, page - 1))}
                 disabled={currentPage === 1}
               >
@@ -262,7 +263,7 @@ const UsersTab = () => {
               <Button
                 variant="outline"
                 size="sm"
-                className="border-white/20 text-white hover:bg-white/10"
+                className="border-white/20 text-white hover:bg-accent2/50"
                 onClick={() => setCurrentPage(page => Math.min(totalPages, page + 1))}
                 disabled={currentPage === totalPages}
               >
@@ -275,7 +276,7 @@ const UsersTab = () => {
       
       {/* Airdrop Dialog */}
       <Dialog open={showAirdropDialog} onOpenChange={setShowAirdropDialog}>
-        <DialogContent className="bg-[#1A1F2C] text-white border-white/10">
+        <DialogContent className="bg-black text-white border-white/10">
           <DialogHeader>
             <DialogTitle>Bulk Airdrop Points</DialogTitle>
             <DialogDescription className="text-white/70">
@@ -291,16 +292,16 @@ const UsersTab = () => {
               type="number"
               value={airdropAmount}
               onChange={e => setAirdropAmount(e.target.value)}
-              className="bg-white/10 border-white/20 text-white"
+              className="bg-accent2 border-white/20 text-white"
               min="1"
             />
           </div>
           
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAirdropDialog(false)} className="border-white/20 text-white hover:bg-white/10">
+            <Button variant="outline" onClick={() => setShowAirdropDialog(false)} className="border-white/20 text-white hover:bg-accent2/50">
               Cancel
             </Button>
-            <Button onClick={handleBulkAirdrop} className="bg-[#14F195] text-[#1A1F2C] hover:bg-[#14F195]/90">
+            <Button onClick={handleBulkAirdrop} className="bg-accent3 text-white hover:bg-accent3/90">
               <Gift size={16} className="mr-2" />
               Send Airdrop
             </Button>
@@ -315,7 +316,7 @@ const UsersTab = () => {
 const LessonsTab = () => {
   return (
     <div className="space-y-6">
-      <Card className="backdrop-blur-md bg-white/10 border-white/10 text-white">
+      <Card className="bg-accent1 border-border text-white">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <div>
             <CardTitle>Lessons Management</CardTitle>
@@ -323,7 +324,7 @@ const LessonsTab = () => {
               Create and manage learning modules
             </CardDescription>
           </div>
-          <Button className="bg-[#14F195] text-[#1A1F2C] hover:bg-[#14F195]/90">
+          <Button className="bg-accent3 text-white hover:bg-accent3/90">
             <Plus size={16} className="mr-2" />
             New Lesson
           </Button>
@@ -331,8 +332,8 @@ const LessonsTab = () => {
         <CardContent>
           <div className="rounded-md border border-white/20 overflow-hidden">
             <Table>
-              <TableHeader className="bg-white/10">
-                <TableRow className="hover:bg-white/5 border-white/10">
+              <TableHeader className="bg-accent2">
+                <TableRow className="hover:bg-accent2/80 border-white/10">
                   <TableHead>Title</TableHead>
                   <TableHead>Difficulty</TableHead>
                   <TableHead>Category</TableHead>
@@ -343,20 +344,10 @@ const LessonsTab = () => {
               </TableHeader>
               <TableBody>
                 {lessonData.map(lesson => (
-                  <TableRow key={lesson.id} className="hover:bg-white/5 border-white/10">
+                  <TableRow key={lesson.id} className="hover:bg-accent2/50 border-white/10">
                     <TableCell className="font-medium">{lesson.title}</TableCell>
                     <TableCell>
-                      <Badge
-                        className={
-                          lesson.difficulty === "beginner"
-                            ? "bg-green-500/30 text-green-50"
-                            : lesson.difficulty === "intermediate"
-                            ? "bg-blue-500/30 text-blue-50"
-                            : "bg-orange-500/30 text-orange-50"
-                        }
-                      >
-                        {lesson.difficulty}
-                      </Badge>
+                      <DifficultyBadge difficulty={lesson.difficulty} />
                     </TableCell>
                     <TableCell>{lesson.category}</TableCell>
                     <TableCell className="flex items-center">
@@ -366,7 +357,7 @@ const LessonsTab = () => {
                     </TableCell>
                     <TableCell>
                       {lesson.sponsored ? (
-                        <Badge className="bg-purple-500/30 text-purple-50">
+                        <Badge className="bg-accent3/30 text-accent3">
                           Sponsored
                         </Badge>
                       ) : (
@@ -377,7 +368,7 @@ const LessonsTab = () => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="text-white/70 hover:text-white hover:bg-white/10"
+                        className="text-white/70 hover:text-white hover:bg-accent2/80"
                       >
                         <MoreVertical size={16} />
                       </Button>
@@ -396,7 +387,7 @@ const LessonsTab = () => {
 // Admin Dashboard Main Component
 const AdminDashboard = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#9945FF] to-[#14F195] p-6">
+    <div className="min-h-screen bg-black p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col lg:flex-row gap-6">
           <div className="w-full lg:w-64 lg:shrink-0">
@@ -408,9 +399,9 @@ const AdminDashboard = () => {
               <Route path="/" element={<UsersTab />} />
               <Route path="/users" element={<UsersTab />} />
               <Route path="/lessons" element={<LessonsTab />} />
-              <Route path="/quizzes" element={<div className="text-white">Quizzes Management</div>} />
-              <Route path="/achievements" element={<div className="text-white">Achievements Management</div>} />
-              <Route path="/settings" element={<div className="text-white">Settings</div>} />
+              <Route path="/quizzes" element={<div className="text-white p-6 bg-accent1 rounded-lg">Quizzes Management</div>} />
+              <Route path="/achievements" element={<div className="text-white p-6 bg-accent1 rounded-lg">Achievements Management</div>} />
+              <Route path="/settings" element={<div className="text-white p-6 bg-accent1 rounded-lg">Settings</div>} />
             </Routes>
           </div>
         </div>

@@ -31,14 +31,14 @@ const Dashboard = () => {
     .slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#9945FF] to-[#14F195]">
+    <div className="min-h-screen bg-black">
       <Header />
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left column - User stats */}
           <div className="space-y-6">
-            <Card className="backdrop-blur-md bg-white/10 border-0 text-white">
+            <Card className="bg-accent1 border-border text-white">
               <CardHeader className="pb-2">
                 <CardTitle>Your Progress</CardTitle>
               </CardHeader>
@@ -48,7 +48,7 @@ const Dashboard = () => {
                     <p className="text-sm text-white/70">Total Points</p>
                     <p className="text-3xl font-bold">{userData.points}</p>
                   </div>
-                  <Badge className="bg-[#14F195] text-[#1A1F2C] text-xs py-1">Level {userData.level}</Badge>
+                  <Badge className="bg-accent3 text-white text-xs py-1">Level {userData.level}</Badge>
                 </div>
                 <div className="space-y-1 mb-2">
                   <div className="flex justify-between text-sm">
@@ -60,15 +60,15 @@ const Dashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="backdrop-blur-md bg-white/10 border-0 text-white">
+            <Card className="bg-accent1 border-border text-white">
               <CardHeader className="pb-2">
                 <CardTitle>Achievements</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 gap-3">
                   {userData.rewards.map((reward) => (
-                    <div key={reward.id} className="flex items-center p-3 rounded-md bg-white/10">
-                      <div className="mr-3 p-2 rounded-full bg-white/10">
+                    <div key={reward.id} className="flex items-center p-3 rounded-md bg-accent2">
+                      <div className="mr-3 p-2 rounded-full bg-black/40">
                         {reward.icon}
                       </div>
                       <span>{reward.name}</span>
@@ -81,7 +81,7 @@ const Dashboard = () => {
 
           {/* Middle and right columns */}
           <div className="lg:col-span-2 space-y-6">
-            <Card className="backdrop-blur-md bg-white/10 border-0 text-white">
+            <Card className="bg-accent1 border-border text-white">
               <CardHeader>
                 <CardTitle>In Progress</CardTitle>
                 <CardDescription className="text-white/70">Continue where you left off</CardDescription>
@@ -90,10 +90,10 @@ const Dashboard = () => {
                 <div className="space-y-4">
                   {inProgressLessons.length > 0 ? (
                     inProgressLessons.map((lesson) => (
-                      <div key={lesson.id} className="p-4 rounded-md bg-white/10 hover:bg-white/20 transition-colors cursor-pointer">
+                      <div key={lesson.id} className="p-4 rounded-md bg-accent2 hover:bg-accent2/80 transition-colors cursor-pointer">
                         <div className="flex justify-between items-start mb-2">
                           <div className="flex items-center">
-                            <div className="p-2 rounded-md bg-white/10 mr-3">
+                            <div className="p-2 rounded-md bg-black/40 mr-3">
                               {lesson.icon}
                             </div>
                             <div>
@@ -117,7 +117,7 @@ const Dashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="backdrop-blur-md bg-white/10 border-0 text-white overflow-hidden">
+            <Card className="bg-accent1 border-border text-white overflow-hidden">
               <CardHeader>
                 <CardTitle>Refer Friends, Earn Rewards</CardTitle>
               </CardHeader>
@@ -129,17 +129,17 @@ const Dashboard = () => {
                       type="text"
                       value="https://solstudy.com/ref/alex123"
                       readOnly
-                      className="flex-1 bg-white/10 border-0 rounded-l-md text-white h-10 px-3 focus-visible:ring-0"
+                      className="flex-1 bg-accent2 border-0 rounded-l-md text-white h-10 px-3 focus-visible:ring-0"
                     />
-                    <button className="h-10 px-4 rounded-r-md bg-[#9945FF] text-white flex items-center">
+                    <button className="h-10 px-4 rounded-r-md bg-accent3 text-white flex items-center">
                       <Share2 size={16} className="mr-2" /> Copy
                     </button>
                   </div>
                 </div>
                 
-                <div className="flex items-center justify-between p-4 rounded-md bg-white/10">
+                <div className="flex items-center justify-between p-4 rounded-md bg-accent2">
                   <div className="flex items-center">
-                    <div className="mr-3 p-2 rounded-full bg-[#9945FF]/30">
+                    <div className="mr-3 p-2 rounded-full bg-black/40">
                       <Users size={20} />
                     </div>
                     <div>
