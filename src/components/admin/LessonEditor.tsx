@@ -7,7 +7,12 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Save, X, Plus, Trash, ChevronUp, ChevronDown, Edit, BookOpen, Award } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { 
+  Save, X, Plus, Trash, ChevronUp, ChevronDown, Edit, BookOpen, Award,
+  Database, LineChart, BarChart, Key, Rocket, Lock, ShieldCheck, Network,
+  Code, BarChart3, Wallet, Layers, Bird, Gem, PaintBucket, Sparkles, Share2, GraduationCap
+} from "lucide-react";
 import { LessonType, Section, Page } from "@/types/lesson";
 import { getSectionsForLesson } from "@/data/sections";
 import { RichTextEditor } from "./RichTextEditor";
@@ -18,13 +23,36 @@ interface LessonEditorProps {
   onCancel: () => void;
 }
 
+const availableIcons = [
+  { name: "Database", component: <Database size={24} /> },
+  { name: "LineChart", component: <LineChart size={24} /> },
+  { name: "BarChart", component: <BarChart size={24} /> },
+  { name: "Key", component: <Key size={24} /> },
+  { name: "Rocket", component: <Rocket size={24} /> },
+  { name: "Lock", component: <Lock size={24} /> },
+  { name: "ShieldCheck", component: <ShieldCheck size={24} /> },
+  { name: "Network", component: <Network size={24} /> },
+  { name: "Code", component: <Code size={24} /> },
+  { name: "BarChart3", component: <BarChart3 size={24} /> },
+  { name: "Wallet", component: <Wallet size={24} /> },
+  { name: "Layers", component: <Layers size={24} /> },
+  { name: "Gem", component: <Gem size={24} /> },
+  { name: "PaintBucket", component: <PaintBucket size={24} /> },
+  { name: "Sparkles", component: <Sparkles size={24} /> },
+  { name: "Share2", component: <Share2 size={24} /> },
+  { name: "GraduationCap", component: <GraduationCap size={24} /> },
+  { name: "Award", component: <Award size={24} /> },
+  { name: "BookOpen", component: <BookOpen size={24} /> },
+];
+
 export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) => {
   const [editedLesson, setEditedLesson] = useState<LessonType>({...lesson});
   const [sections, setSections] = useState<Section[]>([]);
   const [activeTab, setActiveTab] = useState("details");
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
-  
+  const [selectedIconName, setSelectedIconName] = useState<string>("");
+
   useEffect(() => {
     if (lesson.id && lesson.id !== "lesson-new") {
       const existingSections = getSectionsForLesson(lesson.id);
@@ -56,21 +84,46 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
       ];
       setSections(defaultSections);
     }
-  }, [lesson.id]);
-  
+    
+    const initialIconName = determineInitialIconName(lesson.icon);
+    setSelectedIconName(initialIconName);
+  }, [lesson.id, lesson.icon]);
+
+  const determineInitialIconName = (iconElement: React.ReactNode): string => {
+    const iconString = String(iconElement);
+    
+    for (const icon of availableIcons) {
+      if (iconString.includes(icon.name)) {
+        return icon.name;
+      }
+    }
+    
+    return "Database";
+  };
+
   useEffect(() => {
     const totalPages = sections.reduce((total, section) => total + section.pages.length, 0);
     setEditedLesson(prev => ({...prev, pages: totalPages, sections: sections.length}));
   }, [sections]);
-  
+
   const handleInputChange = (field: keyof LessonType, value: any) => {
     setEditedLesson(prev => ({...prev, [field]: value}));
   };
-  
+
+  const handleIconChange = (iconName: string) => {
+    setSelectedIconName(iconName);
+    
+    const selectedIcon = availableIcons.find(icon => icon.name === iconName);
+    
+    if (selectedIcon) {
+      handleInputChange('icon', selectedIcon.component);
+    }
+  };
+
   const handleSaveLesson = () => {
     onSave(editedLesson);
   };
-  
+
   const addSection = () => {
     const newSection: Section = {
       id: `section-${Date.now()}`,
@@ -83,7 +136,7 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
     
     setSections(prev => [...prev, newSection]);
   };
-  
+
   const updateSection = (index: number, field: keyof Section, value: any) => {
     setSections(prev => {
       const updated = [...prev];
@@ -91,7 +144,7 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
       return updated;
     });
   };
-  
+
   const deleteSection = (index: number) => {
     if (sections.length <= 1) {
       return;
@@ -104,7 +157,7 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
       setCurrentPageIndex(0);
     }
   };
-  
+
   const moveSection = (index: number, direction: 'up' | 'down') => {
     if ((direction === 'up' && index === 0) || (direction === 'down' && index === sections.length - 1)) {
       return;
@@ -120,7 +173,7 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
     
     setCurrentSectionIndex(newIndex);
   };
-  
+
   const addPage = (sectionIndex: number) => {
     setSections(prev => {
       const updated = [...prev];
@@ -134,7 +187,7 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
     
     setCurrentPageIndex(sections[sectionIndex].pages.length);
   };
-  
+
   const updatePage = (sectionIndex: number, pageIndex: number, field: keyof Page, value: any) => {
     setSections(prev => {
       const updated = [...prev];
@@ -145,7 +198,7 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
       return updated;
     });
   };
-  
+
   const deletePage = (sectionIndex: number, pageIndex: number) => {
     if (sections[sectionIndex].pages.length <= 1) {
       return;
@@ -161,7 +214,7 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
       setCurrentPageIndex(prev => prev - 1);
     }
   };
-  
+
   const movePage = (sectionIndex: number, pageIndex: number, direction: 'up' | 'down') => {
     if ((direction === 'up' && pageIndex === 0) || (direction === 'down' && pageIndex === sections[sectionIndex].pages.length - 1)) {
       return;
@@ -179,7 +232,7 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
     
     setCurrentPageIndex(newIndex);
   };
-  
+
   const renderSectionsList = () => {
     return (
       <div className="space-y-4">
@@ -256,7 +309,7 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
       </div>
     );
   };
-  
+
   const renderPagesList = () => {
     if (sections.length === 0) return null;
     
@@ -333,7 +386,7 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
       </div>
     );
   };
-  
+
   const renderPageEditor = () => {
     if (sections.length === 0 || !sections[currentSectionIndex]?.pages[currentPageIndex]) {
       return <div className="text-white/50">No page selected</div>;
@@ -364,7 +417,7 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
       </div>
     );
   };
-  
+
   const renderSectionEditor = () => {
     if (sections.length === 0) return null;
     
@@ -392,7 +445,7 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
       </div>
     );
   };
-  
+
   return (
     <div className="space-y-4">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -438,6 +491,28 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
                   <SelectItem value="beginner">Beginner</SelectItem>
                   <SelectItem value="intermediate">Intermediate</SelectItem>
                   <SelectItem value="advanced">Advanced</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium">Lesson Icon</label>
+              <Select 
+                value={selectedIconName} 
+                onValueChange={handleIconChange}
+              >
+                <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-black/80 backdrop-blur-md border-white/10 text-white max-h-[300px]">
+                  {availableIcons.map((icon) => (
+                    <SelectItem key={icon.name} value={icon.name} className="flex items-center">
+                      <div className="flex items-center gap-2">
+                        <span className="flex-shrink-0">{React.cloneElement(icon.component as React.ReactElement, { size: 16 })}</span>
+                        <span>{icon.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
