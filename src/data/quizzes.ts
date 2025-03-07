@@ -129,6 +129,137 @@ export const quizzesData: Record<string, Quiz> = {
       },
     ]
   },
+  // Final tests for each lesson
+  "final-test-intro-to-blockchain": {
+    id: "final-test-intro-to-blockchain",
+    title: "Blockchain Mastery Final Test",
+    lessonId: "intro-to-blockchain",
+    sectionId: "final",
+    rewardPoints: 500,
+    isFinalTest: true,
+    questions: [
+      {
+        id: "q1",
+        text: "Which of these is NOT a component of blockchain architecture?",
+        options: [
+          "Consensus mechanism",
+          "Distributed ledger",
+          "Central database",
+          "Cryptographic hashing"
+        ],
+        correctOptionIndex: 2
+      },
+      {
+        id: "q2",
+        text: "What is the main purpose of a public key in blockchain cryptography?",
+        options: [
+          "To sign transactions",
+          "To decrypt messages",
+          "To identify the user publicly",
+          "To validate blocks"
+        ],
+        correctOptionIndex: 2
+      },
+      {
+        id: "q3",
+        text: "Which industry is NOT currently exploring blockchain applications?",
+        options: [
+          "Healthcare",
+          "Supply chain",
+          "Finance",
+          "There is no industry NOT exploring blockchain"
+        ],
+        correctOptionIndex: 3
+      },
+      {
+        id: "q4",
+        text: "What problem does blockchain primarily solve?",
+        options: [
+          "Fast computation",
+          "Trust in distributed systems",
+          "User privacy",
+          "Energy efficiency"
+        ],
+        correctOptionIndex: 1
+      },
+      {
+        id: "q5",
+        text: "Which of these is an example of a Layer 2 scaling solution?",
+        options: [
+          "Bitcoin",
+          "Lightning Network",
+          "Proof of Stake",
+          "Merkle Trees"
+        ],
+        correctOptionIndex: 1
+      }
+    ]
+  },
+  "final-test-crypto-trading-101": {
+    id: "final-test-crypto-trading-101",
+    title: "Crypto Trading Final Test",
+    lessonId: "crypto-trading-101",
+    sectionId: "final",
+    rewardPoints: 500,
+    isFinalTest: true,
+    questions: [
+      {
+        id: "q1",
+        text: "What indicator is best for identifying overbought/oversold conditions?",
+        options: [
+          "Moving Average",
+          "MACD",
+          "RSI",
+          "Bollinger Bands"
+        ],
+        correctOptionIndex: 2
+      },
+      {
+        id: "q2",
+        text: "What is the recommended maximum percentage of your portfolio to risk on a single trade?",
+        options: [
+          "1-2%",
+          "5-10%",
+          "15-20%",
+          "25-30%"
+        ],
+        correctOptionIndex: 0
+      },
+      {
+        id: "q3",
+        text: "What is the primary purpose of a stop-loss order?",
+        options: [
+          "Maximize profits",
+          "Limit potential losses",
+          "Increase trading volume",
+          "Improve entry timing"
+        ],
+        correctOptionIndex: 1
+      },
+      {
+        id: "q4",
+        text: "Which pattern often signals a trend reversal?",
+        options: [
+          "Cup and Handle",
+          "Head and Shoulders",
+          "Flag Pattern",
+          "Triangle Pattern"
+        ],
+        correctOptionIndex: 1
+      },
+      {
+        id: "q5",
+        text: "What psychological bias causes traders to hold losing positions too long?",
+        options: [
+          "FOMO",
+          "Loss aversion",
+          "Confirmation bias",
+          "Hindsight bias"
+        ],
+        correctOptionIndex: 1
+      }
+    ]
+  },
   // Default quiz when no specific quiz is found
   "default-quiz": {
     id: "default-quiz",
@@ -169,7 +300,12 @@ export const getQuizById = (quizId: string): Quiz => {
 };
 
 // Helper function to get a quiz by lesson ID and section ID
-export const getQuizByLessonAndSection = (lessonId: string, sectionId: string): Quiz => {
+export const getQuizByLessonAndSection = (lessonId: string, sectionId: string, isFinalTest: boolean = false): Quiz => {
+  if (isFinalTest) {
+    const finalTestId = `final-test-${lessonId}`;
+    return quizzesData[finalTestId] || quizzesData["default-quiz"];
+  }
+  
   const quizId = `quiz-${sectionId}`;
   return quizzesData[quizId] || quizzesData["default-quiz"];
 };

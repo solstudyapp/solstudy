@@ -30,7 +30,30 @@ const LessonView = () => {
     const totalPages = sections.reduce((acc, section) => acc + section.pages.length, 0);
     const pagesCompleted = sections.slice(0, currentSection).reduce((acc, section) => acc + section.pages.length, 0) + currentPage;
     setProgress(Math.round((pagesCompleted / totalPages) * 100));
-  }, [currentSection, currentPage, lesson, sections]);
+    
+    // Check completed quizzes and sections
+    if (lessonId) {
+      const userProgress = lessonService.getUserProgress(lessonId);
+      
+      // Logic to enforce quiz completion before accessing next section
+      if (currentSection > 0) {
+        const prevSectionId = sections[currentSection - 1].id;
+        const prevQuizId = sections[currentSection - 1].quizId;
+        
+        // If previous section quiz is not completed, redirect to the quiz
+        if (!userProgress.completedQuizzes.includes(prevQuizId)) {
+          setCurrentSection(currentSection - 1);
+          setCurrentPage(sections[currentSection - 1].pages.length - 1);
+          
+          toast({
+            title: "Quiz Required",
+            description: "You need to complete the previous section's quiz first.",
+            variant: "destructive",
+          });
+        }
+      }
+    }
+  }, [currentSection, currentPage, lesson, sections, lessonId]);
   
   if (!lesson) {
     return (
@@ -56,29 +79,32 @@ const LessonView = () => {
     } 
     // If there are more sections
     else if (currentSection < sections.length - 1) {
-      setCurrentSection(currentSection + 1);
-      setCurrentPage(0);
-      
-      // Mark section as completed in the service
-      lessonService.completeSection(lesson.id, currentSectionData.id);
-      
-      toast({
-        title: "Section completed!",
-        description: "Moving on to the next section.",
-      });
+      // Check if the user has completed this section's quiz
+      if (lessonId && lessonService.isQuizCompleted(lessonId, currentSectionData.quizId)) {
+        setCurrentSection(currentSection + 1);
+        setCurrentPage(0);
+        
+        // Mark section as completed in the service
+        lessonService.completeSection(lesson.id, currentSectionData.id);
+        
+        toast({
+          title: "Section completed!",
+          description: "Moving on to the next section.",
+        });
+      } else {
+        // Navigate to the quiz if not completed
+        navigate(`/quiz/${lesson.id}/section${currentSection + 1}`);
+        
+        toast({
+          title: "Quiz Required",
+          description: "Please complete this section's quiz to continue.",
+        });
+      }
     } 
     // If we're at the last page of the last section
     else if (currentSection === sections.length - 1 && currentPage === currentSectionData.pages.length - 1) {
-      // Mark section as completed
-      lessonService.completeSection(lesson.id, currentSectionData.id);
-      
-      toast({
-        title: "Section completed!",
-        description: "You've completed this section. Time for the quiz!",
-      });
-      
-      // Navigate to the quiz
-      navigate(`/quiz/${lesson.id}/section${currentSection + 1}`);
+      // Direct to the final test
+      navigate(`/quiz/${lesson.id}/final`);
     }
   };
   
@@ -96,6 +122,7 @@ const LessonView = () => {
   
   const isFirstPage = currentSection === 0 && currentPage === 0;
   const isLastPage = currentSection === sections.length - 1 && currentPage === currentSectionData.pages.length - 1;
+  const isLastSection = currentSection === sections.length - 1;
   
   // Calculate total pages for the header
   const totalPages = sections.reduce((acc, section) => acc + section.pages.length, 0);
@@ -132,6 +159,7 @@ const LessonView = () => {
             navigateNext={navigateNext}
             isFirstPage={isFirstPage}
             isLastPage={isLastPage}
+            isLastSection={isLastSection}
           />
         </div>
       </div>

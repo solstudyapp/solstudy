@@ -11,6 +11,7 @@ interface LessonContentProps {
   navigateNext: () => void;
   isFirstPage: boolean;
   isLastPage: boolean;
+  isLastSection: boolean;
 }
 
 const LessonContent = ({
@@ -22,6 +23,7 @@ const LessonContent = ({
   navigateNext,
   isFirstPage,
   isLastPage,
+  isLastSection,
 }: LessonContentProps) => {
   return (
     <div className="md:col-span-3">
@@ -57,6 +59,7 @@ const LessonContent = ({
           navigateNext={navigateNext}
           isFirstPage={isFirstPage}
           isLastPage={isLastPage}
+          isLastSection={isLastSection}
         />
       </div>
     </div>

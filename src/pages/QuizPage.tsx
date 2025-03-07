@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -23,8 +22,9 @@ const QuizPage = () => {
   // Find lesson data
   const lesson = lessonData.find(l => l.id === lessonId);
   
-  // Get quiz data from our new file
-  const quiz = sectionId && lessonId ? getQuizByLessonAndSection(lessonId, sectionId) : null;
+  // Get quiz data based on section or if it's the final test
+  const isFinalTest = sectionId === 'final';
+  const quiz = sectionId && lessonId ? getQuizByLessonAndSection(lessonId, sectionId, isFinalTest) : null;
   
   // If quiz or lesson not found, handle gracefully
   useEffect(() => {
@@ -35,8 +35,53 @@ const QuizPage = () => {
         variant: "destructive",
       });
       navigate("/");
+      return;
     }
-  }, [lesson, quiz, toast, navigate]);
+    
+    // Ensure the user has access to this quiz (only for section quizzes)
+    if (!isFinalTest && sectionId && sectionId.startsWith('section')) {
+      const sectionNumber = parseInt(sectionId.replace('section', ''), 10) - 1;
+      
+      // If trying to access a quiz for a section other than the first, check if previous sections are completed
+      if (sectionNumber > 0) {
+        const userProgress = lessonService.getUserProgress(lessonId);
+        const sections = lessonId ? getSectionsForLesson(lessonId) : [];
+        
+        // Get previous section
+        const prevSection = sections[sectionNumber - 1];
+        
+        // If previous quiz not completed, redirect to lesson view
+        if (prevSection && !userProgress.completedQuizzes.includes(prevSection.quizId)) {
+          toast({
+            title: "Access Denied",
+            description: "You need to complete previous sections first.",
+            variant: "destructive",
+          });
+          navigate(`/lesson/${lessonId}`);
+        }
+      }
+    }
+    
+    // For final test, check if all section quizzes are completed
+    if (isFinalTest && lessonId) {
+      const userProgress = lessonService.getUserProgress(lessonId);
+      const sections = lessonId ? getSectionsForLesson(lessonId) : [];
+      
+      // Check if all section quizzes are completed
+      const allQuizzesCompleted = sections.every(section => 
+        userProgress.completedQuizzes.includes(section.quizId)
+      );
+      
+      if (!allQuizzesCompleted) {
+        toast({
+          title: "Access Denied",
+          description: "You need to complete all section quizzes first.",
+          variant: "destructive",
+        });
+        navigate(`/lesson/${lessonId}`);
+      }
+    }
+  }, [lesson, quiz, toast, navigate, lessonId, sectionId, isFinalTest]);
   
   if (!lesson || !quiz) {
     return <div className="min-h-screen bg-black text-white p-8">Loading...</div>;
@@ -85,10 +130,24 @@ const QuizPage = () => {
       description: "Great job! Your progress has been saved.",
     });
     
-    // Navigate back to lesson or to the next section
-    if (quiz.isFinalTest) {
-      navigate("/");
+    // Navigate based on what type of quiz this was
+    if (isFinalTest) {
+      // If final test, go to dashboard or home
+      navigate("/dashboard");
+    } else if (sectionId && sectionId.startsWith('section')) {
+      // If section quiz, go to next section
+      const sectionNumber = parseInt(sectionId.replace('section', ''), 10);
+      const sections = lessonId ? getSectionsForLesson(lessonId) : [];
+      
+      // If there's another section, go there
+      if (sectionNumber < sections.length) {
+        navigate(`/lesson/${lessonId}`);
+      } else {
+        // Otherwise go to lesson page (should redirect to final test)
+        navigate(`/lesson/${lessonId}`);
+      }
     } else {
+      // Default fallback
       navigate(`/lesson/${lessonId}`);
     }
   };
