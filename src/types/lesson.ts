@@ -1,4 +1,3 @@
-
 import { ReactNode } from "react";
 
 export interface Page {
@@ -29,9 +28,9 @@ export interface LessonType {
   sponsored?: boolean;
   sponsorLogo?: string;
   points?: number; // Points field for lesson completion reward
+  bonusLesson?: boolean; // Added bonusLesson property
 }
 
-// Add missing Question interface
 export interface Question {
   id: string;
   text: string;
@@ -39,7 +38,6 @@ export interface Question {
   correctOptionIndex: number;
 }
 
-// Add missing Quiz interface
 export interface Quiz {
   id: string;
   title: string;
@@ -50,7 +48,6 @@ export interface Quiz {
   isFinalTest?: boolean;
 }
 
-// Add missing UserProgress interface
 export interface UserProgress {
   userId: string;
   lessonId: string;
