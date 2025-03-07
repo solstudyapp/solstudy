@@ -23,21 +23,6 @@ const LessonView = () => {
   // Get sections data from our new data file
   const sections = lessonId ? getSectionsForLesson(lessonId) : [];
   
-  // Listen for navigation events from QuizPage
-  useEffect(() => {
-    const handleNavigateToSection = (event: CustomEvent<{sectionIndex: number, pageIndex: number}>) => {
-      const { sectionIndex, pageIndex } = event.detail;
-      setCurrentSection(sectionIndex);
-      setCurrentPage(pageIndex);
-    };
-    
-    window.addEventListener('navigateToSection', handleNavigateToSection as EventListener);
-    
-    return () => {
-      window.removeEventListener('navigateToSection', handleNavigateToSection as EventListener);
-    };
-  }, []);
-  
   useEffect(() => {
     if (!lesson) return;
     
@@ -46,33 +31,6 @@ const LessonView = () => {
     const pagesCompleted = sections.slice(0, currentSection).reduce((acc, section) => acc + section.pages.length, 0) + currentPage;
     setProgress(Math.round((pagesCompleted / totalPages) * 100));
   }, [currentSection, currentPage, lesson, sections]);
-  
-  // Check if user can access this section (all previous quizzes completed)
-  useEffect(() => {
-    if (!lesson || !lessonId) return;
-
-    // User can always access the first section
-    if (currentSection === 0) return;
-
-    // For sections beyond the first, check if the previous section's quiz is completed
-    for (let i = 0; i < currentSection; i++) {
-      const quizId = `quiz-section${i + 1}`;
-      const isCompleted = lessonService.isQuizCompleted(lessonId, quizId);
-      
-      if (!isCompleted) {
-        // If a previous quiz isn't completed, navigate to that section
-        setCurrentSection(i);
-        setCurrentPage(0);
-        
-        toast({
-          title: "Section locked",
-          description: `You need to complete the quiz for section ${i + 1} before proceeding.`,
-        });
-        
-        break;
-      }
-    }
-  }, [currentSection, lessonId, lesson]);
   
   if (!lesson) {
     return (
@@ -98,17 +56,6 @@ const LessonView = () => {
     } 
     // If there are more sections
     else if (currentSection < sections.length - 1) {
-      // Check if user completed the quiz for this section
-      const quizId = `quiz-section${currentSection + 1}`;
-      const isQuizCompleted = lessonService.isQuizCompleted(lessonId, quizId);
-      
-      if (!isQuizCompleted) {
-        // If quiz not completed, redirect to quiz
-        navigate(`/quiz/${lesson.id}/section${currentSection + 1}`);
-        return;
-      }
-      
-      // If quiz completed, mark section as completed and move to next section
       setCurrentSection(currentSection + 1);
       setCurrentPage(0);
       
@@ -173,7 +120,6 @@ const LessonView = () => {
             currentPage={currentPage}
             setCurrentSection={setCurrentSection}
             setCurrentPage={setCurrentPage}
-            lessonId={lessonId || ""}
           />
           
           {/* Main Content */}

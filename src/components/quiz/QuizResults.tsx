@@ -13,20 +13,6 @@ interface QuizResultsProps {
 const QuizResults = ({ quiz, score, onComplete }: QuizResultsProps) => {
   const earnedPoints = Math.round((score / quiz.questions.length) * quiz.rewardPoints);
   
-  // Extract section number from quiz ID if possible
-  const sectionMatch = quiz.sectionId?.match(/section(\d+)/);
-  const sectionNum = sectionMatch ? parseInt(sectionMatch[1], 10) : null;
-  
-  // Determine if this is a final section quiz
-  const isFinalSectionQuiz = sectionNum === 3;
-  
-  // Customize button text based on section
-  const buttonText = quiz.isFinalTest 
-    ? "Complete Course" 
-    : isFinalSectionQuiz 
-      ? "Complete Course" 
-      : `Continue to Section ${sectionNum ? sectionNum + 1 : "Next"}`;
-  
   return (
     <Card className="backdrop-blur-md bg-white/10 border border-white/10 text-white">
       <CardContent className="pt-6">
@@ -47,18 +33,14 @@ const QuizResults = ({ quiz, score, onComplete }: QuizResultsProps) => {
               <Award className="mr-2 h-5 w-5 text-[#14F195]" />
               <p className="font-medium">You earned {earnedPoints} points!</p>
             </div>
-            <p className="text-sm text-white/70">
-              {isFinalSectionQuiz 
-                ? "Congratulations on completing the course!" 
-                : "Keep learning to earn more rewards"}
-            </p>
+            <p className="text-sm text-white/70">Keep learning to earn more rewards</p>
           </div>
           
           <Button
             onClick={onComplete}
             className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0 mt-4"
           >
-            {buttonText}
+            {quiz.isFinalTest ? "Complete Course" : "Complete Quiz"}
           </Button>
         </div>
       </CardContent>

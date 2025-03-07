@@ -2,7 +2,6 @@
 import { ChevronLeft, ChevronRight, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { lessonService } from "@/services/lessonService";
 
 interface LessonNavigationProps {
   lessonId: string;
@@ -22,13 +21,7 @@ const LessonNavigation = ({
   isLastPage,
 }: LessonNavigationProps) => {
   const navigate = useNavigate();
-  const sectionNumber = currentSection + 1;
-  const quizId = `quiz-section${sectionNumber}`;
-  const isQuizCompleted = lessonService.isQuizCompleted(lessonId, quizId);
-  
-  // If this is the last page of a section, user needs to take the quiz
-  const shouldTakeQuiz = isLastPage;
-  
+
   return (
     <div className="flex justify-between pt-4 border-t border-white/10">
       <Button
@@ -43,10 +36,10 @@ const LessonNavigation = ({
         Previous Page
       </Button>
       
-      {shouldTakeQuiz ? (
+      {isLastPage ? (
         <Button 
           className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0"
-          onClick={() => navigate(`/quiz/${lessonId}/section${sectionNumber}`)}
+          onClick={() => navigate(`/quiz/${lessonId}/section${currentSection + 1}`)}
         >
           Take Quiz
           <Trophy className="ml-2 h-4 w-4" />
