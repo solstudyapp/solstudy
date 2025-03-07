@@ -1,16 +1,15 @@
+
 import { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Save, X, Plus, Trash, ChevronUp, ChevronDown, Edit, BookOpen, Award } from "lucide-react";
+import { Save, X } from "lucide-react";
 import { LessonType, Section, Page } from "@/types/lesson";
 import { getSectionsForLesson } from "@/data/sections";
-import { RichTextEditor } from "./RichTextEditor";
+import LessonDetails from "./lessons/LessonDetails";
+import SectionList from "./lessons/SectionList";
+import PageList from "./lessons/PageList";
+import SectionEditor from "./lessons/SectionEditor";
+import PageEditor from "./lessons/PageEditor";
 
 interface LessonEditorProps {
   lesson: LessonType;
@@ -31,32 +30,26 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
       if (existingSections && existingSections.length > 0) {
         setSections(existingSections);
       } else {
-        const defaultSections: Section[] = [
-          {
-            id: `section1-${Date.now()}`,
-            title: "Section 1",
-            pages: [
-              { id: `page1-${Date.now()}`, title: "Introduction", content: "<h1>Introduction</h1><p>Welcome to this lesson!</p>" }
-            ],
-            quizId: `quiz-${Date.now()}`
-          }
-        ];
-        setSections(defaultSections);
+        initializeDefaultSections();
       }
     } else {
-      const defaultSections: Section[] = [
-        {
-          id: `section1-${Date.now()}`,
-          title: "Section 1",
-          pages: [
-            { id: `page1-${Date.now()}`, title: "Introduction", content: "<h1>Introduction</h1><p>Welcome to this lesson!</p>" }
-          ],
-          quizId: `quiz-${Date.now()}`
-        }
-      ];
-      setSections(defaultSections);
+      initializeDefaultSections();
     }
   }, [lesson.id]);
+  
+  const initializeDefaultSections = () => {
+    const defaultSections: Section[] = [
+      {
+        id: `section1-${Date.now()}`,
+        title: "Section 1",
+        pages: [
+          { id: `page1-${Date.now()}`, title: "Introduction", content: "<h1>Introduction</h1><p>Welcome to this lesson!</p>" }
+        ],
+        quizId: `quiz-${Date.now()}`
+      }
+    ];
+    setSections(defaultSections);
+  };
   
   useEffect(() => {
     const totalPages = sections.reduce((total, section) => total + section.pages.length, 0);
@@ -180,214 +173,59 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
     setCurrentPageIndex(newIndex);
   };
   
-  const renderSectionsList = () => {
-    return (
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-medium">Sections</h3>
-          <Button 
-            size="sm" 
-            variant="outline" 
-            className="border-white/20 text-white hover:bg-white/10"
-            onClick={addSection}
-          >
-            <Plus size={16} className="mr-2" /> Add Section
-          </Button>
-        </div>
-        
-        <div className="space-y-2 max-h-[200px] overflow-y-auto pr-2">
-          {sections.map((section, index) => (
-            <div 
-              key={section.id} 
-              className={`flex items-center justify-between p-2 rounded ${
-                currentSectionIndex === index ? 'bg-white/10' : 'hover:bg-white/5'
-              }`}
-              onClick={() => {
-                setCurrentSectionIndex(index);
-                setCurrentPageIndex(0);
-              }}
-            >
-              <div className="flex items-center gap-2">
-                <BookOpen size={16} />
-                <span>{section.title}</span>
-                <span className="text-xs text-white/50">({section.pages.length} pages)</span>
-              </div>
-              <div className="flex gap-1">
-                <Button 
-                  size="icon" 
-                  variant="ghost" 
-                  className="h-7 w-7"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    moveSection(index, 'up');
-                  }}
-                  disabled={index === 0}
-                >
-                  <ChevronUp size={14} />
-                </Button>
-                <Button 
-                  size="icon" 
-                  variant="ghost" 
-                  className="h-7 w-7"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    moveSection(index, 'down');
-                  }}
-                  disabled={index === sections.length - 1}
-                >
-                  <ChevronDown size={14} />
-                </Button>
-                <Button 
-                  size="icon" 
-                  variant="ghost" 
-                  className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-900/20"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteSection(index);
-                  }}
-                  disabled={sections.length <= 1}
-                >
-                  <Trash size={14} />
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-  
-  const renderPagesList = () => {
-    if (sections.length === 0) return null;
-    
-    const currentSection = sections[currentSectionIndex];
-    
-    return (
-      <div className="space-y-4 mt-6">
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-medium">Pages in {currentSection.title}</h3>
-          <Button 
-            size="sm" 
-            variant="outline" 
-            className="border-white/20 text-white hover:bg-white/10"
-            onClick={() => addPage(currentSectionIndex)}
-          >
-            <Plus size={16} className="mr-2" /> Add Page
-          </Button>
-        </div>
-        
-        <div className="space-y-2 max-h-[200px] overflow-y-auto pr-2">
-          {currentSection.pages.map((page, index) => (
-            <div 
-              key={page.id} 
-              className={`flex items-center justify-between p-2 rounded ${
-                currentPageIndex === index ? 'bg-white/10' : 'hover:bg-white/5'
-              }`}
-              onClick={() => setCurrentPageIndex(index)}
-            >
-              <div className="flex items-center gap-2">
-                <Edit size={16} />
-                <span>{page.title}</span>
-              </div>
-              <div className="flex gap-1">
-                <Button 
-                  size="icon" 
-                  variant="ghost" 
-                  className="h-7 w-7"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    movePage(currentSectionIndex, index, 'up');
-                  }}
-                  disabled={index === 0}
-                >
-                  <ChevronUp size={14} />
-                </Button>
-                <Button 
-                  size="icon" 
-                  variant="ghost" 
-                  className="h-7 w-7"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    movePage(currentSectionIndex, index, 'down');
-                  }}
-                  disabled={index === currentSection.pages.length - 1}
-                >
-                  <ChevronDown size={14} />
-                </Button>
-                <Button 
-                  size="icon" 
-                  variant="ghost" 
-                  className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-900/20"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deletePage(currentSectionIndex, index);
-                  }}
-                  disabled={currentSection.pages.length <= 1}
-                >
-                  <Trash size={14} />
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-  
-  const renderPageEditor = () => {
-    if (sections.length === 0 || !sections[currentSectionIndex]?.pages[currentPageIndex]) {
-      return <div className="text-white/50">No page selected</div>;
+  const renderContentTab = () => {
+    if (sections.length === 0) {
+      return <div className="text-white/50">No sections available</div>;
     }
     
-    const currentPage = sections[currentSectionIndex].pages[currentPageIndex];
-    
-    return (
-      <div className="space-y-4">
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium">Page Title</label>
-          <Input
-            value={currentPage.title}
-            onChange={(e) => updatePage(currentSectionIndex, currentPageIndex, 'title', e.target.value)}
-            className="bg-white/10 border-white/20 text-white"
-          />
-        </div>
-        
-        <div className="flex flex-col gap-2 pt-4">
-          <label className="text-sm font-medium">Content</label>
-          <div className="border border-white/20 rounded-md overflow-hidden">
-            <RichTextEditor
-              initialContent={currentPage.content}
-              onChange={(content) => updatePage(currentSectionIndex, currentPageIndex, 'content', content)}
-            />
-          </div>
-        </div>
-      </div>
-    );
-  };
-  
-  const renderSectionEditor = () => {
-    if (sections.length === 0) return null;
-    
     const currentSection = sections[currentSectionIndex];
+    const currentPage = currentSection?.pages[currentPageIndex];
     
     return (
-      <div className="space-y-4 mb-4">
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium">Section Title</label>
-          <Input
-            value={currentSection.title}
-            onChange={(e) => updateSection(currentSectionIndex, 'title', e.target.value)}
-            className="bg-white/10 border-white/20 text-white"
+      <div className="flex flex-col md:flex-row gap-6">
+        <div className="w-full md:w-1/3 space-y-4">
+          <SectionList 
+            sections={sections}
+            currentSectionIndex={currentSectionIndex}
+            onAddSection={addSection}
+            onSelectSection={(index) => {
+              setCurrentSectionIndex(index);
+              setCurrentPageIndex(0);
+            }}
+            onMoveSection={moveSection}
+            onDeleteSection={deleteSection}
           />
+          
+          {currentSection && (
+            <PageList 
+              currentSection={currentSection}
+              currentPageIndex={currentPageIndex}
+              onAddPage={() => addPage(currentSectionIndex)}
+              onSelectPage={setCurrentPageIndex}
+              onMovePage={(pageIndex, direction) => movePage(currentSectionIndex, pageIndex, direction)}
+              onDeletePage={(pageIndex) => deletePage(currentSectionIndex, pageIndex)}
+            />
+          )}
         </div>
         
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium">Quiz ID</label>
-          <Input
-            value={currentSection.quizId}
-            onChange={(e) => updateSection(currentSectionIndex, 'quizId', e.target.value)}
-            className="bg-white/10 border-white/20 text-white"
-          />
+        <div className="w-full md:w-2/3 space-y-4">
+          {currentSection && (
+            <SectionEditor 
+              currentSection={currentSection}
+              onUpdateSection={(field, value) => updateSection(currentSectionIndex, field, value)}
+            />
+          )}
+          
+          {currentPage && (
+            <PageEditor 
+              currentPage={currentPage}
+              onUpdatePage={(field, value) => updatePage(currentSectionIndex, currentPageIndex, field, value)}
+            />
+          )}
+          
+          {!currentPage && (
+            <div className="text-white/50">No page selected</div>
+          )}
         </div>
       </div>
     );
@@ -406,115 +244,14 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
         </TabsList>
         
         <TabsContent value="details" className="pt-4 space-y-4">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium">Title</label>
-              <Input
-                value={editedLesson.title}
-                onChange={(e) => handleInputChange('title', e.target.value)}
-                className="bg-white/10 border-white/20 text-white"
-              />
-            </div>
-            
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium">Category</label>
-              <Input
-                value={editedLesson.category}
-                onChange={(e) => handleInputChange('category', e.target.value)}
-                className="bg-white/10 border-white/20 text-white"
-              />
-            </div>
-            
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium">Difficulty</label>
-              <Select 
-                value={editedLesson.difficulty} 
-                onValueChange={(value) => handleInputChange('difficulty', value)}
-              >
-                <SelectTrigger className="bg-white/10 border-white/20 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-black/80 backdrop-blur-md border-white/10 text-white">
-                  <SelectItem value="beginner">Beginner</SelectItem>
-                  <SelectItem value="intermediate">Intermediate</SelectItem>
-                  <SelectItem value="advanced">Advanced</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium">Rating</label>
-              <Input
-                type="number"
-                min="0"
-                max="5"
-                step="0.1"
-                value={editedLesson.rating}
-                onChange={(e) => handleInputChange('rating', parseFloat(e.target.value))}
-                className="bg-white/10 border-white/20 text-white"
-              />
-            </div>
-            
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium">Review Count</label>
-              <Input
-                type="number"
-                min="0"
-                value={editedLesson.reviewCount}
-                onChange={(e) => handleInputChange('reviewCount', parseInt(e.target.value))}
-                className="bg-white/10 border-white/20 text-white"
-              />
-            </div>
-            
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium">
-                <span className="flex items-center">
-                  <Award size={16} className="mr-2 text-[#14F195]" /> 
-                  Points Reward
-                </span>
-              </label>
-              <Input
-                type="number"
-                min="0"
-                value={editedLesson.points || 0}
-                onChange={(e) => handleInputChange('points', parseInt(e.target.value))}
-                placeholder="Points awarded for completion"
-                className="bg-white/10 border-white/20 text-white"
-              />
-            </div>
-            
-            <div className="flex items-center space-x-2 pt-7">
-              <Switch
-                id="sponsored"
-                checked={!!editedLesson.sponsored}
-                onCheckedChange={(checked) => handleInputChange('sponsored', checked)}
-              />
-              <Label htmlFor="sponsored">Sponsored Lesson</Label>
-            </div>
-          </div>
-          
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium">Description</label>
-            <Textarea
-              value={editedLesson.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              className="bg-white/10 border-white/20 text-white min-h-[100px]"
-            />
-          </div>
+          <LessonDetails 
+            lesson={editedLesson} 
+            onUpdateLesson={handleInputChange} 
+          />
         </TabsContent>
         
         <TabsContent value="content" className="pt-4">
-          <div className="flex flex-col md:flex-row gap-6">
-            <div className="w-full md:w-1/3 space-y-4">
-              {renderSectionsList()}
-              {renderPagesList()}
-            </div>
-            
-            <div className="w-full md:w-2/3 space-y-4">
-              {renderSectionEditor()}
-              {renderPageEditor()}
-            </div>
-          </div>
+          {renderContentTab()}
         </TabsContent>
       </Tabs>
       
