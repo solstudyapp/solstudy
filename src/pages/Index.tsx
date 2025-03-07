@@ -49,7 +49,7 @@ const Index = () => {
           {/* Dark inner content background */}
           <div className="absolute inset-[1px] rounded-xl bg-black/80 backdrop-blur-sm"></div>
           
-          <div className="relative z-10 max-w-3xl">
+          <div className="relative z-10 flex flex-col items-center text-center mx-auto max-w-3xl">
             <h1 className="text-4xl font-bold mb-4">
               <span className="bg-gradient-to-r from-[#9945FF] to-[#14F195] bg-clip-text text-transparent">SolStudy</span>
             </h1>
@@ -61,7 +61,7 @@ const Index = () => {
               onClick={handleStartLearning}
               className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white"
             >
-              Start Learning
+              Start Learning and Earning Today!
             </Button>
           </div>
         </div>
