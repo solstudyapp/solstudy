@@ -158,10 +158,12 @@ const LessonManagement = () => {
                       </Badge>
                     </TableCell>
                     <TableCell>{lesson.category}</TableCell>
-                    <TableCell className="flex items-center">
-                      {lesson.rating}
-                      <span className="text-yellow-400 ml-1">★</span>
-                      <span className="text-xs text-white/50 ml-1">({lesson.reviewCount})</span>
+                    <TableCell>
+                      <div className="flex items-center">
+                        {lesson.rating}
+                        <span className="text-yellow-400 ml-1">★</span>
+                        <span className="text-xs text-white/50 ml-1">({lesson.reviewCount})</span>
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center">
