@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { lessonData } from "@/data/lessons";
 import { getQuizByLessonAndSection } from "@/data/quizzes";
-import { getSectionsForLesson } from "@/data/sections"; // Added this import
+import { getSectionsForLesson } from "@/data/sections"; 
 import { lessonService } from "@/services/lessonService";
 import QuizHeader from "@/components/quiz/QuizHeader";
 import QuizQuestion from "@/components/quiz/QuizQuestion";
@@ -141,8 +141,20 @@ const QuizPage = () => {
       const sectionNumber = parseInt(sectionId.replace('section', ''), 10);
       const sections = lessonId ? getSectionsForLesson(lessonId) : [];
       
-      // If there's another section, go there
+      // Navigate to the lesson page, specifically to the next section
       if (sectionNumber < sections.length) {
+        // Get the next section index (0-based)
+        const nextSectionIndex = sectionNumber;
+        // Update the lesson progress to start at next section's first page
+        if (lessonId) {
+          lessonService.updateProgress(
+            lessonId,
+            sections[nextSectionIndex].id,
+            sections[nextSectionIndex].pages[0].id
+          );
+        }
+        
+        // Navigate to the lesson view, which will show the next section
         navigate(`/lesson/${lessonId}`);
       } else {
         // Otherwise go to lesson page (should redirect to final test)
