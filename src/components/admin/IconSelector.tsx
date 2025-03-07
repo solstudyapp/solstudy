@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
@@ -10,15 +9,25 @@ import { cn } from "@/lib/utils";
 
 // Filter out non-icon exports from lucide-react and create a type-safe list
 const iconList = Object.entries(LucideIcons)
-  .filter(([name]) => 
-    name !== "createLucideIcon" && 
-    name !== "icons" && 
-    !name.startsWith("__") &&
-    typeof LucideIcons[name as keyof typeof LucideIcons] === 'function'
-  )
-  .map(([name, IconComponent]) => ({
+  .filter(([name]) => {
+    // Filter out non-icon exports and only keep actual icon components
+    return (
+      name !== "createLucideIcon" && 
+      name !== "icons" && 
+      name !== "default" &&
+      !name.startsWith("__") &&
+      name !== "Icon" &&
+      name !== "createIcons" &&
+      name !== "replaceElement" &&
+      name !== "toKebabCase" &&
+      name !== "LucideIcon" &&
+      name !== "LucideProps" &&
+      typeof LucideIcons[name as keyof typeof LucideIcons] === 'function'
+    );
+  })
+  .map(([name, Icon]) => ({
     name,
-    icon: IconComponent as React.FC<any>,
+    icon: Icon as React.ComponentType<any>,
   }));
 
 interface IconSelectorProps {
@@ -85,7 +94,8 @@ const IconSelector = ({ selectedIcon, onSelectIcon }: IconSelectorProps) => {
                 )
                 .map(({ name, icon: IconComponent }) => {
                   const isSelected = name === currentIconName;
-                  const iconElement = <IconComponent size={24} />;
+                  const IconElement = IconComponent;
+                  const iconElement = <IconElement size={24} />;
                   
                   return (
                     <CommandItem
@@ -102,7 +112,7 @@ const IconSelector = ({ selectedIcon, onSelectIcon }: IconSelectorProps) => {
                     >
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 flex items-center justify-center">
-                          <IconComponent size={20} />
+                          <IconElement size={20} />
                         </div>
                         <span>{name}</span>
                       </div>
