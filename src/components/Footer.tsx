@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Facebook, Instagram, Linkedin, X, Sparkles } from "lucide-react";
+import { Facebook, Instagram, Linkedin, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { lessonData } from "@/data/lessons";
 import { LessonType } from "@/types/lesson";
@@ -30,7 +30,15 @@ const Footer = () => {
     { icon: <Facebook size={32} />, url: "https://facebook.com", label: "Facebook" },
     { icon: <Instagram size={32} />, url: "https://instagram.com", label: "Instagram" },
     { icon: <Linkedin size={32} />, url: "https://linkedin.com", label: "LinkedIn" },
-    { icon: <X size={32} />, url: "https://x.com", label: "X" }  // Updated label from Twitter to X
+    { 
+      icon: <img 
+        src="https://about.x.com/content/dam/about-twitter/x/brand-toolkit/logo-black.png.twimg.1920.png" 
+        alt="X logo" 
+        className="w-6 h-6 invert" // Invert to make it white
+      />, 
+      url: "https://x.com", 
+      label: "X" 
+    }
   ];
 
   return (

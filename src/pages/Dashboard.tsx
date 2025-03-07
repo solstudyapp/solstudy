@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,8 +28,7 @@ import {
   Clock,
   UserPlus,
   Link as LinkIcon,
-  Facebook,
-  X
+  Facebook
 } from "lucide-react";
 import { lessonService } from "@/services/lessonService";
 import { lessonData } from "@/data/lessons";
@@ -418,7 +416,11 @@ const Dashboard = () => {
                         onClick={shareOnTwitter}
                         className="flex items-center gap-2"
                       >
-                        <X size={16} />
+                        <img 
+                          src="https://about.x.com/content/dam/about-twitter/x/brand-toolkit/logo-black.png.twimg.1920.png" 
+                          alt="X logo" 
+                          className="w-4 h-4 invert"
+                        />
                         Share on X
                       </Button>
                     </div>
