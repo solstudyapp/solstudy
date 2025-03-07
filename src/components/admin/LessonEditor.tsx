@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -59,8 +58,9 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
   const [showNewCategoryInput, setShowNewCategoryInput] = useState<boolean>(false);
   const [sponsorLogoUrl, setSponsorLogoUrl] = useState<string>(lesson.sponsorLogo || "");
   
-  // Extract existing categories from lesson data
-  const existingCategories = Array.from(new Set(lessonData.map(lesson => lesson.category)));
+  const [availableCategories, setAvailableCategories] = useState<string[]>(
+    Array.from(new Set(lessonData.map(lesson => lesson.category)))
+  );
 
   useEffect(() => {
     if (lesson.id && lesson.id !== "lesson-new") {
@@ -133,13 +133,14 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
   const handleAddCategory = () => {
     if (newCategory.trim() === "") return;
     
-    // Update categories list
-    existingCategories.push(newCategory.trim());
+    const updatedCategories = [...availableCategories];
+    if (!updatedCategories.includes(newCategory.trim())) {
+      updatedCategories.push(newCategory.trim());
+      setAvailableCategories(updatedCategories);
+    }
     
-    // Set the new category as selected
     handleInputChange('category', newCategory.trim());
     
-    // Reset
     setNewCategory("");
     setShowNewCategoryInput(false);
   };
@@ -552,7 +553,7 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
                     <SelectContent className="bg-black/80 backdrop-blur-md border-white/10 text-white">
-                      {existingCategories.map(category => (
+                      {availableCategories.map(category => (
                         <SelectItem key={category} value={category}>{category}</SelectItem>
                       ))}
                     </SelectContent>
@@ -598,7 +599,6 @@ export const LessonEditor = ({ lesson, onSave, onCancel }: LessonEditorProps) =>
                   {availableIcons.map((icon) => (
                     <SelectItem key={icon.name} value={icon.name} className="flex items-center">
                       <div className="flex items-center gap-2">
-                        {/* Fixed React reference issue by using JSX directly */}
                         <span className="flex-shrink-0">{icon.component}</span>
                         <span>{icon.name}</span>
                       </div>
