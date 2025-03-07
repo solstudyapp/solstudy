@@ -32,8 +32,13 @@ const About = () => {
           {/* Mission Statement */}
           <div className="dark-glass rounded-xl p-6 mb-12 bg-gradient-to-br from-[#9945FF]/10 to-[#14F195]/10">
             <div className="flex flex-col md:flex-row items-center gap-6">
-              <div className="flex-shrink-0 bg-gradient-to-r from-[#9945FF]/20 to-[#14F195]/20 p-6 rounded-full">
-                <Rocket className="h-16 w-16 text-white" />
+              <div className="flex-shrink-0">
+                <div className="relative">
+                  <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#9945FF] to-[#14F195] animate-spin-slow opacity-70"></div>
+                  <div className="relative bg-black p-6 rounded-full">
+                    <Rocket className="h-16 w-16 text-white" />
+                  </div>
+                </div>
               </div>
               <div>
                 <h2 className="text-2xl font-bold mb-4 text-gradient">Our Mission</h2>
