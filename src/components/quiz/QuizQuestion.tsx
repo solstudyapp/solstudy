@@ -67,7 +67,7 @@ const QuizQuestion = ({
       onNext();
       setIsSubmitted(false);
       setShowExplanation(false);
-    }, 3000); // Extended time to allow reading the explanation
+    }, 5000); // Increased from 3000 to 5000 (5 seconds) to allow more time for reading explanations
   };
 
   return (
