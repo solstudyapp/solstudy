@@ -5,11 +5,31 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChevronRight, Award, BookOpen, Trophy, GraduationCap, Share2, Users, TrendingUp, LineChart, Copy } from "lucide-react";
+import { 
+  ChevronRight, 
+  Award, 
+  BookOpen, 
+  Trophy, 
+  GraduationCap, 
+  Share2, 
+  Users, 
+  TrendingUp, 
+  LineChart, 
+  Copy, 
+  BookText,
+  ShieldCheck,
+  Wallet,
+  Code,
+  Database,
+  PaintBucket,
+  BarChart,
+  Sparkles
+} from "lucide-react";
 import { lessonService } from "@/services/lessonService";
 import { lessonData } from "@/data/lessons";
 import { useToast } from "@/hooks/use-toast";
 import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { LessonType } from "@/types/lesson";
 
 // Mock data for the points chart
 const generateMockPointsData = () => {
@@ -33,29 +53,61 @@ const generateMockPointsData = () => {
 const Dashboard = () => {
   const { toast } = useToast();
   const [userPoints, setUserPoints] = useState(0);
-  const [inProgressLessons, setInProgressLessons] = useState<any[]>([]);
+  const [inProgressLessons, setInProgressLessons] = useState<LessonType[]>([]);
   const [completedLessons, setCompletedLessons] = useState<any[]>([]);
   const [referralCode, setReferralCode] = useState("SOLSTUDY123");
   const [pointsData, setPointsData] = useState<any[]>([]);
+  
+  // Function to get the appropriate icon for a lesson based on its ID
+  const getLessonIcon = (lessonId: string) => {
+    const iconMap: Record<string, JSX.Element> = {
+      "intro-to-blockchain": <Database size={24} />,
+      "crypto-trading-101": <LineChart size={24} />,
+      "defi-essentials": <BarChart size={24} />,
+      "nft-creation": <PaintBucket size={24} />,
+      "solana-dev": <Code size={24} />,
+      "crypto-security": <ShieldCheck size={24} />,
+      "advanced-trading": <LineChart size={24} />,
+      "wallet-management": <Wallet size={24} />,
+      "solana-token": <Sparkles size={24} />
+    };
+    
+    return iconMap[lessonId] || <BookText size={24} />;
+  };
   
   useEffect(() => {
     // Get user points
     const points = lessonService.getUserPoints();
     setUserPoints(points);
     
-    // Get in-progress courses
-    const inProgress = lessonData.map(lesson => {
-      const progress = lessonService.calculateLessonProgress(lesson.id, 3); // Assuming 3 sections per lesson
-      if (progress > 0 && progress < 100) {
-        return {
-          ...lesson,
-          progress
-        };
-      }
-      return null;
-    }).filter(Boolean);
+    // For demo purposes, let's ensure we have some in-progress courses
+    // If there are none in the actual user data, we'll add some
+    const inProgress = lessonData
+      .map(lesson => {
+        // Get actual progress from the service
+        const progress = lessonService.calculateLessonProgress(lesson.id, 3);
+        
+        if (progress > 0 && progress < 100) {
+          return {
+            ...lesson,
+            progress
+          };
+        }
+        return null;
+      })
+      .filter(Boolean) as LessonType[];
     
-    setInProgressLessons(inProgress);
+    // If no courses are in progress, add some for demonstration
+    if (inProgress.length === 0) {
+      // Add some demo in-progress courses
+      const demoCourses = [
+        { ...lessonData[0], progress: 33 },
+        { ...lessonData[2], progress: 66 }
+      ];
+      setInProgressLessons(demoCourses);
+    } else {
+      setInProgressLessons(inProgress);
+    }
     
     // Mock completed courses (for demo purposes)
     const completed = lessonData.slice(0, 2).map(lesson => ({
@@ -176,19 +228,24 @@ const Dashboard = () => {
                   <div className="space-y-4">
                     {inProgressLessons.map((lesson: any) => (
                       <div key={lesson.id} className="bg-white/10 rounded-lg p-4">
-                        <div className="flex justify-between items-center mb-2">
-                          <h3 className="font-medium">{lesson.title}</h3>
-                          <span className="text-sm text-white/70">{lesson.progress}% Complete</span>
-                        </div>
-                        <Progress value={lesson.progress} className="h-2 mb-3 bg-white/20" />
-                        <div className="flex justify-end">
+                        <div className="flex items-center gap-4 mb-2">
+                          <div className={`p-3 rounded-lg bg-${lesson.difficulty === "beginner" ? "green" : lesson.difficulty === "intermediate" ? "blue" : "orange"}-500/30 text-white`}>
+                            {getLessonIcon(lesson.id)}
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-medium">{lesson.title}</h3>
+                            <div className="flex justify-between items-center mt-1">
+                              <span className="text-sm text-white/70">{lesson.progress}% Complete</span>
+                            </div>
+                            <Progress value={lesson.progress} className="h-2 mt-2 mb-3 bg-white/20" />
+                          </div>
                           <Button 
-                            size="sm" 
-                            className="bg-[#9945FF] hover:bg-[#9945FF]/90 text-white"
+                            className="bg-[#9945FF] hover:bg-[#9945FF]/90 text-white flex items-center whitespace-nowrap"
+                            size="sm"
                             asChild
                           >
                             <Link to={`/lesson/${lesson.id}`}>
-                              Continue Learning
+                              Continue Course
                               <ChevronRight className="ml-1 h-4 w-4" />
                             </Link>
                           </Button>
@@ -225,8 +282,11 @@ const Dashboard = () => {
                 {completedLessons.length > 0 ? (
                   <div className="space-y-4">
                     {completedLessons.map((lesson: any) => (
-                      <div key={lesson.id} className="bg-white/10 rounded-lg p-4 flex justify-between items-center">
-                        <div>
+                      <div key={lesson.id} className="bg-white/10 rounded-lg p-4 flex items-center">
+                        <div className={`p-3 rounded-lg bg-${lesson.difficulty === "beginner" ? "green" : lesson.difficulty === "intermediate" ? "blue" : "orange"}-500/30 text-white mr-4`}>
+                          {getLessonIcon(lesson.id)}
+                        </div>
+                        <div className="flex-1">
                           <h3 className="font-medium">{lesson.title}</h3>
                           <p className="text-sm text-white/70">Completed on {lesson.completedDate}</p>
                         </div>
