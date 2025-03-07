@@ -14,37 +14,37 @@ const FeatureCards = () => {
       icon: <BookOpen className="h-10 w-10" />,
       title: "Structured Learning",
       description: "Progress through beginner, intermediate, and advanced lessons at your own pace.",
-      color: "from-[#9945FF]/20 to-[#14F195]/20" // Purple to green
+      color: "from-[#14F195]/20 to-[#14F195]/20" // Green
     },
     {
       icon: <ShieldCheck className="h-10 w-10" />,
       title: "Scam Protection",
       description: "Learn to identify and avoid common cryptocurrency scams and protect your assets.",
-      color: "from-[#14F195]/20 to-[#0EA5E9]/20" // Green to blue
+      color: "from-[#0EA5E9]/20 to-[#0EA5E9]/20" // Blue
     },
     {
       icon: <MessageSquare className="h-10 w-10" />,
       title: "Provide Feedback",
       description: "Provide valuable feedback about course content and help SolStudy evolve for future users.",
-      color: "from-[#0EA5E9]/20 to-[#9945FF]/20" // Blue to purple
+      color: "from-[#9945FF]/20 to-[#9945FF]/20" // Purple
     },
     {
       icon: <LineChart className="h-10 w-10" />,
       title: "Track Progress",
       description: "Monitor your learning journey with a personalized dashboard and progress tracking.",
-      color: "from-[#9945FF]/20 to-[#14F195]/20" // Purple to green
+      color: "from-[#9945FF]/20 to-[#9945FF]/20" // Purple
     },
     {
       icon: <BookText className="h-10 w-10" />,
       title: "Interactive Quizzes",
       description: "Test your knowledge with interactive quizzes and get immediate feedback.",
-      color: "from-[#14F195]/20 to-[#0EA5E9]/20" // Green to blue
+      color: "from-[#14F195]/20 to-[#14F195]/20" // Green
     },
     {
       icon: <Users className="h-10 w-10" />,
       title: "Community Learning",
       description: "Join a community of crypto enthusiasts and learn together through shared experiences.",
-      color: "from-[#0EA5E9]/20 to-[#9945FF]/20" // Blue to purple
+      color: "from-[#0EA5E9]/20 to-[#0EA5E9]/20" // Blue
     }
   ];
 
