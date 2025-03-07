@@ -106,63 +106,66 @@ const QuizPage = () => {
       
       // Mark the lesson as fully completed if final test
       lessonService.completeFinalTest(lessonId || "");
+      
+      // Only show feedback dialog after the final test
+      setShowFeedback(true);
     } else {
       // For section quizzes, mark the section as completed
       lessonService.completeQuiz(quiz, score);
       lessonService.completeSection(lessonId || "", sectionId || "");
+      
+      // For section quizzes, proceed directly to navigation without showing feedback
+      handleSectionQuizComplete();
     }
+  };
+  
+  // New function to handle section quiz completion without feedback
+  const handleSectionQuizComplete = () => {
+    // For section quizzes, determine if there's a next section
+    const isLastSection = currentSectionIndex >= sections.length - 1;
     
-    // Show feedback dialog after completing
-    setShowFeedback(true);
+    if (isLastSection) {
+      // If this was the last section quiz, offer the final test
+      toast({
+        title: "All sections completed!",
+        description: "You can now take the final test for this lesson.",
+      });
+      navigate(`/quiz/${lessonId}/final`);
+    } else {
+      // If there are more sections, navigate to the next section
+      toast({
+        title: "Section completed!",
+        description: "Moving on to the next section.",
+      });
+      
+      // Navigate to the next section, starting at the first page
+      navigate(`/lesson/${lessonId}`);
+      
+      // We need to ensure this gets applied after navigation
+      // This is a workaround since the LessonView component will initialize with stored progress
+      setTimeout(() => {
+        // Update progress to the next section
+        lessonService.updateProgress(
+          lessonId || "", 
+          sections[currentSectionIndex + 1].id, 
+          sections[currentSectionIndex + 1].pages[0].id
+        );
+        
+        // Force a reload to ensure the new section loads
+        window.location.reload();
+      }, 100);
+    }
   };
   
   const handleFeedbackComplete = () => {
     setShowFeedback(false);
     
-    // Navigate based on quiz type
-    if (isFinalTest) {
-      toast({
-        title: "Course completed!",
-        description: "Congratulations! You've completed the entire course.",
-      });
-      // After final test, go to dashboard
-      navigate("/dashboard");
-    } else {
-      // For section quizzes, determine if there's a next section
-      const isLastSection = currentSectionIndex >= sections.length - 1;
-      
-      if (isLastSection) {
-        // If this was the last section quiz, offer the final test
-        toast({
-          title: "All sections completed!",
-          description: "You can now take the final test for this lesson.",
-        });
-        navigate(`/quiz/${lessonId}/final`);
-      } else {
-        // If there are more sections, navigate to the next section
-        toast({
-          title: "Section completed!",
-          description: "Moving on to the next section.",
-        });
-        
-        // Navigate to the next section, starting at the first page
-        navigate(`/lesson/${lessonId}`);
-        
-        // We need to ensure this gets applied after navigation
-        // This is a workaround since the LessonView component will initialize with stored progress
-        setTimeout(() => {
-          // Update progress to the next section
-          lessonService.updateProgress(
-            lessonId || "", 
-            sections[currentSectionIndex + 1].id, 
-            sections[currentSectionIndex + 1].pages[0].id
-          );
-          
-          // Force a reload to ensure the new section loads
-          window.location.reload();
-        }, 100);
-      }
-    }
+    // After the final test, go to dashboard
+    toast({
+      title: "Course completed!",
+      description: "Congratulations! You've completed the entire course.",
+    });
+    navigate("/dashboard");
   };
   
   // Determine if user has answered the current question
