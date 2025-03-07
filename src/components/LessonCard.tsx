@@ -1,6 +1,5 @@
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,27 +14,21 @@ interface LessonCardProps {
 
 const LessonCard = ({ lesson }: LessonCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
-  const navigate = useNavigate();
-
-  const handleStartLesson = () => {
-    navigate(`/lesson/${lesson.id}`);
-  };
 
   return (
     <Card 
       className={cn(
-        "overflow-hidden transition-all duration-300 dark-glass border-0 group relative cursor-pointer",
-        lesson.difficulty === "beginner" && "bg-gradient-to-br from-green-400/10 to-emerald-500/20 text-white",
-        lesson.difficulty === "intermediate" && "bg-gradient-to-br from-blue-400/10 to-purple-500/20 text-white",
-        lesson.difficulty === "advanced" && "bg-gradient-to-br from-orange-400/10 to-red-500/20 text-white",
+        "overflow-hidden transition-all duration-300 backdrop-blur-md border-0 group relative",
+        lesson.difficulty === "beginner" && "bg-gradient-to-br from-green-400/20 to-emerald-500/30 text-white",
+        lesson.difficulty === "intermediate" && "bg-gradient-to-br from-blue-400/20 to-purple-500/30 text-white",
+        lesson.difficulty === "advanced" && "bg-gradient-to-br from-orange-400/20 to-red-500/30 text-white",
         isHovered && "transform-gpu translate-y-[-8px] shadow-lg"
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onClick={handleStartLesson}
     >
       {lesson.sponsored && (
-        <div className="absolute top-0 right-0 bg-black/40 backdrop-blur-sm text-white px-3 py-1 text-xs font-medium">
+        <div className="absolute top-0 right-0 bg-white/20 backdrop-blur-sm text-white px-3 py-1 text-xs font-medium">
           Sponsored
         </div>
       )}
@@ -44,9 +37,9 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
         <div className="flex justify-between items-start">
           <div className={cn(
             "p-3 rounded-lg transition-all mb-2 text-white",
-            lesson.difficulty === "beginner" && "bg-green-500/30",
-            lesson.difficulty === "intermediate" && "bg-blue-500/30",
-            lesson.difficulty === "advanced" && "bg-orange-500/30"
+            lesson.difficulty === "beginner" && "bg-green-500/40",
+            lesson.difficulty === "intermediate" && "bg-blue-500/40",
+            lesson.difficulty === "advanced" && "bg-orange-500/40"
           )}>
             {lesson.icon}
           </div>
@@ -75,39 +68,12 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
             {lesson.category}
           </Badge>
         </div>
-
-        {/* Sponsor area - only show if sponsored */}
-        {lesson.sponsored && (
-          <div className="mt-4 pt-3 border-t border-white/10">
-            <div className="text-xs text-white/60 mb-1">This Course is Brought to You By:</div>
-            <div className="h-8 bg-black/20 rounded flex items-center justify-center p-1">
-              {lesson.sponsorLogo ? (
-                <img 
-                  src={lesson.sponsorLogo} 
-                  alt="Sponsor Logo" 
-                  className="h-6 max-w-[100px] object-contain"
-                />
-              ) : (
-                <div className="text-xs text-white/40">Sponsor</div>
-              )}
-            </div>
-          </div>
-        )}
       </CardContent>
 
       <CardFooter className="p-0 mt-auto">
         <Button 
           variant="ghost" 
-          className={cn(
-            "w-full hover:bg-white/10 text-white rounded-none border-t border-white/10 h-12",
-            lesson.difficulty === "beginner" && "bg-green-500/30",
-            lesson.difficulty === "intermediate" && "bg-blue-500/30",
-            lesson.difficulty === "advanced" && "bg-orange-500/30"
-          )}
-          onClick={(e) => {
-            e.stopPropagation(); // Prevent triggering the card's onClick
-            handleStartLesson();
-          }}
+          className="w-full bg-white/10 hover:bg-white/20 text-white rounded-none border-t border-white/10 h-12"
         >
           <span className="mr-auto">Start Learning</span>
           <ChevronRight size={18} className="transition-transform duration-300 group-hover:translate-x-1" />

@@ -36,9 +36,6 @@ export interface Quiz {
   title: string;
   questions: Question[];
   rewardPoints: number;
-  lessonId: string;
-  sectionId: string;
-  isFinalTest?: boolean;
 }
 
 export interface Question {
@@ -57,12 +54,4 @@ export interface UserProgress {
   completedQuizzes: string[];
   testCompleted: boolean;
   earnedPoints: number;
-}
-
-export interface UserFeedback {
-  userId: string;
-  lessonId: string;
-  rating: number;
-  comments?: string;
-  timestamp: Date;
 }

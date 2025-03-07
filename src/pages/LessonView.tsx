@@ -1,18 +1,22 @@
 
 import { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { lessonData } from "@/data/lessons";
-import { getSectionsForLesson } from "@/data/sections";
-import { toast } from "@/hooks/use-toast";
-import { lessonService } from "@/services/lessonService";
-import LessonSidebar from "@/components/lesson/LessonSidebar";
-import LessonHeader from "@/components/lesson/LessonHeader";
-import LessonContent from "@/components/lesson/LessonContent";
+import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { 
+  ChevronLeft, 
+  ChevronRight,
+  BookOpen,
+  CheckCircle,
+  Trophy
+} from "lucide-react";
+import Header from "@/components/Header";
+import { DifficultyBadge } from "@/components/DifficultyBadge";
+import { lessonData } from "@/data/lessons";
+import { toast } from "@/hooks/use-toast";
 
 const LessonView = () => {
   const { lessonId } = useParams();
-  const navigate = useNavigate();
   const [currentSection, setCurrentSection] = useState(0);
   const [currentPage, setCurrentPage] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -20,8 +24,39 @@ const LessonView = () => {
   // Find the lesson based on the URL param
   const lesson = lessonData.find(l => l.id === lessonId);
   
-  // Get sections data from our new data file
-  const sections = lessonId ? getSectionsForLesson(lessonId) : [];
+  // Mock sections data - in real app, this would come from an API
+  const sections = [
+    {
+      id: "section1",
+      title: "Getting Started",
+      pages: [
+        { id: "page1", title: "Introduction", content: "<h1>Welcome to this lesson!</h1><p>In this section, you'll learn the basics of cryptocurrency and blockchain technology.</p>" },
+        { id: "page2", title: "What is Blockchain?", content: "<h1>Blockchain Technology</h1><p>Blockchain is a distributed ledger technology that enables secure, transparent, and immutable record-keeping without central authority.</p>" },
+        { id: "page3", title: "Key Concepts", content: "<h1>Key Blockchain Concepts</h1><p>Let's explore decentralization, consensus mechanisms, and cryptographic security - the foundations of blockchain technology.</p>" },
+        { id: "page4", title: "History of Blockchain", content: "<h1>A Brief History</h1><p>From Bitcoin's creation in 2009 to the modern blockchain ecosystem - understanding how we got here helps predict where we're going.</p>" },
+      ]
+    },
+    {
+      id: "section2",
+      title: "Core Components",
+      pages: [
+        { id: "page5", title: "Cryptography Basics", content: "<h1>Cryptography in Blockchain</h1><p>Public/private keys, hash functions, and digital signatures are the building blocks of blockchain security.</p>" },
+        { id: "page6", title: "Consensus Mechanisms", content: "<h1>How Blockchains Agree</h1><p>Proof of Work, Proof of Stake, and other mechanisms ensure that all participants can trust the blockchain's state.</p>" },
+        { id: "page7", title: "Transactions & Blocks", content: "<h1>The Anatomy of Blockchain</h1><p>Understanding how transactions are created, validated, and permanently recorded in blocks.</p>" },
+        { id: "page8", title: "Smart Contracts", content: "<h1>Self-Executing Agreements</h1><p>Smart contracts are programs stored on the blockchain that run when predetermined conditions are met.</p>" },
+      ]
+    },
+    {
+      id: "section3",
+      title: "Applications & Future",
+      pages: [
+        { id: "page9", title: "DeFi Overview", content: "<h1>Decentralized Finance</h1><p>DeFi aims to recreate and improve traditional financial systems using blockchain technology.</p>" },
+        { id: "page10", title: "NFTs Explained", content: "<h1>Non-Fungible Tokens</h1><p>NFTs represent unique digital assets, enabling new forms of digital ownership and creator economies.</p>" },
+        { id: "page11", title: "DAOs & Governance", content: "<h1>Decentralized Autonomous Organizations</h1><p>DAOs enable community governance of blockchain protocols and projects through token voting.</p>" },
+        { id: "page12", title: "Future Trends", content: "<h1>Where Blockchain Is Heading</h1><p>Scalability solutions, institutional adoption, and emerging use cases are shaping the future of blockchain.</p>" },
+      ]
+    }
+  ];
   
   useEffect(() => {
     if (!lesson) return;
@@ -30,37 +65,15 @@ const LessonView = () => {
     const totalPages = sections.reduce((acc, section) => acc + section.pages.length, 0);
     const pagesCompleted = sections.slice(0, currentSection).reduce((acc, section) => acc + section.pages.length, 0) + currentPage;
     setProgress(Math.round((pagesCompleted / totalPages) * 100));
-    
-    // Check completed quizzes and sections
-    if (lessonId) {
-      const userProgress = lessonService.getUserProgress(lessonId);
-      
-      // Logic to enforce quiz completion before accessing next section
-      if (currentSection > 0) {
-        const prevSectionId = sections[currentSection - 1].id;
-        const prevQuizId = sections[currentSection - 1].quizId;
-        
-        // If previous section quiz is not completed, redirect to the quiz
-        if (!userProgress.completedQuizzes.includes(prevQuizId)) {
-          setCurrentSection(currentSection - 1);
-          setCurrentPage(sections[currentSection - 1].pages.length - 1);
-          
-          toast({
-            title: "Quiz Required",
-            description: "You need to complete the previous section's quiz first.",
-            variant: "destructive",
-          });
-        }
-      }
-    }
-  }, [currentSection, currentPage, lesson, sections, lessonId]);
+  }, [currentSection, currentPage]);
   
   if (!lesson) {
     return (
-      <div className="min-h-screen bg-black">
+      <div className="min-h-screen bg-gradient-to-br from-[#9945FF] to-[#14F195]">
+        <Header />
         <div className="max-w-3xl mx-auto px-4 py-16 text-center text-white">
-          <h1 className="text-2xl font-bold mb-4">Course not found</h1>
-          <p className="mb-6">The course you're looking for doesn't exist or has been removed.</p>
+          <h1 className="text-2xl font-bold mb-4">Lesson not found</h1>
+          <p className="mb-6">The lesson you're looking for doesn't exist or has been removed.</p>
           <Button asChild>
             <Link to="/">Back to Courses</Link>
           </Button>
@@ -70,7 +83,7 @@ const LessonView = () => {
   }
 
   const currentSectionData = sections[currentSection];
-  const currentPageData = currentSectionData?.pages[currentPage];
+  const currentPageData = currentSectionData.pages[currentPage];
   
   const navigateNext = () => {
     // If there are more pages in the current section
@@ -79,32 +92,20 @@ const LessonView = () => {
     } 
     // If there are more sections
     else if (currentSection < sections.length - 1) {
-      // Check if the user has completed this section's quiz
-      if (lessonId && lessonService.isQuizCompleted(lessonId, currentSectionData.quizId)) {
-        setCurrentSection(currentSection + 1);
-        setCurrentPage(0);
-        
-        // Mark section as completed in the service
-        lessonService.completeSection(lesson.id, currentSectionData.id);
-        
-        toast({
-          title: "Section completed!",
-          description: "Moving on to the next section.",
-        });
-      } else {
-        // Navigate to the quiz if not completed
-        navigate(`/quiz/${lesson.id}/section${currentSection + 1}`);
-        
-        toast({
-          title: "Quiz Required",
-          description: "Please complete this section's quiz to continue.",
-        });
-      }
+      setCurrentSection(currentSection + 1);
+      setCurrentPage(0);
     } 
     // If we're at the last page of the last section
     else if (currentSection === sections.length - 1 && currentPage === currentSectionData.pages.length - 1) {
-      // Direct to the final test
-      navigate(`/quiz/${lesson.id}/final`);
+      // Check if this is the last section
+      if (currentSection === sections.length - 1) {
+        toast({
+          title: "Section completed!",
+          description: "You've completed this section. Time for the quiz!",
+        });
+        // In a real app, you would navigate to the quiz
+        // navigate(`/quiz/${currentSectionData.quizId}`);
+      }
     }
   };
   
@@ -122,45 +123,147 @@ const LessonView = () => {
   
   const isFirstPage = currentSection === 0 && currentPage === 0;
   const isLastPage = currentSection === sections.length - 1 && currentPage === currentSectionData.pages.length - 1;
-  const isLastSection = currentSection === sections.length - 1;
-  
-  // Calculate total pages for the header
-  const totalPages = sections.reduce((acc, section) => acc + section.pages.length, 0);
   
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-gradient-to-br from-[#9945FF] to-[#14F195]">
+      <Header />
+      
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Lesson Header */}
-        <LessonHeader 
-          lesson={lesson} 
-          progress={progress} 
-          totalSections={sections.length}
-          totalPages={totalPages}
-        />
+        <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center">
+          <div>
+            <div className="flex items-center mb-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                asChild 
+                className="text-white/80 hover:text-white p-0 h-auto font-normal"
+              >
+                <Link to="/">
+                  <ChevronLeft className="mr-1 h-4 w-4" />
+                  Back to Courses
+                </Link>
+              </Button>
+            </div>
+            <h1 className="text-2xl md:text-3xl font-bold text-white">{lesson.title}</h1>
+            <div className="flex items-center mt-2">
+              <DifficultyBadge difficulty={lesson.difficulty} />
+              <span className="text-white/70 text-sm ml-3">{sections.length} sections • {sections.reduce((acc, section) => acc + section.pages.length, 0)} pages</span>
+            </div>
+          </div>
+          
+          <div className="mt-4 md:mt-0">
+            <div className="flex items-center mb-1">
+              <span className="text-white text-sm mr-2">Progress</span>
+              <span className="text-white text-sm font-medium">{progress}%</span>
+            </div>
+            <Progress value={progress} className="w-32 md:w-40 h-2 bg-white/20" />
+          </div>
+        </div>
         
         {/* Lesson Content */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {/* Sidebar */}
-          <LessonSidebar 
-            sections={sections}
-            currentSection={currentSection}
-            currentPage={currentPage}
-            setCurrentSection={setCurrentSection}
-            setCurrentPage={setCurrentPage}
-          />
+          <div className="hidden md:block">
+            <div className="backdrop-blur-md bg-white/10 border border-white/10 rounded-lg p-4 sticky top-24">
+              <h3 className="text-lg font-medium text-white mb-4">Lesson Contents</h3>
+              <div className="space-y-4">
+                {sections.map((section, sectionIndex) => (
+                  <div key={section.id}>
+                    <div className="flex items-center mb-2">
+                      {sectionIndex < currentSection ? (
+                        <CheckCircle className="h-4 w-4 text-[#14F195] mr-2" />
+                      ) : sectionIndex === currentSection ? (
+                        <BookOpen className="h-4 w-4 text-white mr-2" />
+                      ) : (
+                        <div className="h-4 w-4 rounded-full border border-white/40 mr-2"></div>
+                      )}
+                      <span className="text-white font-medium">{section.title}</span>
+                    </div>
+                    <div className="ml-6 space-y-1">
+                      {section.pages.map((page, pageIndex) => (
+                        <button
+                          key={page.id}
+                          className={`text-sm w-full text-left py-1 px-2 rounded ${
+                            sectionIndex === currentSection && pageIndex === currentPage
+                              ? "bg-white/20 text-white"
+                              : sectionIndex < currentSection || (sectionIndex === currentSection && pageIndex < currentPage)
+                              ? "text-white/70 hover:text-white hover:bg-white/10"
+                              : "text-white/50"
+                          }`}
+                          onClick={() => {
+                            // Only allow navigating to completed pages or the current one
+                            if (
+                              sectionIndex < currentSection ||
+                              (sectionIndex === currentSection && pageIndex <= currentPage)
+                            ) {
+                              setCurrentSection(sectionIndex);
+                              setCurrentPage(pageIndex);
+                            }
+                          }}
+                        >
+                          {page.title}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
           
           {/* Main Content */}
-          <LessonContent 
-            lesson={lesson}
-            currentSection={currentSection}
-            currentPage={currentPage}
-            currentPageData={currentPageData}
-            navigatePrev={navigatePrev}
-            navigateNext={navigateNext}
-            isFirstPage={isFirstPage}
-            isLastPage={isLastPage}
-            isLastSection={isLastSection}
-          />
+          <div className="md:col-span-3">
+            <div className="backdrop-blur-md bg-white/10 border border-white/10 rounded-lg p-6 md:p-8">
+              {/* If this is a sponsored lesson, show sponsor */}
+              {lesson.sponsored && (
+                <div className="mb-6 p-3 bg-white/10 rounded-md flex items-center justify-between">
+                  <div className="text-white/70 text-sm">This lesson is sponsored by</div>
+                  <div className="font-medium text-white">Sponsor Name</div>
+                </div>
+              )}
+              
+              <div 
+                className="prose prose-invert max-w-none mb-8"
+                dangerouslySetInnerHTML={{ __html: currentPageData.content }}
+              />
+              
+              {/* Navigation buttons */}
+              <div className="flex justify-between pt-4 border-t border-white/10">
+                <Button
+                  variant="outline"
+                  onClick={navigatePrev}
+                  disabled={isFirstPage}
+                  className={`border-white/20 text-white hover:bg-white/10 hover:text-white ${
+                    isFirstPage ? "invisible" : ""
+                  }`}
+                >
+                  <ChevronLeft className="mr-2 h-4 w-4" />
+                  Previous Page
+                </Button>
+                
+                {isLastPage ? (
+                  <Button 
+                    className="bg-[#14F195] text-[#1A1F2C] hover:bg-[#14F195]/90"
+                    asChild
+                  >
+                    <Link to={`/quiz/section${currentSection + 1}`}>
+                      Take Quiz
+                      <Trophy className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={navigateNext}
+                    className="bg-[#9945FF] hover:bg-[#9945FF]/90 text-white"
+                  >
+                    Next Page
+                    <ChevronRight className="ml-2 h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
