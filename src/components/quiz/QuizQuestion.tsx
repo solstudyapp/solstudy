@@ -27,6 +27,7 @@ const QuizQuestion = ({
   hasAnswered 
 }: QuizQuestionProps) => {
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [showExplanation, setShowExplanation] = useState(false);
 
   const handleOptionSelect = (optionIndex: number) => {
     if (!isSubmitted) {
@@ -48,9 +49,16 @@ const QuizQuestion = ({
         description: "Good job! Moving to next question soon...",
       });
     } else {
+      // For wrong answers, show explanation if available
+      setShowExplanation(true);
+      
+      const explanationText = question.explanation 
+        ? question.explanation 
+        : `The correct answer was: ${question.options[question.correctOptionIndex]}`;
+      
       toast({
         title: "Incorrect",
-        description: `The correct answer was: ${question.options[question.correctOptionIndex]}`,
+        description: explanationText,
       });
     }
     
@@ -58,7 +66,8 @@ const QuizQuestion = ({
     setTimeout(() => {
       onNext();
       setIsSubmitted(false);
-    }, 2000);
+      setShowExplanation(false);
+    }, 3000); // Extended time to allow reading the explanation
   };
 
   return (
@@ -86,6 +95,14 @@ const QuizQuestion = ({
             </div>
           ))}
         </div>
+        
+        {/* Explanation for wrong answers */}
+        {isSubmitted && showExplanation && question.explanation && (
+          <div className="mt-4 p-3 border border-yellow-500/50 bg-yellow-500/10 rounded-md">
+            <p className="font-medium text-yellow-300 mb-1">Explanation:</p>
+            <p>{question.explanation}</p>
+          </div>
+        )}
       </CardContent>
       <CardFooter className="flex justify-between border-t border-white/10 pt-4">
         <Button

@@ -1,3 +1,4 @@
+
 import { ReactNode } from "react";
 
 export interface Page {
@@ -36,6 +37,7 @@ export interface Question {
   text: string;
   options: string[];
   correctOptionIndex: number;
+  explanation?: string; // Add explanation field
 }
 
 export interface Quiz {
