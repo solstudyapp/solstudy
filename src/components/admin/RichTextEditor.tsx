@@ -47,6 +47,40 @@ export const RichTextEditor = ({ initialContent, onChange }: RichTextEditorProps
   const [imageUrl, setImageUrl] = useState("");
   const [uploading, setUploading] = useState(false);
   
+  // Add editor styling for links
+  useEffect(() => {
+    const injectCSS = () => {
+      const styleId = 'rich-text-editor-styles';
+      
+      // Remove existing style if it exists
+      const existingStyle = document.getElementById(styleId);
+      if (existingStyle) {
+        existingStyle.remove();
+      }
+      
+      // Create and inject new style
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = `
+        .rich-text-editor-content a {
+          color: #0EA5E9;
+          text-decoration: underline;
+        }
+      `;
+      document.head.appendChild(style);
+    };
+    
+    injectCSS();
+    
+    return () => {
+      // Cleanup on unmount
+      const style = document.getElementById('rich-text-editor-styles');
+      if (style) {
+        style.remove();
+      }
+    };
+  }, []);
+  
   useEffect(() => {
     if (editorRef.current && !htmlMode) {
       editorRef.current.innerHTML = content;
@@ -113,6 +147,8 @@ export const RichTextEditor = ({ initialContent, onChange }: RichTextEditorProps
         linkElement.textContent = selection.toString();
         linkElement.target = "_blank";
         linkElement.rel = "noopener noreferrer";
+        linkElement.style.color = "#0EA5E9";
+        linkElement.style.textDecoration = "underline";
         
         // Replace selection with our link
         selection.deleteFromDocument();
@@ -131,6 +167,8 @@ export const RichTextEditor = ({ initialContent, onChange }: RichTextEditorProps
         linkElement.textContent = linkText;
         linkElement.target = "_blank";
         linkElement.rel = "noopener noreferrer";
+        linkElement.style.color = "#0EA5E9";
+        linkElement.style.textDecoration = "underline";
         
         // Insert at cursor position
         const selection = window.getSelection();
@@ -321,7 +359,7 @@ export const RichTextEditor = ({ initialContent, onChange }: RichTextEditorProps
           <div
             ref={editorRef}
             contentEditable
-            className="min-h-[300px] p-4 text-white focus:outline-none"
+            className="min-h-[300px] p-4 text-white focus:outline-none rich-text-editor-content"
             onInput={handleContentChange}
             onBlur={handleContentChange}
           />

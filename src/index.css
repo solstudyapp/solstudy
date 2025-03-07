@@ -43,6 +43,8 @@
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 0 0% 15%;
     --sidebar-ring: 272 75% 60%;
+    
+    --link-color: #0EA5E9;
   }
 }
 
@@ -53,6 +55,12 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+  
+  /* Rich text editor specific styles */
+  .rich-text-editor-content a {
+    color: var(--link-color);
+    text-decoration: underline;
   }
 }
 
