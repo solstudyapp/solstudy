@@ -28,5 +28,36 @@ export interface LessonType {
   icon: ReactNode;
   sponsored?: boolean;
   sponsorLogo?: string;
-  points?: number; // Adding points field to track lesson completion reward
+  points?: number; // Points field for lesson completion reward
+}
+
+// Add missing Question interface
+export interface Question {
+  id: string;
+  text: string;
+  options: string[];
+  correctOptionIndex: number;
+}
+
+// Add missing Quiz interface
+export interface Quiz {
+  id: string;
+  title: string;
+  lessonId: string;
+  sectionId: string;
+  rewardPoints: number;
+  questions: Question[];
+  isFinalTest?: boolean;
+}
+
+// Add missing UserProgress interface
+export interface UserProgress {
+  userId: string;
+  lessonId: string;
+  currentSectionId: string;
+  currentPageId: string;
+  completedSections: string[];
+  completedQuizzes: string[];
+  testCompleted: boolean;
+  earnedPoints: number;
 }
