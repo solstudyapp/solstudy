@@ -1,14 +1,29 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
-import { Menu, X, LogOut } from "lucide-react"
+import { Menu, X, LogOut, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
+import { isUserAdmin } from "@/services/admin"
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
   const { user, handleSignOut } = useAuth()
+
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (user) {
+        const adminStatus = await isUserAdmin()
+        setIsAdmin(adminStatus)
+      } else {
+        setIsAdmin(false)
+      }
+    }
+
+    checkAdminStatus()
+  }, [user])
 
   const isActive = (path: string) => {
     return location.pathname === path
@@ -56,6 +71,19 @@ const Header = () => {
                 }`}
               >
                 Dashboard
+              </Link>
+            )}
+            {isAdmin && (
+              <Link
+                to="/admin"
+                className={`text-sm font-medium transition-colors hover:text-white flex items-center ${
+                  location.pathname.startsWith("/admin")
+                    ? "text-white"
+                    : "text-white/70"
+                }`}
+              >
+                <Shield className="mr-1 h-3 w-3" />
+                Admin
               </Link>
             )}
           </nav>
@@ -137,6 +165,20 @@ const Header = () => {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Dashboard
+              </Link>
+            )}
+            {isAdmin && (
+              <Link
+                to="/admin"
+                className={`flex items-center px-3 py-2 rounded-md text-base font-medium ${
+                  location.pathname.startsWith("/admin")
+                    ? "bg-white/10 text-white"
+                    : "text-white/70 hover:bg-white/5 hover:text-white"
+                }`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <Shield className="mr-2 h-4 w-4" />
+                Admin
               </Link>
             )}
             {user ? (

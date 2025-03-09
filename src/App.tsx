@@ -11,6 +11,7 @@ import QuizPage from "./pages/QuizPage"
 import NotFound from "./pages/NotFound"
 import About from "./pages/About"
 import ProtectedRoute from "./components/ProtectedRoute"
+import AdminRoute from "./components/AdminRoute"
 
 function App() {
   return (
@@ -40,9 +41,9 @@ function App() {
                   <Route
                     path="/admin/*"
                     element={
-                      <ProtectedRoute>
+                      <AdminRoute>
                         <AdminDashboard />
-                      </ProtectedRoute>
+                      </AdminRoute>
                     }
                   />
                   <Route
