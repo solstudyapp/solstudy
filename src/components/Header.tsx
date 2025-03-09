@@ -1,16 +1,23 @@
-
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Menu, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useState } from "react"
+import { Link, useLocation, useNavigate } from "react-router-dom"
+import { Menu, X, LogOut } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { useAuth } from "@/hooks/use-auth"
 
 const Header = () => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const location = useLocation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const location = useLocation()
+  const navigate = useNavigate()
+  const { user, handleSignOut } = useAuth()
 
   const isActive = (path: string) => {
-    return location.pathname === path;
-  };
+    return location.pathname === path
+  }
+
+  const onLogout = async () => {
+    await handleSignOut()
+    navigate("/")
+  }
 
   return (
     <header className="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
@@ -41,23 +48,44 @@ const Header = () => {
             >
               About
             </Link>
+            {user && (
+              <Link
+                to="/dashboard"
+                className={`text-sm font-medium transition-colors hover:text-white ${
+                  isActive("/dashboard") ? "text-white" : "text-white/70"
+                }`}
+              >
+                Dashboard
+              </Link>
+            )}
           </nav>
 
-          {/* Login/Register Button */}
+          {/* Login/Register or Logout Button */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button 
-              variant="outline" 
-              className="text-white bg-transparent border-white/20 hover:bg-white/10"
-              asChild
-            >
-              <Link to="/auth">Login / Register</Link>
-            </Button>
+            {user ? (
+              <Button
+                variant="outline"
+                className="text-white bg-transparent border-white/20 hover:bg-white/10"
+                onClick={onLogout}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                className="text-white bg-transparent border-white/20 hover:bg-white/10"
+                asChild
+              >
+                <Link to="/auth">Login / Register</Link>
+              </Button>
+            )}
           </div>
 
           {/* Mobile menu button */}
           <div className="md:hidden">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="icon"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="text-white"
@@ -98,18 +126,46 @@ const Header = () => {
             >
               About
             </Link>
-            <Link
-              to="/auth"
-              className="block px-3 py-2 rounded-md text-base font-medium text-white bg-gradient-to-r from-[#9945FF]/30 to-[#14F195]/30 hover:from-[#9945FF]/40 hover:to-[#14F195]/40"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Login / Register
-            </Link>
+            {user && (
+              <Link
+                to="/dashboard"
+                className={`block px-3 py-2 rounded-md text-base font-medium ${
+                  isActive("/dashboard")
+                    ? "bg-white/10 text-white"
+                    : "text-white/70 hover:bg-white/5 hover:text-white"
+                }`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Dashboard
+              </Link>
+            )}
+            {user ? (
+              <button
+                className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-white bg-gradient-to-r from-[#9945FF]/30 to-[#14F195]/30 hover:from-[#9945FF]/40 hover:to-[#14F195]/40"
+                onClick={() => {
+                  setMobileMenuOpen(false)
+                  onLogout()
+                }}
+              >
+                <div className="flex items-center">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </div>
+              </button>
+            ) : (
+              <Link
+                to="/auth"
+                className="block px-3 py-2 rounded-md text-base font-medium text-white bg-gradient-to-r from-[#9945FF]/30 to-[#14F195]/30 hover:from-[#9945FF]/40 hover:to-[#14F195]/40"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Login / Register
+              </Link>
+            )}
           </div>
         </div>
       )}
     </header>
-  );
-};
+  )
+}
 
-export default Header;
+export default Header

@@ -1,33 +1,64 @@
+import { useState, useEffect } from "react"
+import { Link, useNavigate, useLocation } from "react-router-dom"
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Apple, Facebook, Github, Mail, Loader2 } from "lucide-react"
+import { useAuth } from "@/hooks/use-auth"
 
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Apple, Facebook, Github, Mail } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+type LocationState = {
+  from?: {
+    pathname: string
+  }
+}
 
 const AuthPage = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  
-  const handleEmailAuth = (isSignUp: boolean) => {
-    // In a real app, you would connect to an auth provider
-    toast({
-      title: isSignUp ? "Account created" : "Welcome back",
-      description: isSignUp ? "Please check your email to verify your account" : "You've been successfully signed in",
-    });
-  };
-  
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const { handleSignIn, handleSignUp, loading, user } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const state = location.state as LocationState
+
+  // Redirect if user is already logged in
+  useEffect(() => {
+    if (user) {
+      navigate(state?.from?.pathname || "/")
+    }
+  }, [user, navigate, state])
+
+  const handleEmailAuth = async (isSignUp: boolean) => {
+    if (!email || !password) {
+      return
+    }
+
+    if (isSignUp) {
+      const success = await handleSignUp(email, password)
+      if (success) {
+        navigate("/email-confirmation")
+      }
+    } else {
+      const success = await handleSignIn(email, password)
+      if (success) {
+        // Redirect to the page they were trying to access or home
+        navigate(state?.from?.pathname || "/")
+      }
+    }
+  }
+
   const handleSocialAuth = (provider: string) => {
-    toast({
-      title: `${provider} authentication`,
-      description: `Signing in with ${provider}...`,
-    });
-    // In a real app, you would connect to the social auth provider
-  };
-  
+    // Social auth will be implemented later
+    console.log(`${provider} authentication not implemented yet`)
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-black p-4">
       <div className="max-w-md w-full">
@@ -35,15 +66,27 @@ const AuthPage = () => {
           <Link to="/" className="inline-block">
             <h1 className="text-3xl font-bold text-gradient">SolStudy</h1>
           </Link>
-          <p className="text-white/70 mt-2">Learn, earn, and grow with crypto</p>
+          <p className="text-white/70 mt-2">
+            Learn, earn, and grow with crypto
+          </p>
         </div>
-        
+
         <Tabs defaultValue="signin" className="w-full">
           <TabsList className="grid grid-cols-2 w-full bg-white/5 backdrop-blur-md text-white border border-white/10">
-            <TabsTrigger value="signin" className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/70">Sign In</TabsTrigger>
-            <TabsTrigger value="signup" className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/70">Sign Up</TabsTrigger>
+            <TabsTrigger
+              value="signin"
+              className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/70"
+            >
+              Sign In
+            </TabsTrigger>
+            <TabsTrigger
+              value="signup"
+              className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/70"
+            >
+              Sign Up
+            </TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="signin">
             <Card className="dark-glass border-white/10 text-white">
               <CardHeader>
@@ -60,6 +103,7 @@ const AuthPage = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="bg-white/5 border-white/10 text-white placeholder:text-white/50"
+                    disabled={loading}
                   />
                   <Input
                     type="password"
@@ -67,30 +111,44 @@ const AuthPage = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="bg-white/5 border-white/10 text-white placeholder:text-white/50"
+                    disabled={loading}
                   />
                 </div>
                 <Button
                   className="w-full bg-[#14F195] text-[#1A1F2C] hover:bg-[#14F195]/90"
                   onClick={() => handleEmailAuth(false)}
+                  disabled={loading}
                 >
-                  <Mail className="mr-2 h-4 w-4" />
-                  Sign In with Email
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Signing In...
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="mr-2 h-4 w-4" />
+                      Sign In with Email
+                    </>
+                  )}
                 </Button>
-                
+
                 <div className="relative my-4">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-white/10"></div>
                   </div>
                   <div className="relative flex justify-center text-xs">
-                    <span className="bg-black/60 px-2 text-white/50 backdrop-blur-md">or continue with</span>
+                    <span className="bg-black/60 px-2 text-white/50 backdrop-blur-md">
+                      or continue with
+                    </span>
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <Button
                     variant="outline"
                     className="border-white/10 text-white hover:bg-white/5 bg-white/5"
                     onClick={() => handleSocialAuth("Google")}
+                    disabled={loading}
                   >
                     <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                       <path
@@ -116,6 +174,7 @@ const AuthPage = () => {
                     variant="outline"
                     className="border-white/10 text-white hover:bg-white/5 bg-white/5"
                     onClick={() => handleSocialAuth("Apple")}
+                    disabled={loading}
                   >
                     <Apple className="mr-2 h-4 w-4" />
                     Apple
@@ -124,6 +183,7 @@ const AuthPage = () => {
                     variant="outline"
                     className="border-white/10 text-white hover:bg-white/5 bg-white/5"
                     onClick={() => handleSocialAuth("Facebook")}
+                    disabled={loading}
                   >
                     <Facebook className="mr-2 h-4 w-4" />
                     Facebook
@@ -132,6 +192,7 @@ const AuthPage = () => {
                     variant="outline"
                     className="border-white/10 text-white hover:bg-white/5 bg-white/5"
                     onClick={() => handleSocialAuth("GitHub")}
+                    disabled={loading}
                   >
                     <Github className="mr-2 h-4 w-4" />
                     GitHub
@@ -140,7 +201,7 @@ const AuthPage = () => {
               </CardContent>
             </Card>
           </TabsContent>
-          
+
           <TabsContent value="signup">
             <Card className="dark-glass border-white/10 text-white">
               <CardHeader>
@@ -157,6 +218,7 @@ const AuthPage = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="bg-white/5 border-white/10 text-white placeholder:text-white/50"
+                    disabled={loading}
                   />
                   <Input
                     type="password"
@@ -164,6 +226,7 @@ const AuthPage = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="bg-white/5 border-white/10 text-white placeholder:text-white/50"
+                    disabled={loading}
                   />
                 </div>
                 <div className="bg-[#14F195]/10 border border-[#14F195]/30 rounded-md p-3 text-sm">
@@ -174,25 +237,38 @@ const AuthPage = () => {
                 <Button
                   className="w-full bg-[#14F195] text-[#1A1F2C] hover:bg-[#14F195]/90"
                   onClick={() => handleEmailAuth(true)}
+                  disabled={loading}
                 >
-                  <Mail className="mr-2 h-4 w-4" />
-                  Sign Up with Email
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Signing Up...
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="mr-2 h-4 w-4" />
+                      Sign Up with Email
+                    </>
+                  )}
                 </Button>
-                
+
                 <div className="relative my-4">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-white/10"></div>
                   </div>
                   <div className="relative flex justify-center text-xs">
-                    <span className="bg-black/60 px-2 text-white/50 backdrop-blur-md">or continue with</span>
+                    <span className="bg-black/60 px-2 text-white/50 backdrop-blur-md">
+                      or continue with
+                    </span>
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <Button
                     variant="outline"
                     className="border-white/10 text-white hover:bg-white/5 bg-white/5"
                     onClick={() => handleSocialAuth("Google")}
+                    disabled={loading}
                   >
                     <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                       <path
@@ -218,6 +294,7 @@ const AuthPage = () => {
                     variant="outline"
                     className="border-white/10 text-white hover:bg-white/5 bg-white/5"
                     onClick={() => handleSocialAuth("Apple")}
+                    disabled={loading}
                   >
                     <Apple className="mr-2 h-4 w-4" />
                     Apple
@@ -226,6 +303,7 @@ const AuthPage = () => {
                     variant="outline"
                     className="border-white/10 text-white hover:bg-white/5 bg-white/5"
                     onClick={() => handleSocialAuth("Facebook")}
+                    disabled={loading}
                   >
                     <Facebook className="mr-2 h-4 w-4" />
                     Facebook
@@ -234,6 +312,7 @@ const AuthPage = () => {
                     variant="outline"
                     className="border-white/10 text-white hover:bg-white/5 bg-white/5"
                     onClick={() => handleSocialAuth("GitHub")}
+                    disabled={loading}
                   >
                     <Github className="mr-2 h-4 w-4" />
                     GitHub
@@ -241,14 +320,15 @@ const AuthPage = () => {
                 </div>
               </CardContent>
               <CardFooter className="text-white/70 text-sm text-center">
-                By signing up, you agree to our Terms of Service and Privacy Policy
+                By signing up, you agree to our Terms of Service and Privacy
+                Policy
               </CardFooter>
             </Card>
           </TabsContent>
         </Tabs>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default AuthPage;
+export default AuthPage
