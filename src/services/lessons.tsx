@@ -146,3 +146,92 @@ export async function fetchLessonById(
     return null
   }
 }
+
+/**
+ * Save a lesson to Supabase (create or update)
+ */
+export async function saveLesson(lesson: LessonType): Promise<{ success: boolean; error?: string; data?: any }> {
+  try {
+    // Convert the lesson object to a format compatible with Supabase
+    const lessonData = {
+      title: lesson.title,
+      description: lesson.description,
+      difficulty: lesson.difficulty,
+      category: lesson.category,
+      rating: lesson.rating || 0,
+      rating_count: lesson.reviewCount || 0,
+      is_sponsored: lesson.sponsored,
+      points: lesson.points,
+      // We don't save the icon as it's generated on the client
+      // We don't save sections/pages here as they should be in separate tables
+    };
+
+    let result;
+    
+    // Check if this is an update or create operation
+    if (lesson.id && !isNaN(Number(lesson.id))) {
+      // It's an update operation
+      result = await supabase
+        .from('lessons')
+        .update(lessonData)
+        .eq('id', Number(lesson.id));
+    } else {
+      // It's a create operation
+      result = await supabase
+        .from('lessons')
+        .insert(lessonData);
+    }
+
+    if (result.error) {
+      console.error('Error saving lesson:', result.error);
+      return { 
+        success: false, 
+        error: result.error.message 
+      };
+    }
+
+    return { 
+      success: true,
+      data: result.data
+    };
+  } catch (error) {
+    console.error('Error in saveLesson:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error occurred' 
+    };
+  }
+}
+
+/**
+ * Delete a lesson from Supabase
+ */
+export async function deleteLesson(lessonId: string | number): Promise<{ success: boolean; error?: string }> {
+  try {
+    // Convert string ID to number if needed
+    const id = typeof lessonId === 'string' && !isNaN(Number(lessonId)) 
+      ? Number(lessonId) 
+      : lessonId;
+    
+    const { error } = await supabase
+      .from('lessons')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting lesson:', error);
+      return { 
+        success: false, 
+        error: error.message 
+      };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error in deleteLesson:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error occurred' 
+    };
+  }
+}
