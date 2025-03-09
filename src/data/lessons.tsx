@@ -1,196 +1,55 @@
+import { LessonType } from "@/types/lesson"
+import { fetchLessons } from "@/services/lessons"
+import { Database, BarChart } from "lucide-react"
 
-import {
-  Wallet,
-  LineChart,
-  BarChart,
-  Key,
-  Rocket,
-  Database,
-  BookOpen,
-  Lock,
-  ShieldCheck,
-  Network,
-  Code,
-  BarChart3,
-  Layers,
-  Bird,
-  Gem,
-  PaintBucket,
-  Sparkles,
-  Share2,
-  GraduationCap,
-  Coins,
-} from "lucide-react";
-import { LessonType } from "@/types/lesson";
+// This is a fallback in case the API call fails
+export const lessonData: LessonType[] = []
 
-// Sponsor logos
-const COINGECKO_LOGO = "https://static.coingecko.com/s/coingecko-logo-8903d34ce19ca4be1c81f0db30e924154750d208683fad7ae6f2ce06c76d0a56.png";
-
-// Add a new lesson specifically for the bonus lesson of the day
-const dailyBonusLesson: LessonType = {
-  id: "daily-bonus-lesson",
-  title: "Crypto Market Analysis",
-  description: "Exclusive daily insights into the latest crypto market trends and how to capitalize on them. This bonus lesson is only available for 24 hours!",
-  difficulty: "intermediate",
-  category: "trading",
-  sections: 2,
-  pages: 8,
+// Default daily bonus lesson (will be replaced when data is loaded)
+export const dailyBonusLesson: LessonType = {
+  id: "daily-bonus",
+  title: "Daily Bonus Lesson",
+  description: "Complete this lesson for bonus points!",
+  difficulty: "beginner",
+  category: "blockchain",
+  sections: 1,
+  pages: 3,
   completedSections: 0,
-  rating: 4.9,
-  reviewCount: 42,
-  icon: <Coins size={24} />,
-  points: 350, // Higher points since this is a special daily bonus
-  bonusLesson: true, // Mark this as the bonus lesson
-};
+  rating: 5.0,
+  reviewCount: 0,
+  icon: <Database size={24} />,
+  sponsored: false,
+  sponsorLogo: "",
+  points: 50,
+  bonusLesson: true,
+}
 
-export const lessonData: LessonType[] = [
-  {
-    id: "intro-to-blockchain",
-    title: "Introduction to Blockchain",
-    description: "Learn the fundamentals of blockchain technology and how it works.",
-    difficulty: "beginner",
-    category: "blockchain",
-    sections: 3,
-    pages: 12,
-    completedSections: 0,
-    rating: 4.7,
-    reviewCount: 156,
-    icon: <Database size={24} />,
-    sponsored: true,
-    sponsorLogo: COINGECKO_LOGO,
-    points: 100,
-    bonusLesson: false, // Make sure this is not a bonus lesson
-  },
-  {
-    id: "crypto-trading-101",
-    title: "Crypto Trading 101",
-    description: "Master the basics of cryptocurrency trading and market analysis.",
-    difficulty: "beginner",
-    category: "trading",
-    sections: 3,
-    pages: 12,
-    completedSections: 0,
-    rating: 4.5,
-    reviewCount: 89,
-    icon: <LineChart size={24} />,
-    sponsored: true,
-    sponsorLogo: COINGECKO_LOGO,
-    points: 125,
-    bonusLesson: false,
-  },
-  {
-    id: "defi-essentials",
-    title: "DeFi Essentials",
-    description: "Understand decentralized finance and how to use DeFi platforms.",
-    difficulty: "intermediate",
-    category: "defi",
-    sections: 3,
-    pages: 12,
-    completedSections: 0,
-    rating: 4.8,
-    reviewCount: 132,
-    icon: <BarChart size={24} />,
-    sponsored: true,
-    sponsorLogo: COINGECKO_LOGO,
-    points: 150,
-  },
-  {
-    id: "nft-creation",
-    title: "NFT Creation Workshop",
-    description: "Learn to create, mint, and sell your own NFT collections.",
-    difficulty: "intermediate",
-    category: "nft",
-    sections: 3,
-    pages: 12,
-    completedSections: 0,
-    rating: 4.6,
-    reviewCount: 78,
-    sponsored: true,
-    sponsorLogo: COINGECKO_LOGO,
-    icon: <PaintBucket size={24} />,
-    points: 175,
-  },
-  {
-    id: "solana-dev",
-    title: "Solana Development",
-    description: "Build decentralized applications on the Solana blockchain.",
-    difficulty: "advanced",
-    category: "solana",
-    sections: 3,
-    pages: 12,
-    completedSections: 0,
-    rating: 4.9,
-    reviewCount: 64,
-    icon: <Code size={24} />,
-    sponsored: true,
-    sponsorLogo: COINGECKO_LOGO,
-    points: 250,
-  },
-  {
-    id: "crypto-security",
-    title: "Crypto Security Best Practices",
-    description: "Protect your digital assets with advanced security techniques.",
-    difficulty: "intermediate",
-    category: "blockchain",
-    sections: 3,
-    pages: 12,
-    completedSections: 0,
-    rating: 4.7,
-    reviewCount: 112,
-    icon: <ShieldCheck size={24} />,
-    sponsored: true,
-    sponsorLogo: COINGECKO_LOGO,
-    points: 150,
-  },
-  {
-    id: "advanced-trading",
-    title: "Advanced Trading Strategies",
-    description: "Master complex trading strategies used by professional traders.",
-    difficulty: "advanced",
-    category: "trading",
-    sections: 3,
-    pages: 12,
-    completedSections: 0,
-    rating: 4.4,
-    reviewCount: 56,
-    icon: <BarChart3 size={24} />,
-    sponsored: true,
-    sponsorLogo: COINGECKO_LOGO,
-    points: 200,
-  },
-  {
-    id: "wallet-management",
-    title: "Wallet Management",
-    description: "Learn how to manage multiple cryptocurrency wallets securely.",
-    difficulty: "beginner",
-    category: "blockchain",
-    sections: 3,
-    pages: 12,
-    completedSections: 0,
-    rating: 4.3,
-    reviewCount: 94,
-    icon: <Wallet size={24} />,
-    sponsored: true,
-    sponsorLogo: COINGECKO_LOGO,
-    points: 100,
-  },
-  {
-    id: "solana-token",
-    title: "Creating a Solana Token",
-    description: "Step-by-step guide to launch your own token on Solana.",
-    difficulty: "advanced",
-    category: "solana",
-    sections: 3,
-    pages: 12,
-    completedSections: 0,
-    rating: 4.8,
-    reviewCount: 47,
-    sponsored: true,
-    sponsorLogo: COINGECKO_LOGO,
-    icon: <Sparkles size={24} />,
-    points: 300,
-  },
-];
+// Function to load lessons from Supabase
+export async function loadLessons(): Promise<LessonType[]> {
+  try {
+    const lessons = await fetchLessons()
 
-// Export the daily bonus lesson separately
-export { dailyBonusLesson };
+    // Update the lessonData array with the fetched data
+    lessonData.length = 0 // Clear the array
+    lessonData.push(...lessons) // Add all fetched lessons
+
+    // Set a random lesson as the daily bonus lesson
+    if (lessons.length > 0) {
+      const randomIndex = Math.floor(Math.random() * lessons.length)
+      const bonusLesson = { ...lessons[randomIndex], bonusLesson: true }
+
+      // Update the dailyBonusLesson
+      Object.assign(dailyBonusLesson, bonusLesson)
+    }
+
+    return lessons
+  } catch (error) {
+    console.error("Failed to load lessons:", error)
+    return []
+  }
+}
+
+// Export a function to get a lesson by ID
+export function getLessonById(id: string): LessonType | undefined {
+  return lessonData.find((lesson) => lesson.id === id)
+}

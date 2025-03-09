@@ -25,8 +25,7 @@ import {
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { toast } from "@/hooks/use-toast";
-import { lessonData } from "@/data/lessons";
+import { toast } from "@/hooks/use-toast"
 import { quizzesData } from "@/data/quizzes";
 import { QuizEditor } from "@/components/admin/QuizEditor";
 import { LessonEditor } from "@/components/admin/LessonEditor";

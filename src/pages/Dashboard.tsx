@@ -4,17 +4,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  ChevronRight, 
-  Award, 
-  BookOpen, 
-  Trophy, 
-  GraduationCap, 
-  Share2, 
-  Users, 
-  TrendingUp, 
-  LineChart, 
-  Copy, 
+import {
+  ChevronRight,
+  Award,
+  BookOpen,
+  Trophy,
+  GraduationCap,
+  Share2,
+  Users,
+  TrendingUp,
+  LineChart,
+  Copy,
   BookText,
   ShieldCheck,
   Wallet,
@@ -28,10 +28,11 @@ import {
   Clock,
   UserPlus,
   Link as LinkIcon,
-  Facebook
-} from "lucide-react";
+  Facebook,
+  Loader2,
+} from "lucide-react"
 import { lessonService } from "@/services/lessonService";
-import { lessonData } from "@/data/lessons";
+import { lessonData, loadLessons } from "@/data/lessons"
 import { useToast } from "@/hooks/use-toast";
 import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { LessonType } from "@/types/lesson";
@@ -91,6 +92,7 @@ const Dashboard = () => {
   const [pointsData, setPointsData] = useState<any[]>([]);
   const [referrals, setReferrals] = useState(mockReferrals);
   const [referralLink, setReferralLink] = useState("");
+  const [loading, setLoading] = useState(true)
   
   const getLessonIcon = (lessonId: string) => {
     const iconMap: Record<string, JSX.Element> = {
@@ -109,52 +111,93 @@ const Dashboard = () => {
   };
   
   useEffect(() => {
-    const points = lessonService.getUserPoints();
-    setUserPoints(points);
-    
-    const inProgress = lessonData
-      .map(lesson => {
-        const progress = lessonService.calculateLessonProgress(lesson.id, 3);
-        
-        if (progress > 0 && progress < 100) {
-          return {
-            ...lesson,
-            progress
-          };
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+
+        // Load lessons from Supabase
+        await loadLessons()
+
+        const points = lessonService.getUserPoints()
+        setUserPoints(points)
+
+        const inProgress = lessonData
+          .map((lesson) => {
+            const progress = lessonService.calculateLessonProgress(lesson.id, 3)
+
+            if (progress > 0 && progress < 100) {
+              return {
+                ...lesson,
+                progress,
+              }
+            }
+            return null
+          })
+          .filter(Boolean) as LessonType[]
+
+        if (inProgress.length === 0 && lessonData.length >= 5) {
+          const demoCourses = [
+            { ...lessonData[2], progress: 66 },
+            { ...lessonData[4], progress: 33 },
+          ]
+          setInProgressLessons(demoCourses)
+        } else if (lessonData.length > 0) {
+          // If no in-progress lessons but we have lessons data, use the first two
+          const demoCourses = [
+            { ...lessonData[0], progress: 66 },
+            {
+              ...(lessonData.length > 1 ? lessonData[1] : lessonData[0]),
+              progress: 33,
+            },
+          ]
+          setInProgressLessons(demoCourses)
+        } else {
+          setInProgressLessons(inProgress)
         }
-        return null;
-      })
-      .filter(Boolean) as LessonType[];
-    
-    if (inProgress.length === 0) {
-      const demoCourses = [
-        { ...lessonData[2], progress: 66 },
-        { ...lessonData[4], progress: 33 }
-      ];
-      setInProgressLessons(demoCourses);
-    } else {
-      setInProgressLessons(inProgress);
-    }
-    
-    const completed = [
-      { 
-        ...lessonData[0],
-        completedDate: new Date(Date.now() - Math.random() * 10000000000).toLocaleDateString(),
-        earnedPoints: Math.floor(Math.random() * 300) + 100
-      },
-      {
-        ...lessonData[7],
-        completedDate: new Date(Date.now() - Math.random() * 5000000000).toLocaleDateString(),
-        earnedPoints: Math.floor(Math.random() * 300) + 100
+
+        // Set completed lessons if we have lesson data
+        if (lessonData.length > 0) {
+          const completed = [
+            {
+              ...lessonData[0],
+              completedDate: new Date(
+                Date.now() - Math.random() * 10000000000
+              ).toLocaleDateString(),
+              earnedPoints: Math.floor(Math.random() * 300) + 100,
+            },
+          ]
+
+          // Add a second completed lesson if available
+          if (lessonData.length > 1) {
+            completed.push({
+              ...lessonData[lessonData.length > 7 ? 7 : 0],
+              completedDate: new Date(
+                Date.now() - Math.random() * 5000000000
+              ).toLocaleDateString(),
+              earnedPoints: Math.floor(Math.random() * 300) + 100,
+            })
+          }
+
+          setCompletedLessons(completed)
+        }
+
+        setPointsData(generateMockPointsData())
+        setReferralLink(`https://solstudy.com/signup?ref=${referralCode}`)
+      } catch (error) {
+        console.error("Error loading dashboard data:", error)
+        toast({
+          title: "Error loading dashboard",
+          description:
+            "There was a problem loading your dashboard data. Please try again later.",
+          variant: "destructive",
+        })
+      } finally {
+        setLoading(false)
       }
-    ];
-    
-    setCompletedLessons(completed);
-    
-    setPointsData(generateMockPointsData());
-    
-    setReferralLink(`https://solstudy.com/signup?ref=${referralCode}`);
-  }, [referralCode]);
+    }
+
+    fetchData()
+  }, [referralCode, toast])
   
   const handleCopyReferralCode = () => {
     navigator.clipboard.writeText(referralLink);
@@ -174,6 +217,17 @@ const Dashboard = () => {
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(referralLink)}`;
     window.open(url, '_blank', 'width=600,height=400');
   };
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-[#14F195] mx-auto mb-4" />
+          <p className="text-white text-lg">Loading your dashboard...</p>
+        </div>
+      </div>
+    )
+  }
   
   return (
     <div className="min-h-screen bg-black">

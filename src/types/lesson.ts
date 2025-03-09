@@ -1,4 +1,3 @@
-
 import { ReactNode } from "react";
 
 export interface Page {
@@ -14,23 +13,24 @@ export interface Section {
   quizId: string;
 }
 
-export interface LessonType {
+export type LessonType = {
   id: string;
   title: string;
   description: string;
-  difficulty: "beginner" | "intermediate" | "advanced";
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
   category: string;
   sections: number;
   pages: number;
-  completedSections: number;
+  completedSections?: number;
   rating: number;
   reviewCount: number;
   icon: ReactNode;
-  sponsored?: boolean;
-  sponsorLogo?: string;
-  points?: number; // Points field for lesson completion reward
-  bonusLesson?: boolean; // Added bonusLesson property
-}
+  sponsored: boolean;
+  sponsorLogo: string;
+  points: number;
+  bonusLesson?: boolean;
+  progress?: number;
+};
 
 export interface Question {
   id: string;
