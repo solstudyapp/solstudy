@@ -1,4 +1,3 @@
-import { supabase } from "@/lib/supabase"
 import { LessonType } from "@/types/lesson"
 import {
   Database,
@@ -12,6 +11,7 @@ import {
   Sparkles,
 } from "lucide-react"
 import { ReactNode } from "react"
+import * as db from "@/lib/db"
 
 // Placeholder for sponsor logo - replace with your actual import
 const COINGECKO_LOGO = "/path/to/coingecko-logo.png"
@@ -19,31 +19,44 @@ const COINGECKO_LOGO = "/path/to/coingecko-logo.png"
 // Map category to icon
 const getCategoryIcon = (category: string): ReactNode => {
   switch (category) {
-    case "blockchain":
+    case "Blockchain":
       return <Database size={24} />
-    case "trading":
-      return <LineChart size={24} />
-    case "defi":
+    case "DeFi":
       return <BarChart size={24} />
-    case "nft":
+    case "NFTs":
       return <PaintBucket size={24} />
-    case "solana":
+    case "Trading":
+      return <LineChart size={24} />
+    case "Security":
+      return <ShieldCheck size={24} />
+    case "Development":
       return <Code size={24} />
+    case "Analytics":
+      return <BarChart3 size={24} />
+    case "Wallets":
+      return <Wallet size={24} />
     default:
-      return <Database size={24} />
+      return <Sparkles size={24} />
   }
 }
 
-// Map lesson ID to specific icon (for special cases)
+// Get specific icon for a lesson by ID
 const getSpecificIcon = (id: string): ReactNode | null => {
-  const iconMap: Record<string, ReactNode> = {
-    "crypto-security": <ShieldCheck size={24} />,
-    "advanced-trading": <BarChart3 size={24} />,
-    "wallet-management": <Wallet size={24} />,
-    "solana-token": <Sparkles size={24} />,
-  }
+  // You can add specific icons for specific lessons here
+  return null
+}
 
-  return iconMap[id] || null
+// Type for database lesson data
+interface DbLessonData {
+  id?: number
+  title: string
+  description?: string
+  difficulty: string
+  category: string
+  rating?: number
+  rating_count?: number
+  is_sponsored?: boolean
+  points?: number
 }
 
 /**
@@ -51,18 +64,10 @@ const getSpecificIcon = (id: string): ReactNode | null => {
  */
 export async function fetchLessons(): Promise<LessonType[]> {
   try {
-    const { data, error } = await supabase
-      .from("lessons")
-      .select("*")
-      .order("created_at", { ascending: false })
-
-    if (error) {
-      console.error("Error fetching lessons:", error)
-      return []
-    }
+    const data = await db.fetchAllLessons()
 
     // Transform the data to match the LessonType
-    return data.map((lesson) => {
+    return data.map((lesson: DbLessonData) => {
       // Generate an ID from the title if not available
       const id =
         lesson.id?.toString() || lesson.title.toLowerCase().replace(/\s+/g, "-")
@@ -71,19 +76,20 @@ export async function fetchLessons(): Promise<LessonType[]> {
         id,
         title: lesson.title,
         description: lesson.description || `Learn about ${lesson.title}`,
-        difficulty: lesson.difficulty,
+        difficulty:
+          (lesson.difficulty as "beginner" | "intermediate" | "advanced") ||
+          "beginner",
         category: lesson.category,
         sections: 3, // Default value, replace with actual data when available
         pages: 12, // Default value, replace with actual data when available
         completedSections: 0,
-        rating: lesson.rating,
-        reviewCount: lesson.rating_count,
+        rating: lesson.rating || 0,
+        reviewCount: lesson.rating_count || 0,
         icon: getSpecificIcon(id) || getCategoryIcon(lesson.category),
-        sponsored: lesson.is_sponsored,
+        sponsored: lesson.is_sponsored || false,
         sponsorLogo: COINGECKO_LOGO,
-        points: lesson.points,
+        points: lesson.points || 0,
         bonusLesson: false,
-        // Add any additional fields needed
       }
     })
   } catch (error) {
@@ -93,52 +99,38 @@ export async function fetchLessons(): Promise<LessonType[]> {
 }
 
 /**
- * Fetch a single lesson by ID
+ * Fetch a lesson by ID from Supabase
  */
 export async function fetchLessonById(
   lessonId: string
 ): Promise<LessonType | null> {
   try {
-    // First try to find by string ID
-    let { data, error } = await supabase
-      .from("lessons")
-      .select("*")
-      .eq("id", lessonId)
-      .single()
+    const lesson = (await db.fetchLessonById(lessonId)) as DbLessonData
 
-    // If not found, try to find by numeric ID
-    if (!data && !isNaN(Number(lessonId))) {
-      const numericId = Number(lessonId)
-      ;({ data, error } = await supabase
-        .from("lessons")
-        .select("*")
-        .eq("id", numericId)
-        .single())
-    }
-
-    if (error || !data) {
-      console.error("Error fetching lesson by ID:", error)
+    if (!lesson) {
       return null
     }
 
-    // Transform to LessonType
-    const id = lessonId || data.title.toLowerCase().replace(/\s+/g, "-")
+    const id =
+      lesson.id?.toString() || lesson.title.toLowerCase().replace(/\s+/g, "-")
 
     return {
       id,
-      title: data.title,
-      description: data.description || `Learn about ${data.title}`,
-      difficulty: data.difficulty,
-      category: data.category,
+      title: lesson.title,
+      description: lesson.description || `Learn about ${lesson.title}`,
+      difficulty:
+        (lesson.difficulty as "beginner" | "intermediate" | "advanced") ||
+        "beginner",
+      category: lesson.category,
       sections: 3, // Default value
       pages: 12, // Default value
       completedSections: 0,
-      rating: data.rating,
-      reviewCount: data.rating_count,
-      icon: getSpecificIcon(id) || getCategoryIcon(data.category),
-      sponsored: data.is_sponsored,
+      rating: lesson.rating || 0,
+      reviewCount: lesson.rating_count || 0,
+      icon: getSpecificIcon(id) || getCategoryIcon(lesson.category),
+      sponsored: lesson.is_sponsored || false,
       sponsorLogo: COINGECKO_LOGO,
-      points: data.points,
+      points: lesson.points || 0,
       bonusLesson: false,
     }
   } catch (error) {
@@ -150,97 +142,89 @@ export async function fetchLessonById(
 /**
  * Save a lesson to Supabase (create or update)
  */
-export async function saveLesson(lesson: LessonType): Promise<{ success: boolean; error?: string; data?: any }> {
+export async function saveLesson(
+  lesson: LessonType
+): Promise<{ success: boolean; error?: string; data?: any }> {
   console.log("saveLesson called with:", lesson)
-  
-  try {
-    // Convert the lesson object to a format compatible with Supabase
-    const lessonData = {
-      title: lesson.title,
-      description: lesson.description,
-      difficulty: lesson.difficulty,
-      category: lesson.category,
-      rating: lesson.rating || 0,
-      rating_count: lesson.reviewCount || 0,
-      is_sponsored: lesson.sponsored,
-      points: lesson.points,
-      // We don't save the icon as it's generated on the client
-      // We don't save sections/pages here as they should be in separate tables
-    };
-    
-    console.log("saveLesson - lessonData prepared:", lessonData)
 
-    let result;
-    
+  try {
     // Check if this is an update or create operation
     if (lesson.id && !isNaN(Number(lesson.id))) {
       // It's an update operation
       console.log("saveLesson - Updating existing lesson with ID:", lesson.id)
-      result = await supabase
-        .from("lessons")
-        .update(lessonData)
-        .eq("id", Number(lesson.id))
-        .select()
+      const result = await db.updateLesson(Number(lesson.id), {
+        title: lesson.title,
+        description: lesson.description,
+        difficulty: lesson.difficulty,
+        category: lesson.category,
+        rating: lesson.rating || 0,
+        reviewCount: lesson.reviewCount || 0,
+        sponsored: lesson.sponsored,
+        points: lesson.points,
+      })
+
+      return {
+        success: result.success,
+        error: result.error,
+        data: [{ id: Number(lesson.id) }],
+      }
     } else {
       // It's a create operation
       console.log("saveLesson - Creating new lesson")
-      result = await supabase.from("lessons").insert(lessonData).select()
+
+      // Create a lesson object without the id property
+      const { id, icon, ...lessonWithoutId } = lesson
+
+      const result = await db.createLesson({
+        ...lessonWithoutId,
+        // Set default values for required fields
+        rating: lesson.rating || 0,
+        reviewCount: lesson.reviewCount || 0,
+        sponsored: lesson.sponsored || false,
+        points: lesson.points || 0,
+      })
+
+      return {
+        success: result.success,
+        error: result.error,
+        data: result.id ? [{ id: result.id }] : undefined,
+      }
     }
-
-    console.log("saveLesson - Supabase result:", result)
-
-    if (result.error) {
-      console.error('Error saving lesson:', result.error);
-      return { 
-        success: false, 
-        error: result.error.message 
-      };
-    }
-
-    console.log("saveLesson - Returning success with data:", result.data)
-    
-    return { 
-      success: true,
-      data: result.data
-    };
   } catch (error) {
-    console.error('Error in saveLesson:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error occurred' 
-    };
+    console.error("Error in saveLesson:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error occurred",
+    }
   }
 }
 
 /**
  * Delete a lesson from Supabase
  */
-export async function deleteLesson(lessonId: string | number): Promise<{ success: boolean; error?: string }> {
+export async function deleteLesson(
+  lessonId: string | number
+): Promise<{ success: boolean; error?: string }> {
   try {
     // Convert string ID to number if needed
-    const id = typeof lessonId === 'string' && !isNaN(Number(lessonId)) 
-      ? Number(lessonId) 
-      : lessonId;
-    
-    const { error } = await supabase
-      .from('lessons')
-      .delete()
-      .eq('id', id);
+    const id =
+      typeof lessonId === "string" && !isNaN(Number(lessonId))
+        ? Number(lessonId)
+        : lessonId
 
-    if (error) {
-      console.error('Error deleting lesson:', error);
-      return { 
-        success: false, 
-        error: error.message 
-      };
+    if (typeof id !== "number") {
+      return {
+        success: false,
+        error: `Invalid lesson ID: ${lessonId}. Expected a number.`,
+      }
     }
 
-    return { success: true };
+    return await db.deleteLesson(id)
   } catch (error) {
-    console.error('Error in deleteLesson:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error occurred' 
-    };
+    console.error("Error in deleteLesson:", error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error occurred",
+    }
   }
 }

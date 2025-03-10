@@ -1,5 +1,34 @@
 import { supabase } from "@/lib/supabase"
 import { Section, Page } from "@/types/lesson"
+import * as dbModule from "@/lib/db"
+
+// For testing purposes - allows injecting mock db functions
+let db = dbModule
+export function _setDbForTesting(mockDb: typeof dbModule) {
+  const originalDb = db
+  db = mockDb
+  return () => {
+    db = originalDb
+  }
+}
+
+// Fix the type issues with db functions
+interface DbSection {
+  id: number
+  title: string
+  lesson_id: number
+  position: number
+  quiz_id?: string
+}
+
+interface DbPage {
+  id: number
+  title: string
+  section_id: number
+  content?: string
+  content_html?: string
+  position: number
+}
 
 /**
  * Fetch sections for a lesson from Supabase
@@ -28,16 +57,7 @@ export async function fetchSections(
     console.log("fetchSections - converted lessonId:", id)
 
     // Fetch sections for the lesson
-    const { data: sections, error } = await supabase
-      .from("sections")
-      .select("*")
-      .eq("lesson_id", id)
-      .order("position", { ascending: true })
-
-    if (error) {
-      console.error("Error fetching sections:", error)
-      return []
-    }
+    const sections = await db.fetchSectionsByLessonId(id as number)
 
     console.log("fetchSections - raw sections from DB:", sections)
 
@@ -48,29 +68,15 @@ export async function fetchSections(
 
     // For each section, fetch its pages
     const sectionsWithPages = await Promise.all(
-      sections.map(async (section) => {
-        const { data: pages, error: pagesError } = await supabase
-          .from("pages")
-          .select("*")
-          .eq("section_id", section.id)
-          .order("position", { ascending: true })
-
-        if (pagesError) {
-          console.error("Error fetching pages for section:", pagesError)
-          return {
-            id: section.id.toString(),
-            title: section.title,
-            pages: [],
-            quizId: `quiz-${section.id}`,
-          }
-        }
+      sections.map(async (section: DbSection) => {
+        const pages = await db.fetchPagesBySectionId(section.id)
 
         // Transform pages to match the Page type
         const transformedPages: Page[] = pages
-          ? pages.map((page) => ({
+          ? pages.map((page: DbPage) => ({
               id: page.id.toString(),
               title: page.title,
-              content: page.content_html || page.content || "",
+              content: page.content || page.content_html || "",
             }))
           : []
 
@@ -133,15 +139,7 @@ export async function saveSections(
     }
 
     // First, get existing sections to determine what to add, update, or delete
-    const { data: existingSections, error: fetchError } = await supabase
-      .from("sections")
-      .select("id")
-      .eq("lesson_id", id)
-
-    if (fetchError) {
-      console.error("Error fetching existing sections:", fetchError)
-      return { success: false, error: fetchError.message }
-    }
+    const existingSections = await db.fetchSectionsByLessonId(id)
 
     console.log("saveSections - existingSections:", existingSections)
 
@@ -170,14 +168,8 @@ export async function saveSections(
 
     // Delete sections that are no longer present
     if (sectionsToDelete.length > 0) {
-      const { error: deleteError } = await supabase
-        .from("sections")
-        .delete()
-        .in("id", sectionsToDelete)
-
-      if (deleteError) {
-        console.error("Error deleting sections:", deleteError)
-        return { success: false, error: deleteError.message }
+      for (const sectionId of sectionsToDelete) {
+        await db.deleteSection(sectionId)
       }
     }
 
@@ -202,31 +194,28 @@ export async function saveSections(
 
       if (isNewSection) {
         // Insert new section
-        const { data: insertedSection, error: insertError } = await supabase
-          .from("sections")
-          .insert(sectionData)
-          .select("id")
-          .single()
+        const result = await db.createSection(sectionData)
 
-        if (insertError) {
-          console.error("Error inserting section:", insertError)
-          return { success: false, error: insertError.message }
+        if (!result.success) {
+          return {
+            success: false,
+            error: result.error || "Failed to create section",
+          }
         }
 
-        sectionId = insertedSection.id
+        sectionId = result.id!
       } else {
         // Update existing section
         const numericId =
           typeof section.id === "string" ? Number(section.id) : section.id
 
-        const { error: updateError } = await supabase
-          .from("sections")
-          .update(sectionData)
-          .eq("id", numericId)
+        const result = await db.updateSection(numericId as number, sectionData)
 
-        if (updateError) {
-          console.error("Error updating section:", updateError)
-          return { success: false, error: updateError.message }
+        if (!result.success) {
+          return {
+            success: false,
+            error: result.error || "Failed to update section",
+          }
         }
 
         sectionId = numericId as number
@@ -265,15 +254,7 @@ async function savePages(
 
   try {
     // First, get existing pages to determine what to add, update, or delete
-    const { data: existingPages, error: fetchError } = await supabase
-      .from("pages")
-      .select("id")
-      .eq("section_id", sectionId)
-
-    if (fetchError) {
-      console.error("Error fetching existing pages:", fetchError)
-      return { success: false, error: fetchError.message }
-    }
+    const existingPages = await db.fetchPagesBySectionId(sectionId)
 
     console.log("savePages - existingPages:", existingPages)
 
@@ -300,14 +281,8 @@ async function savePages(
 
     // Delete pages that are no longer present
     if (pagesToDelete.length > 0) {
-      const { error: deleteError } = await supabase
-        .from("pages")
-        .delete()
-        .in("id", pagesToDelete)
-
-      if (deleteError) {
-        console.error("Error deleting pages:", deleteError)
-        return { success: false, error: deleteError.message }
+      for (const pageId of pagesToDelete) {
+        await db.deletePage(pageId)
       }
     }
 
@@ -325,33 +300,31 @@ async function savePages(
         section_id: sectionId,
         title: page.title,
         content: page.content,
-        content_html: page.content,
         position: i,
       }
 
       if (isNewPage) {
         // Insert new page
-        const { error: insertError } = await supabase
-          .from("pages")
-          .insert(pageData)
+        const result = await db.createPage(pageData)
 
-        if (insertError) {
-          console.error("Error inserting page:", insertError)
-          return { success: false, error: insertError.message }
+        if (!result.success) {
+          return {
+            success: false,
+            error: result.error || "Failed to create page",
+          }
         }
       } else {
         // Update existing page
         const numericId =
           typeof page.id === "string" ? Number(page.id) : page.id
 
-        const { error: updateError } = await supabase
-          .from("pages")
-          .update(pageData)
-          .eq("id", numericId)
+        const result = await db.updatePage(numericId as number, pageData)
 
-        if (updateError) {
-          console.error("Error updating page:", updateError)
-          return { success: false, error: updateError.message }
+        if (!result.success) {
+          return {
+            success: false,
+            error: result.error || "Failed to update page",
+          }
         }
       }
     }
