@@ -151,6 +151,8 @@ export async function fetchLessonById(
  * Save a lesson to Supabase (create or update)
  */
 export async function saveLesson(lesson: LessonType): Promise<{ success: boolean; error?: string; data?: any }> {
+  console.log("saveLesson called with:", lesson)
+  
   try {
     // Convert the lesson object to a format compatible with Supabase
     const lessonData = {
@@ -165,22 +167,27 @@ export async function saveLesson(lesson: LessonType): Promise<{ success: boolean
       // We don't save the icon as it's generated on the client
       // We don't save sections/pages here as they should be in separate tables
     };
+    
+    console.log("saveLesson - lessonData prepared:", lessonData)
 
     let result;
     
     // Check if this is an update or create operation
     if (lesson.id && !isNaN(Number(lesson.id))) {
       // It's an update operation
+      console.log("saveLesson - Updating existing lesson with ID:", lesson.id)
       result = await supabase
-        .from('lessons')
+        .from("lessons")
         .update(lessonData)
-        .eq('id', Number(lesson.id));
+        .eq("id", Number(lesson.id))
+        .select()
     } else {
       // It's a create operation
-      result = await supabase
-        .from('lessons')
-        .insert(lessonData);
+      console.log("saveLesson - Creating new lesson")
+      result = await supabase.from("lessons").insert(lessonData).select()
     }
+
+    console.log("saveLesson - Supabase result:", result)
 
     if (result.error) {
       console.error('Error saving lesson:', result.error);
@@ -190,6 +197,8 @@ export async function saveLesson(lesson: LessonType): Promise<{ success: boolean
       };
     }
 
+    console.log("saveLesson - Returning success with data:", result.data)
+    
     return { 
       success: true,
       data: result.data

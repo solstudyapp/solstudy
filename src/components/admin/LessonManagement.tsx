@@ -51,8 +51,9 @@ import {
   saveLesson as saveLessonToSupabase,
   deleteLesson as deleteLessonFromSupabase,
 } from "@/services/lessons"
+import { saveSections } from "@/services/sections"
 import { LessonEditor } from "./LessonEditor"
-import { LessonType } from "@/types/lesson"
+import { LessonType, Section } from "@/types/lesson"
 
 const LessonManagement = () => {
   const navigate = useNavigate()
@@ -167,12 +168,58 @@ const LessonManagement = () => {
     }
   }
 
-  const saveLesson = async (updatedLesson: LessonType) => {
+  const saveLesson = async (
+    updatedLesson: LessonType,
+    sectionsToSave?: Section[]
+  ) => {
+    console.log("LessonManagement - saveLesson called with:", {
+      updatedLesson,
+      sectionsToSave,
+      sectionsLength: sectionsToSave?.length || 0,
+      isNewLesson,
+    })
+
     setIsLoading(true)
     try {
       const result = await saveLessonToSupabase(updatedLesson)
+      console.log("LessonManagement - saveLessonToSupabase result:", result)
 
       if (result.success) {
+        // If this was a new lesson and we have sections to save
+        if (
+          isNewLesson &&
+          sectionsToSave &&
+          sectionsToSave.length > 0 &&
+          result.data
+        ) {
+          // Get the newly created lesson ID
+          const newLessonId = result.data[0]?.id
+          console.log(
+            "LessonManagement - New lesson created with ID:",
+            newLessonId
+          )
+
+          if (newLessonId) {
+            // Save the sections with the new lesson ID
+            console.log(
+              "LessonManagement - Saving sections for new lesson:",
+              sectionsToSave.length
+            )
+            const sectionsResult = await saveSections(
+              newLessonId,
+              sectionsToSave
+            )
+            console.log(
+              "LessonManagement - saveSections result:",
+              sectionsResult
+            )
+          } else {
+            console.error(
+              "LessonManagement - No lesson ID returned from create operation"
+            )
+          }
+        }
+
         // Refresh the lessons list to get the updated data with correct IDs
         const refreshedLessons = await fetchLessons()
         setLessons(refreshedLessons)
@@ -184,6 +231,7 @@ const LessonManagement = () => {
           }.`,
         })
       } else {
+        console.error("LessonManagement - Error saving lesson:", result.error)
         toast({
           title: `Error ${isNewLesson ? "Creating" : "Updating"} Lesson`,
           description:
