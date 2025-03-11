@@ -1,4 +1,4 @@
-import { LessonType } from "@/types/lesson"
+import { LessonType, DbLessonData } from "@/types/lesson"
 import {
   Database,
   BarChart,
@@ -12,6 +12,12 @@ import {
 } from "lucide-react"
 import { ReactNode } from "react"
 import * as db from "@/lib/db"
+import { supabase } from "@/lib/supabase"
+import {
+  dbToFrontendLesson,
+  frontendToDbLesson,
+  safelyParseId,
+} from "@/lib/type-converters"
 
 // Placeholder for sponsor logo - replace with your actual import
 const COINGECKO_LOGO = "/path/to/coingecko-logo.png"
@@ -46,54 +52,17 @@ const getSpecificIcon = (id: string): ReactNode | null => {
   return null
 }
 
-// Type for database lesson data
-interface DbLessonData {
-  id?: number
-  title: string
-  description?: string
-  difficulty: string
-  category: string
-  rating?: number
-  rating_count?: number
-  is_sponsored?: boolean
-  points?: number
-}
-
 /**
  * Fetch all lessons from Supabase
  */
 export async function fetchLessons(): Promise<LessonType[]> {
   try {
-    const data = await db.fetchAllLessons()
+    const data = (await db.fetchAllLessons()) as unknown as DbLessonData[]
 
     // Transform the data to match the LessonType
-    return data.map((lesson: DbLessonData) => {
-      // Generate an ID from the title if not available
-      const id =
-        lesson.id?.toString() || lesson.title.toLowerCase().replace(/\s+/g, "-")
-
-      return {
-        id,
-        title: lesson.title,
-        description: lesson.description || `Learn about ${lesson.title}`,
-        difficulty:
-          (lesson.difficulty as "beginner" | "intermediate" | "advanced") ||
-          "beginner",
-        category: lesson.category,
-        sections: 3, // Default value, replace with actual data when available
-        pages: 12, // Default value, replace with actual data when available
-        completedSections: 0,
-        rating: lesson.rating || 0,
-        reviewCount: lesson.rating_count || 0,
-        icon: getSpecificIcon(id) || getCategoryIcon(lesson.category),
-        sponsored: lesson.is_sponsored || false,
-        sponsorLogo: COINGECKO_LOGO,
-        points: lesson.points || 0,
-        bonusLesson: false,
-      }
-    })
+    return data.map(dbToFrontendLesson)
   } catch (error) {
-    console.error("Error in fetchLessons:", error)
+    console.error("Error fetching lessons:", error)
     return []
   }
 }
@@ -105,93 +74,74 @@ export async function fetchLessonById(
   lessonId: string
 ): Promise<LessonType | null> {
   try {
-    const lesson = (await db.fetchLessonById(lessonId)) as DbLessonData
+    // Convert string ID to number if it's numeric
+    const numericId = safelyParseId(lessonId)
+
+    if (numericId === null) {
+      console.error("Invalid lesson ID format:", lessonId)
+      return null
+    }
+
+    const lesson = (await db.fetchLessonById(
+      numericId
+    )) as unknown as DbLessonData
 
     if (!lesson) {
       return null
     }
 
-    const id =
-      lesson.id?.toString() || lesson.title.toLowerCase().replace(/\s+/g, "-")
-
-    return {
-      id,
-      title: lesson.title,
-      description: lesson.description || `Learn about ${lesson.title}`,
-      difficulty:
-        (lesson.difficulty as "beginner" | "intermediate" | "advanced") ||
-        "beginner",
-      category: lesson.category,
-      sections: 3, // Default value
-      pages: 12, // Default value
-      completedSections: 0,
-      rating: lesson.rating || 0,
-      reviewCount: lesson.rating_count || 0,
-      icon: getSpecificIcon(id) || getCategoryIcon(lesson.category),
-      sponsored: lesson.is_sponsored || false,
-      sponsorLogo: COINGECKO_LOGO,
-      points: lesson.points || 0,
-      bonusLesson: false,
-    }
+    return dbToFrontendLesson(lesson)
   } catch (error) {
-    console.error("Error in fetchLessonById:", error)
+    console.error("Error fetching lesson by ID:", error)
     return null
   }
 }
 
 /**
- * Save a lesson to Supabase (create or update)
+ * Save a lesson to Supabase
  */
 export async function saveLesson(
   lesson: LessonType
-): Promise<{ success: boolean; error?: string; data?: any }> {
-  console.log("saveLesson called with:", lesson)
-
+): Promise<{ success: boolean; error?: string; data?: { id: string }[] }> {
   try {
-    // Check if this is an update or create operation
-    if (lesson.id && !isNaN(Number(lesson.id))) {
-      // It's an update operation
-      console.log("saveLesson - Updating existing lesson with ID:", lesson.id)
-      const result = await db.updateLesson(Number(lesson.id), {
-        title: lesson.title,
-        description: lesson.description,
-        difficulty: lesson.difficulty,
-        category: lesson.category,
-        rating: lesson.rating || 0,
-        reviewCount: lesson.reviewCount || 0,
-        sponsored: lesson.sponsored,
-        points: lesson.points,
-      })
+    // Check if the lesson has an ID that's not a temporary ID
+    const isUpdate =
+      lesson.id && !lesson.id.startsWith("new-") && !isNaN(Number(lesson.id))
+
+    if (isUpdate) {
+      console.log("saveLesson - Updating lesson:", lesson.id)
+
+      // Convert string ID to number
+      const numericId = Number(lesson.id)
+
+      // Create a database lesson object
+      const dbLesson = frontendToDbLesson(lesson)
+
+      // Type assertion to match the expected parameter type
+      const result = await db.updateLesson(numericId, dbLesson as any)
 
       return {
         success: result.success,
         error: result.error,
-        data: [{ id: Number(lesson.id) }],
       }
     } else {
       // It's a create operation
       console.log("saveLesson - Creating new lesson")
 
-      // Create a lesson object without the id property
-      const { id, icon, ...lessonWithoutId } = lesson
+      // Create a database lesson object
+      const dbLesson = frontendToDbLesson(lesson)
 
-      const result = await db.createLesson({
-        ...lessonWithoutId,
-        // Set default values for required fields
-        rating: lesson.rating || 0,
-        reviewCount: lesson.reviewCount || 0,
-        sponsored: lesson.sponsored || false,
-        points: lesson.points || 0,
-      })
+      // Type assertion to match the expected parameter type
+      const result = await db.createLesson(dbLesson as any)
 
       return {
         success: result.success,
         error: result.error,
-        data: result.id ? [{ id: result.id }] : undefined,
+        data: result.id ? [{ id: result.id.toString() }] : undefined,
       }
     }
   } catch (error) {
-    console.error("Error in saveLesson:", error)
+    console.error("Error saving lesson:", error)
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error occurred",

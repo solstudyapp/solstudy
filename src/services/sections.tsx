@@ -1,6 +1,14 @@
 import { supabase } from "@/lib/supabase"
-import { Section, Page } from "@/types/lesson"
+import { Section, Page, DbSection, DbPage } from "@/types/lesson"
 import * as dbModule from "@/lib/db"
+import {
+  dbToFrontendSection,
+  dbToFrontendPage,
+  frontendToDbSection,
+  frontendToDbPage,
+  safelyParseId,
+  isTemporaryId,
+} from "@/lib/type-converters"
 
 // For testing purposes - allows injecting mock db functions
 let db = dbModule
@@ -10,24 +18,6 @@ export function _setDbForTesting(mockDb: typeof dbModule) {
   return () => {
     db = originalDb
   }
-}
-
-// Fix the type issues with db functions
-interface DbSection {
-  id: number
-  title: string
-  lesson_id: number
-  position: number
-  quiz_id?: string
-}
-
-interface DbPage {
-  id: number
-  title: string
-  section_id: number
-  content?: string
-  content_html?: string
-  position: number
 }
 
 /**
@@ -49,15 +39,19 @@ export async function fetchSections(
     }
 
     // Convert string ID to number if needed
-    const id =
-      typeof lessonId === "string" && !isNaN(Number(lessonId))
-        ? Number(lessonId)
-        : lessonId
+    const id = safelyParseId(lessonId)
+
+    if (id === null) {
+      console.error("Invalid lesson ID:", lessonId)
+      return []
+    }
 
     console.log("fetchSections - converted lessonId:", id)
 
     // Fetch sections for the lesson
-    const sections = await db.fetchSectionsByLessonId(id as number)
+    const sections = (await db.fetchSectionsByLessonId(
+      id
+    )) as unknown as DbSection[]
 
     console.log("fetchSections - raw sections from DB:", sections)
 
@@ -69,24 +63,12 @@ export async function fetchSections(
     // For each section, fetch its pages
     const sectionsWithPages = await Promise.all(
       sections.map(async (section: DbSection) => {
-        const pages = await db.fetchPagesBySectionId(section.id)
-
-        // Transform pages to match the Page type
-        const transformedPages: Page[] = pages
-          ? pages.map((page: DbPage) => ({
-              id: page.id.toString(),
-              title: page.title,
-              content: page.content || page.content_html || "",
-            }))
-          : []
+        const pages = (await db.fetchPagesBySectionId(
+          section.id
+        )) as unknown as DbPage[]
 
         // Return the section with its pages
-        return {
-          id: section.id.toString(),
-          title: section.title,
-          pages: transformedPages,
-          quizId: section.quiz_id || `quiz-${section.id}`,
-        }
+        return dbToFrontendSection(section, pages)
       })
     )
 
@@ -122,15 +104,9 @@ export async function saveSections(
     }
 
     // Convert string ID to number if needed
-    const id =
-      typeof lessonId === "string" && !isNaN(Number(lessonId))
-        ? Number(lessonId)
-        : lessonId
+    const id = safelyParseId(lessonId)
 
-    console.log("saveSections - converted lessonId:", id)
-
-    // Validate that we have a numeric ID
-    if (typeof id !== "number") {
+    if (id === null) {
       console.error("saveSections - Invalid lesson ID:", lessonId)
       return {
         success: false,
@@ -138,8 +114,12 @@ export async function saveSections(
       }
     }
 
+    console.log("saveSections - converted lessonId:", id)
+
     // First, get existing sections to determine what to add, update, or delete
-    const existingSections = await db.fetchSectionsByLessonId(id)
+    const existingSections = (await db.fetchSectionsByLessonId(
+      id
+    )) as unknown as DbSection[]
 
     console.log("saveSections - existingSections:", existingSections)
 
@@ -152,8 +132,7 @@ export async function saveSections(
         if (
           typeof s.id === "string" &&
           !isNaN(Number(s.id)) &&
-          !s.id.startsWith("section-") &&
-          !s.id.includes("section")
+          !isTemporaryId(s.id)
         ) {
           return Number(s.id)
         }
@@ -176,19 +155,10 @@ export async function saveSections(
     // Add or update sections
     for (let i = 0; i < sections.length; i++) {
       const section = sections[i]
-      const isNewSection =
-        typeof section.id === "string" &&
-        (section.id.startsWith("section-") ||
-          section.id.includes("section") ||
-          isNaN(Number(section.id)))
+      const isNewSection = isTemporaryId(section.id)
 
       // Prepare section data
-      const sectionData = {
-        lesson_id: id,
-        title: section.title,
-        quiz_id: section.quizId,
-        position: i,
-      }
+      const sectionData = frontendToDbSection(section, id, i)
 
       let sectionId: number
 
@@ -206,10 +176,9 @@ export async function saveSections(
         sectionId = result.id!
       } else {
         // Update existing section
-        const numericId =
-          typeof section.id === "string" ? Number(section.id) : section.id
+        const numericId = Number(section.id)
 
-        const result = await db.updateSection(numericId as number, sectionData)
+        const result = await db.updateSection(numericId, sectionData)
 
         if (!result.success) {
           return {
@@ -218,7 +187,7 @@ export async function saveSections(
           }
         }
 
-        sectionId = numericId as number
+        sectionId = numericId
       }
 
       // Now handle pages for this section
@@ -254,7 +223,9 @@ async function savePages(
 
   try {
     // First, get existing pages to determine what to add, update, or delete
-    const existingPages = await db.fetchPagesBySectionId(sectionId)
+    const existingPages = (await db.fetchPagesBySectionId(
+      sectionId
+    )) as unknown as DbPage[]
 
     console.log("savePages - existingPages:", existingPages)
 
@@ -265,8 +236,7 @@ async function savePages(
         if (
           typeof p.id === "string" &&
           !isNaN(Number(p.id)) &&
-          !p.id.startsWith("page-") &&
-          !p.id.includes("page")
+          !isTemporaryId(p.id)
         ) {
           return Number(p.id)
         }
@@ -289,19 +259,10 @@ async function savePages(
     // Add or update pages
     for (let i = 0; i < pages.length; i++) {
       const page = pages[i]
-      const isNewPage =
-        typeof page.id === "string" &&
-        (page.id.startsWith("page-") ||
-          page.id.includes("page") ||
-          isNaN(Number(page.id)))
+      const isNewPage = isTemporaryId(page.id)
 
       // Prepare page data
-      const pageData = {
-        section_id: sectionId,
-        title: page.title,
-        content: page.content,
-        position: i,
-      }
+      const pageData = frontendToDbPage(page, sectionId, i)
 
       if (isNewPage) {
         // Insert new page
@@ -315,10 +276,9 @@ async function savePages(
         }
       } else {
         // Update existing page
-        const numericId =
-          typeof page.id === "string" ? Number(page.id) : page.id
+        const numericId = Number(page.id)
 
-        const result = await db.updatePage(numericId as number, pageData)
+        const result = await db.updatePage(numericId, pageData)
 
         if (!result.success) {
           return {

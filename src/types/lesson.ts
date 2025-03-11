@@ -60,3 +60,36 @@ export interface UserProgress {
   testCompleted: boolean;
   earnedPoints: number;
 }
+
+// Database model interfaces to match Supabase schema
+export interface DbLessonData {
+  id: number;
+  title: string;
+  description?: string;
+  difficulty?: string;
+  category?: string;
+  rating?: number;
+  reviewCount?: number;
+  sponsored?: boolean;
+  sponsorLogo?: string;
+  points?: number;
+  icon?: string; // Store icon as string in DB
+  bonusLesson?: boolean;
+}
+
+export interface DbSection {
+  id: number;
+  title: string;
+  lesson_id: number;
+  position: number;
+  quiz_id?: string;
+}
+
+export interface DbPage {
+  id: number;
+  title: string;
+  section_id: number;
+  content?: string;
+  content_html?: string;
+  position: number;
+}
