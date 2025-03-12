@@ -35,6 +35,152 @@ import TiptapImage from "@tiptap/extension-image"
 import UnderlineExtension from "@tiptap/extension-underline"
 import TextAlign from "@tiptap/extension-text-align"
 
+// Toolbar Button Component
+interface ToolbarButtonProps {
+  onClick: () => void
+  icon: React.ReactNode
+  title: string
+  isActive?: boolean
+}
+
+const ToolbarButton = ({ onClick, icon, title, isActive = false }: ToolbarButtonProps) => (
+  <Button
+    type="button"
+    variant="ghost"
+    size="icon"
+    className={`h-8 w-8 ${
+      isActive
+        ? "bg-white/20 text-white"
+        : "text-white/70 hover:text-white hover:bg-white/10"
+    }`}
+    onClick={(e) => {
+      e.preventDefault()
+      onClick()
+    }}
+    title={title}
+  >
+    {icon}
+  </Button>
+)
+
+// Editor Toolbar Component
+interface EditorToolbarProps {
+  editor: Editor
+  openLinkDialog: () => void
+  openImageDialog: () => void
+}
+
+const EditorToolbar = ({ editor, openLinkDialog, openImageDialog }: EditorToolbarProps) => {
+  if (!editor) {
+    return null
+  }
+
+  return (
+    <div className="px-2 py-1 bg-black/20 border-b border-white/10 flex flex-wrap gap-1">
+      {/* Text formatting */}
+      <ToolbarButton
+        onClick={() => editor.chain().focus().toggleBold().run()}
+        icon={<Bold size={14} />}
+        title="Bold"
+        isActive={editor.isActive("bold")}
+      />
+      <ToolbarButton
+        onClick={() => editor.chain().focus().toggleItalic().run()}
+        icon={<Italic size={14} />}
+        title="Italic"
+        isActive={editor.isActive("italic")}
+      />
+      <ToolbarButton
+        onClick={() => editor.chain().focus().toggleUnderline().run()}
+        icon={<UnderlineIcon size={14} />}
+        title="Underline"
+        isActive={editor.isActive("underline")}
+      />
+
+      <div className="h-6 w-px bg-white/10 mx-1"></div>
+
+      {/* Lists */}
+      <ToolbarButton
+        onClick={() => editor.chain().focus().toggleBulletList().run()}
+        icon={<List size={14} />}
+        title="Bullet List"
+        isActive={editor.isActive("bulletList")}
+      />
+      <ToolbarButton
+        onClick={() => editor.chain().focus().toggleOrderedList().run()}
+        icon={<ListOrdered size={14} />}
+        title="Numbered List"
+        isActive={editor.isActive("orderedList")}
+      />
+
+      <div className="h-6 w-px bg-white/10 mx-1"></div>
+
+      {/* Alignment */}
+      <ToolbarButton
+        onClick={() => editor.chain().focus().setTextAlign("left").run()}
+        icon={<AlignLeft size={14} />}
+        title="Align Left"
+        isActive={editor.isActive({ textAlign: "left" })}
+      />
+      <ToolbarButton
+        onClick={() => editor.chain().focus().setTextAlign("center").run()}
+        icon={<AlignCenter size={14} />}
+        title="Align Center"
+        isActive={editor.isActive({ textAlign: "center" })}
+      />
+      <ToolbarButton
+        onClick={() => editor.chain().focus().setTextAlign("right").run()}
+        icon={<AlignRight size={14} />}
+        title="Align Right"
+        isActive={editor.isActive({ textAlign: "right" })}
+      />
+
+      <div className="h-6 w-px bg-white/10 mx-1"></div>
+
+      {/* Special elements */}
+      <ToolbarButton
+        onClick={() => {
+          editor.commands.focus()
+          openLinkDialog()
+        }}
+        icon={<LinkIcon size={14} />}
+        title="Insert Link"
+        isActive={editor.isActive("link")}
+      />
+      <ToolbarButton
+        onClick={() => {
+          editor.commands.focus()
+          openImageDialog()
+        }}
+        icon={<ImageIcon size={14} />}
+        title="Insert Image"
+      />
+      <ToolbarButton
+        onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+        icon={<Code size={14} />}
+        title="Code Block"
+        isActive={editor.isActive("codeBlock")}
+      />
+
+      <div className="h-6 w-px bg-white/10 mx-1"></div>
+
+      {/* Headings */}
+      <ToolbarButton
+        onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+        icon={<Heading1 size={14} />}
+        title="Heading 1"
+        isActive={editor.isActive("heading", { level: 1 })}
+      />
+      <ToolbarButton
+        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+        icon={<Heading2 size={14} />}
+        title="Heading 2"
+        isActive={editor.isActive("heading", { level: 2 })}
+      />
+    </div>
+  )
+}
+
 interface RichTextEditorProps {
   initialContent: string
   onChange: (content: string) => void
@@ -76,24 +222,11 @@ export const RichTextEditor = ({
     ],
     content: initialContent,
     onUpdate: ({ editor }) => {
-      // Prevent cursor jumps by using a flag to avoid multiple updates
-      if (isUpdatingRef.current) return
-
-      isUpdatingRef.current = true
-
-      // Get the HTML content
       const html = editor.getHTML()
-
-      // Only update state if content actually changed
       if (html !== htmlContent) {
         setHtmlContent(html)
         onChange(html)
       }
-
-      // Reset the flag after a short delay to allow React to process the update
-      setTimeout(() => {
-        isUpdatingRef.current = false
-      }, 0)
     },
     autofocus: true,
     editorProps: {
@@ -106,43 +239,34 @@ export const RichTextEditor = ({
   // Update editor content when initialContent changes, but only if it's different
   useEffect(() => {
     if (editor && !editor.isDestroyed && initialContent !== editor.getHTML()) {
-      // Store current selection
       const { from, to } = editor.state.selection
-
-      // Update content
       editor.commands.setContent(initialContent)
 
-      // Try to restore cursor position if possible
-      if (from && to) {
+      // Wait for the next tick to restore selection
+      setTimeout(() => {
         try {
           editor.commands.setTextSelection({ from, to })
         } catch (e) {
-          // If we can't restore the exact position, at least focus the editor
           editor.commands.focus()
         }
-      }
+      }, 0)
     }
   }, [editor, initialContent])
 
   // Handle HTML mode changes with improved cursor handling
   useEffect(() => {
     if (!htmlMode && editor) {
-      // Store current selection if possible before switching
-      const selection = editor.state.selection
-      const hasSelection = !selection.empty
-
-      // Update content
+      const { from, to } = editor.state.selection
       editor.commands.setContent(htmlContent)
 
-      // Restore focus and try to restore selection
-      editor.commands.focus()
-      if (hasSelection) {
+      // Wait for the next tick to restore selection
+      setTimeout(() => {
         try {
-          editor.commands.setTextSelection(selection)
+          editor.commands.setTextSelection({ from, to })
         } catch (e) {
-          // Fallback if selection can't be restored
+          editor.commands.focus()
         }
-      }
+      }, 0)
     }
   }, [htmlMode, htmlContent, editor])
 
@@ -250,38 +374,6 @@ export const RichTextEditor = ({
     onChange(e.target.value)
   }
 
-  // Toolbar button component
-  const ToolbarButton = ({
-    onClick,
-    icon,
-    title,
-    isActive = false,
-  }: {
-    onClick: () => void
-    icon: React.ReactNode
-    title: string
-    isActive?: boolean
-  }) => (
-    <Button
-      type="button"
-      variant="ghost"
-      size="icon"
-      className={`h-8 w-8 ${
-        isActive
-          ? "bg-white/20 text-white"
-          : "text-white/70 hover:text-white hover:bg-white/10"
-      }`}
-      onClick={(e) => {
-        e.preventDefault()
-        if (editor) editor.commands.focus()
-        onClick()
-      }}
-      title={title}
-    >
-      {icon}
-    </Button>
-  )
-
   if (!editor) {
     return (
       <div className="min-h-[300px] bg-black/30 p-4">Loading editor...</div>
@@ -312,109 +404,11 @@ export const RichTextEditor = ({
         </div>
 
         <TabsContent value="visual" className="mt-0">
-          <div className="px-2 py-1 bg-black/20 border-b border-white/10 flex flex-wrap gap-1">
-            <ToolbarButton
-              onClick={() => editor.chain().focus().toggleBold().run()}
-              icon={<Bold size={14} />}
-              title="Bold"
-              isActive={editor.isActive("bold")}
-            />
-            <ToolbarButton
-              onClick={() => editor.chain().focus().toggleItalic().run()}
-              icon={<Italic size={14} />}
-              title="Italic"
-              isActive={editor.isActive("italic")}
-            />
-            <ToolbarButton
-              onClick={() => editor.chain().focus().toggleUnderline().run()}
-              icon={<UnderlineIcon size={14} />}
-              title="Underline"
-              isActive={editor.isActive("underline")}
-            />
-
-            <div className="h-6 w-px bg-white/10 mx-1"></div>
-
-            <ToolbarButton
-              onClick={() => editor.chain().focus().toggleBulletList().run()}
-              icon={<List size={14} />}
-              title="Bullet List"
-              isActive={editor.isActive("bulletList")}
-            />
-            <ToolbarButton
-              onClick={() => editor.chain().focus().toggleOrderedList().run()}
-              icon={<ListOrdered size={14} />}
-              title="Numbered List"
-              isActive={editor.isActive("orderedList")}
-            />
-
-            <div className="h-6 w-px bg-white/10 mx-1"></div>
-
-            <ToolbarButton
-              onClick={() => editor.chain().focus().setTextAlign("left").run()}
-              icon={<AlignLeft size={14} />}
-              title="Align Left"
-              isActive={editor.isActive({ textAlign: "left" })}
-            />
-            <ToolbarButton
-              onClick={() =>
-                editor.chain().focus().setTextAlign("center").run()
-              }
-              icon={<AlignCenter size={14} />}
-              title="Align Center"
-              isActive={editor.isActive({ textAlign: "center" })}
-            />
-            <ToolbarButton
-              onClick={() => editor.chain().focus().setTextAlign("right").run()}
-              icon={<AlignRight size={14} />}
-              title="Align Right"
-              isActive={editor.isActive({ textAlign: "right" })}
-            />
-
-            <div className="h-6 w-px bg-white/10 mx-1"></div>
-
-            <ToolbarButton
-              onClick={() => {
-                editor.commands.focus()
-                openLinkDialog()
-              }}
-              icon={<LinkIcon size={14} />}
-              title="Insert Link"
-              isActive={editor.isActive("link")}
-            />
-            <ToolbarButton
-              onClick={() => {
-                editor.commands.focus()
-                openImageDialog()
-              }}
-              icon={<ImageIcon size={14} />}
-              title="Insert Image"
-            />
-            <ToolbarButton
-              onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-              icon={<Code size={14} />}
-              title="Code Block"
-              isActive={editor.isActive("codeBlock")}
-            />
-
-            <div className="h-6 w-px bg-white/10 mx-1"></div>
-
-            <ToolbarButton
-              onClick={() =>
-                editor.chain().focus().toggleHeading({ level: 1 }).run()
-              }
-              icon={<Heading1 size={14} />}
-              title="Heading 1"
-              isActive={editor.isActive("heading", { level: 1 })}
-            />
-            <ToolbarButton
-              onClick={() =>
-                editor.chain().focus().toggleHeading({ level: 2 }).run()
-              }
-              icon={<Heading2 size={14} />}
-              title="Heading 2"
-              isActive={editor.isActive("heading", { level: 2 })}
-            />
-          </div>
+          <EditorToolbar
+            editor={editor}
+            openLinkDialog={openLinkDialog}
+            openImageDialog={openImageDialog}
+          />
 
           <div className="min-h-[300px] p-4 text-white focus:outline-none rich-text-editor-content">
             <EditorContent
@@ -425,6 +419,7 @@ export const RichTextEditor = ({
         </TabsContent>
 
         <TabsContent value="html" className="mt-0">
+          test
           <textarea
             className="w-full min-h-[356px] p-4 bg-black/10 text-white font-mono text-sm focus:outline-none border-0"
             value={htmlContent}

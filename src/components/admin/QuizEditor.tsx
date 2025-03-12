@@ -6,8 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Save, X, Plus, Trash, ChevronUp, ChevronDown, AlertCircle, Check } from "lucide-react";
-import { Quiz, Question } from "@/types/lesson";
-import { RichTextEditor } from "./RichTextEditor";
+import { Quiz, Question } from "@/types/lesson"
 
 interface QuizEditorProps {
   quiz: Quiz;
