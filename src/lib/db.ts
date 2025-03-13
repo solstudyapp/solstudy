@@ -17,12 +17,10 @@ export async function fetchAllLessons(): Promise<LessonType[]> {
 }
 
 export async function fetchLessonById(id: string | number): Promise<LessonType | null> {
-  const numericId = typeof id === 'string' ? Number(id) : id;
-  
   const { data, error } = await supabase
     .from('lessons')
     .select('*')
-    .eq('id', numericId)
+    .eq('id', id)
     .single();
 
   if (error) {
@@ -94,7 +92,7 @@ export async function deleteLesson(id: number): Promise<{ success: boolean; erro
 }
 
 // Section operations
-export async function fetchSectionsByLessonId(lessonId: number): Promise<Section[]> {
+export async function fetchSectionsByLessonId(lessonId: string | number): Promise<Section[]> {
   const { data, error } = await supabase
     .from('sections')
     .select('*')
@@ -109,7 +107,7 @@ export async function fetchSectionsByLessonId(lessonId: number): Promise<Section
   return data || [];
 }
 
-export async function createSection(section: { lesson_id: number; title: string; position: number; quiz_id?: string }): Promise<{ id?: number; success: boolean; error?: string }> {
+export async function createSection(section: { lesson_id: string | number; title: string; position: number; quiz_id?: string }): Promise<{ id?: number; success: boolean; error?: string }> {
   const { data, error } = await supabase
     .from('sections')
     .insert(section)
@@ -151,7 +149,7 @@ export async function deleteSection(id: number): Promise<{ success: boolean; err
   return { success: true };
 }
 
-export async function deleteSectionsByLessonId(lessonId: number): Promise<{ success: boolean; error?: string }> {
+export async function deleteSectionsByLessonId(lessonId: string | number): Promise<{ success: boolean; error?: string }> {
   const { error } = await supabase
     .from('sections')
     .delete()
@@ -181,12 +179,12 @@ export async function fetchPagesBySectionId(sectionId: number): Promise<Page[]> 
   return data || [];
 }
 
-export async function createPage(page: { section_id: number; title: string; content: string; position: number }): Promise<{ id?: number; success: boolean; error?: string }> {
+export async function createPage(page: { section_id: number; title: string; content?: string; position: number }): Promise<{ id?: number; success: boolean; error?: string }> {
   const { data, error } = await supabase
     .from('pages')
     .insert({
       ...page,
-      content_html: page.content, // Ensure content_html is also set
+      content_html: page.content || '', // Ensure content_html is also set
     })
     .select();
 

@@ -74,23 +74,33 @@ export async function fetchLessonById(
   lessonId: string
 ): Promise<LessonType | null> {
   try {
-    // Convert string ID to number if it's numeric
-    const numericId = safelyParseId(lessonId)
+    console.log("fetchLessonById called with lessonId:", lessonId)
 
-    if (numericId === null) {
+    // Handle both UUID and numeric ID formats
+    const parsedId = safelyParseId(lessonId)
+
+    if (parsedId === null) {
       console.error("Invalid lesson ID format:", lessonId)
       return null
     }
 
+    console.log("fetchLessonById - parsed ID:", parsedId)
+
     const lesson = (await db.fetchLessonById(
-      numericId
+      parsedId
     )) as unknown as DbLessonData
 
+    console.log("fetchLessonById - raw lesson data:", lesson)
+
     if (!lesson) {
+      console.error("Lesson not found for ID:", parsedId)
       return null
     }
 
-    return dbToFrontendLesson(lesson)
+    const frontendLesson = dbToFrontendLesson(lesson)
+    console.log("fetchLessonById - converted lesson:", frontendLesson)
+
+    return frontendLesson
   } catch (error) {
     console.error("Error fetching lesson by ID:", error)
     return null

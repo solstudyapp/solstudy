@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react"
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom"
-import { lessonData, dailyBonusLesson, loadLessons } from "@/data/lessons"
-import { getSectionsForLesson } from "@/data/sections"
 import { toast } from "@/hooks/use-toast"
 import { lessonService } from "@/services/lessonService"
 import LessonSidebar from "@/components/lesson/LessonSidebar"
@@ -9,24 +7,73 @@ import LessonHeader from "@/components/lesson/LessonHeader"
 import LessonContent from "@/components/lesson/LessonContent"
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
+import { fetchLessonById } from "@/services/lessons"
+import { fetchSections } from "@/services/sections"
+import { LessonType, Section } from "@/types/lesson"
+import { supabase } from "@/lib/supabase"
 
 const LessonView = () => {
-  const { lessonId } = useParams()
+  const { lessonId } = useParams<{ lessonId: string }>()
   const navigate = useNavigate()
   const location = useLocation()
   const [currentSection, setCurrentSection] = useState(0)
   const [currentPage, setCurrentPage] = useState(0)
   const [progress, setProgress] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [lesson, setLesson] = useState<LessonType | null>(null)
+  const [sections, setSections] = useState<Section[]>([])
+  const [error, setError] = useState<string | null>(null)
 
-  // Load lessons data
+  // Load lesson and sections data from Supabase
   useEffect(() => {
     const fetchData = async () => {
+      if (!lessonId) {
+        setError("Lesson ID is missing")
+        setLoading(false)
+        return
+      }
+
       try {
         setLoading(true)
-        await loadLessons()
+        setError(null)
+
+        // Direct check if lesson exists
+        console.log("Directly checking if lesson exists with ID:", lessonId)
+        const { data: lessonExists, error: lessonCheckError } = await supabase
+          .from("lessons")
+          .select("id")
+          .eq("id", lessonId)
+          .single()
+
+        if (lessonCheckError || !lessonExists) {
+          console.error("Direct lesson check failed:", lessonCheckError)
+          setError("Lesson not found")
+          setLoading(false)
+          return
+        }
+
+        console.log("Direct lesson check succeeded:", lessonExists)
+
+        // Fetch lesson data
+        const lessonData = await fetchLessonById(lessonId)
+        if (!lessonData) {
+          setError("Lesson not found")
+          setLoading(false)
+          return
+        }
+        setLesson(lessonData)
+
+        // Fetch sections data
+        const sectionsData = await fetchSections(lessonId)
+        if (!sectionsData || sectionsData.length === 0) {
+          setError("No sections found for this lesson")
+          setLoading(false)
+          return
+        }
+        setSections(sectionsData)
       } catch (error) {
-        console.error("Error loading lessons:", error)
+        console.error("Error loading lesson data:", error)
+        setError("Failed to load lesson data")
         toast({
           title: "Error loading course",
           description:
@@ -39,16 +86,7 @@ const LessonView = () => {
     }
 
     fetchData()
-  }, [toast])
-
-  // Find the lesson based on the URL param - also check if it's the daily bonus lesson
-  const lesson =
-    lessonId === "daily-bonus-lesson"
-      ? dailyBonusLesson
-      : lessonData.find((l) => l.id === lessonId)
-
-  // Get sections data from our new data file
-  const sections = lessonId ? getSectionsForLesson(lessonId) : []
+  }, [lessonId])
 
   // Parse URL query parameters for direct navigation
   useEffect(() => {
@@ -148,22 +186,71 @@ const LessonView = () => {
     )
   }
 
-  if (!lesson) {
+  if (error) {
     return (
-      <div className="min-h-screen bg-black">
-        <div className="max-w-3xl mx-auto px-4 py-16 text-center text-white">
-          <h1 className="text-2xl font-bold mb-4">Course not found</h1>
-          <p className="mb-6">
-            The course you're looking for doesn't exist or has been removed.
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6 bg-gray-900 rounded-lg">
+          <h2 className="text-xl text-white mb-4">{error}</h2>
+          <p className="text-gray-400 mb-6">
+            We couldn't load the course content. This might be because the
+            course doesn't exist or there was a problem connecting to our
+            servers.
           </p>
-          <Button asChild>
-            <Link to="/">Back to Courses</Link>
+          <Button
+            variant="gradient"
+            onClick={() => navigate("/")}
+            className="mx-auto"
+          >
+            Return to Home
           </Button>
         </div>
       </div>
     )
   }
 
+  if (!lesson) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6 bg-gray-900 rounded-lg">
+          <h2 className="text-xl text-white mb-4">Lesson not found</h2>
+          <p className="text-gray-400 mb-6">
+            We couldn't find the lesson you're looking for. It might have been
+            removed or doesn't exist.
+          </p>
+          <Button
+            variant="gradient"
+            onClick={() => navigate("/")}
+            className="mx-auto"
+          >
+            Return to Home
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  if (sections.length === 0) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6 bg-gray-900 rounded-lg">
+          <h2 className="text-xl text-white mb-4">No sections found</h2>
+          <p className="text-gray-400 mb-6">
+            This lesson doesn't have any sections yet. Please add some sections
+            to continue.
+          </p>
+          <Button
+            variant="gradient"
+            onClick={() => navigate("/")}
+            className="mx-auto"
+          >
+            Return to Home
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  // Get current section and page data
   const currentSectionData = sections[currentSection]
   const currentPageData = currentSectionData?.pages[currentPage]
 
@@ -174,32 +261,79 @@ const LessonView = () => {
     }
     // If there are more sections
     else if (currentSection < sections.length - 1) {
-      // Go to quiz instead of automatically proceeding to next section
-      navigate(`/quiz/${lesson.id}/section${currentSection + 1}`)
-
-      // Mark section as completed in the service
+      // Mark the current section as completed even without a quiz
       lessonService.completeSection(lesson.id, currentSectionData.id)
 
-      toast({
-        title: "Section completed!",
-        description: "Now take the section quiz.",
-      })
+      // Move to the next section
+      setCurrentSection(currentSection + 1)
+      setCurrentPage(0)
     }
-    // If we're at the last page of the last section
-    else if (
-      currentSection === sections.length - 1 &&
-      currentPage === currentSectionData.pages.length - 1
-    ) {
-      // Mark section as completed
+    // If this is the last page of the last section
+    else {
+      // Mark the section as completed
       lessonService.completeSection(lesson.id, currentSectionData.id)
 
-      toast({
-        title: "Section completed!",
-        description: "You've completed this section. Time for the quiz!",
-      })
+      // Check if there's a final test
+      const checkFinalTest = async () => {
+        try {
+          const { data, error } = await supabase
+            .from("quizzes")
+            .select("id")
+            .eq("lesson_id", lessonId)
+            .eq("is_final_test", true)
 
-      // Navigate to the quiz
-      navigate(`/quiz/${lesson.id}/section${currentSection + 1}`)
+          if (error) {
+            console.error("Error checking for final test:", error)
+            // If there's an error, just navigate to dashboard
+            toast({
+              title: "Lesson completed!",
+              description: "Congratulations! You've completed the lesson.",
+            })
+            navigate("/dashboard")
+            return
+          }
+
+          const hasFinalTest = data && data.length > 0
+
+          if (hasFinalTest) {
+            // Check if all sections are completed
+            const allSectionsCompleted = sections.every((section) =>
+              lessonService.isSectionCompleted(lesson.id, section.id)
+            )
+
+            if (!allSectionsCompleted) {
+              toast({
+                title: "Complete all sections first",
+                description:
+                  "You need to complete all section quizzes before taking the final test.",
+                variant: "destructive",
+              })
+              return
+            }
+
+            // Navigate to the final test
+            navigate(`/quiz/${lesson.id}/final`)
+          } else {
+            // If there's no final test, mark the lesson as completed and go to dashboard
+            lessonService.completeFinalTest(lesson.id)
+            toast({
+              title: "Lesson completed!",
+              description: "Congratulations! You've completed the lesson.",
+            })
+            navigate("/dashboard")
+          }
+        } catch (error) {
+          console.error("Error in checkFinalTest:", error)
+          // If there's an error, just navigate to dashboard
+          toast({
+            title: "Lesson completed!",
+            description: "Congratulations! You've completed the lesson.",
+          })
+          navigate("/dashboard")
+        }
+      }
+
+      checkFinalTest()
     }
   }
 
@@ -254,6 +388,7 @@ const LessonView = () => {
             currentSection={currentSection}
             currentPage={currentPage}
             currentPageData={currentPageData}
+            sections={sections}
             navigatePrev={navigatePrev}
             navigateNext={navigateNext}
             isFirstPage={isFirstPage}

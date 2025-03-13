@@ -5,7 +5,7 @@ import { LessonType, Section, Page, DbLessonData, DbSection, DbPage } from "@/ty
  */
 export function dbToFrontendLesson(lesson: DbLessonData): LessonType {
   return {
-    id: lesson.id.toString(),
+    id: typeof lesson.id === 'string' ? lesson.id : lesson.id.toString(),
     title: lesson.title,
     description: lesson.description || `Learn about ${lesson.title}`,
     difficulty: (lesson.difficulty as "beginner" | "intermediate" | "advanced") || "beginner",
@@ -68,7 +68,7 @@ export function dbToFrontendPage(page: DbPage): Page {
 /**
  * Convert frontend section to database section (for create/update operations)
  */
-export function frontendToDbSection(section: Section, lessonId: number, position: number): Omit<DbSection, 'id'> {
+export function frontendToDbSection(section: Section, lessonId: string | number, position: number): Omit<DbSection, 'id'> {
   return {
     lesson_id: lessonId,
     title: section.title,
@@ -90,12 +90,21 @@ export function frontendToDbPage(page: Page, sectionId: number, position: number
 }
 
 /**
- * Safely convert string ID to number
- * Returns null if conversion is not possible
+ * Safely handle ID conversion
+ * Returns the ID as is for UUID strings, or converts numeric strings to numbers
  */
-export function safelyParseId(id: string | number): number | null {
+export function safelyParseId(id: string | number): string | number | null {
   if (typeof id === 'number') return id;
-  if (typeof id === 'string' && !isNaN(Number(id))) return Number(id);
+  if (typeof id === 'string') {
+    // Check if it's a UUID (simple check for now)
+    if (id.includes('-') || id.length === 36) {
+      return id;
+    }
+    // If it's a numeric string, convert to number
+    if (!isNaN(Number(id))) {
+      return Number(id);
+    }
+  }
   return null;
 }
 

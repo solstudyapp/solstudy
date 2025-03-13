@@ -63,7 +63,7 @@ export interface UserProgress {
 
 // Database model interfaces to match Supabase schema
 export interface DbLessonData {
-  id: number;
+  id: string | number;
   title: string;
   description?: string;
   difficulty?: string;
@@ -80,7 +80,7 @@ export interface DbLessonData {
 export interface DbSection {
   id: number;
   title: string;
-  lesson_id: number;
+  lesson_id: string | number;
   position: number;
   quiz_id?: string;
 }

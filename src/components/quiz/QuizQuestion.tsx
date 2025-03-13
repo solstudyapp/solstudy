@@ -69,10 +69,10 @@ const QuizQuestion = ({
       
       // Keep the longer timeout for wrong answers (5 seconds)
       setTimeout(() => {
-        onNext();
-        setIsSubmitted(false);
-        setShowExplanation(false);
-      }, 5000);
+        onNext()
+        setIsSubmitted(false)
+        setShowExplanation(false)
+      }, 2000)
     }
   };
 

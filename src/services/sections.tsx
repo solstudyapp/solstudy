@@ -26,7 +26,12 @@ export function _setDbForTesting(mockDb: typeof dbModule) {
 export async function fetchSections(
   lessonId: string | number
 ): Promise<Section[]> {
-  console.log("fetchSections called with lessonId:", lessonId)
+  console.log(
+    "fetchSections called with lessonId:",
+    lessonId,
+    "type:",
+    typeof lessonId
+  )
 
   try {
     // Skip fetching for new lessons
@@ -38,7 +43,7 @@ export async function fetchSections(
       return []
     }
 
-    // Convert string ID to number if needed
+    // Handle both UUID and numeric ID formats
     const id = safelyParseId(lessonId)
 
     if (id === null) {
@@ -46,33 +51,45 @@ export async function fetchSections(
       return []
     }
 
-    console.log("fetchSections - converted lessonId:", id)
+    console.log("fetchSections - parsed lessonId:", id, "type:", typeof id)
 
     // Fetch sections for the lesson
-    const sections = (await db.fetchSectionsByLessonId(
-      id
-    )) as unknown as DbSection[]
+    try {
+      const sections = (await db.fetchSectionsByLessonId(
+        id
+      )) as unknown as DbSection[]
 
-    console.log("fetchSections - raw sections from DB:", sections)
+      console.log("fetchSections - raw sections from DB:", sections)
 
-    if (!sections || sections.length === 0) {
-      console.log("fetchSections - No sections found for lesson:", lessonId)
+      if (!sections || sections.length === 0) {
+        console.log("fetchSections - No sections found for lesson:", lessonId)
+        return []
+      }
+
+      // For each section, fetch its pages
+      const sectionsWithPages = await Promise.all(
+        sections.map(async (section: DbSection) => {
+          console.log("Fetching pages for section:", section.id)
+          const pages = (await db.fetchPagesBySectionId(
+            section.id
+          )) as unknown as DbPage[]
+
+          console.log(`Section ${section.id} has ${pages.length} pages`)
+
+          // Return the section with its pages
+          return dbToFrontendSection(section, pages)
+        })
+      )
+
+      console.log(
+        "fetchSections - returning sections with pages:",
+        sectionsWithPages
+      )
+      return sectionsWithPages
+    } catch (sectionError) {
+      console.error("Error fetching sections:", sectionError)
       return []
     }
-
-    // For each section, fetch its pages
-    const sectionsWithPages = await Promise.all(
-      sections.map(async (section: DbSection) => {
-        const pages = (await db.fetchPagesBySectionId(
-          section.id
-        )) as unknown as DbPage[]
-
-        // Return the section with its pages
-        return dbToFrontendSection(section, pages)
-      })
-    )
-
-    return sectionsWithPages
   } catch (error) {
     console.error("Error in fetchSections:", error)
     return []

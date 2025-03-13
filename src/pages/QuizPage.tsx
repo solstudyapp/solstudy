@@ -1,18 +1,98 @@
 import { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { useToast } from "@/hooks/use-toast"
-import { lessonData, dailyBonusLesson, loadLessons } from "@/data/lessons"
-import { getSectionsForLesson } from "@/data/sections"
-import { getQuizByLessonAndSection } from "@/data/quizzes"
 import { lessonService } from "@/services/lessonService"
 import QuizHeader from "@/components/quiz/QuizHeader"
 import QuizQuestion from "@/components/quiz/QuizQuestion"
 import QuizResults from "@/components/quiz/QuizResults"
 import FeedbackDialog from "@/components/quiz/FeedbackDialog"
 import { Loader2 } from "lucide-react"
+import { supabase } from "@/lib/supabase"
+import { fetchLessonById } from "@/services/lessons"
+import { fetchSections } from "@/services/sections"
+import { LessonType, Section, Quiz } from "@/types/lesson"
+import { Button } from "@/components/ui/button"
+
+// Interface for quiz data from Supabase
+interface DBQuiz {
+  id: string
+  title: string
+  questions: {
+    id: string
+    question: string
+    options: string[]
+    correctAnswer: number
+  }[]
+  points: number
+  lesson_id: string | null
+  section_id: number | null
+  created_at: string
+  updated_at: string
+}
+
+// Function to fetch a quiz by lesson_id and section_id
+const fetchQuizByLessonAndSection = async (
+  lessonId: string,
+  sectionId: string,
+  isFinalTest: boolean
+): Promise<Quiz | null> => {
+  try {
+    let query = supabase.from("quizzes").select("*")
+
+    if (isFinalTest) {
+      // For final test, find quiz with matching lesson_id and section_id is null
+      query = query
+        .eq("lesson_id", lessonId)
+        .is("section_id", null)
+        .eq("is_final_test", true)
+    } else if (sectionId === "default") {
+      // For default section, find quiz with matching lesson_id and section_id is null
+      query = query
+        .eq("lesson_id", lessonId)
+        .is("section_id", null)
+        .eq("is_final_test", false)
+    } else {
+      // For specific section, find quiz with matching lesson_id and section_id
+      query = query
+        .eq("lesson_id", lessonId)
+        .eq("section_id", parseInt(sectionId))
+    }
+
+    const { data, error } = await query.single()
+
+    if (error) {
+      console.error("Error fetching quiz:", error)
+      return null
+    }
+
+    if (!data) return null
+
+    // Convert DB quiz to frontend Quiz format
+    return {
+      id: data.id,
+      title: data.title,
+      lessonId: data.lesson_id || "default",
+      sectionId: data.section_id ? String(data.section_id) : "default",
+      rewardPoints: data.points,
+      isFinalTest: isFinalTest,
+      questions: data.questions.map((q: any) => ({
+        id: q.id,
+        text: q.question,
+        options: q.options,
+        correctOptionIndex: q.correctAnswer,
+      })),
+    }
+  } catch (error) {
+    console.error("Error in fetchQuizByLessonAndSection:", error)
+    return null
+  }
+}
 
 const QuizPage = () => {
-  const { lessonId, sectionId } = useParams()
+  const { lessonId, sectionId } = useParams<{
+    lessonId: string
+    sectionId: string
+  }>()
   const navigate = useNavigate()
   const { toast } = useToast()
 
@@ -21,56 +101,110 @@ const QuizPage = () => {
   const [showResults, setShowResults] = useState(false)
   const [showFeedback, setShowFeedback] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [lesson, setLesson] = useState<LessonType | null>(null)
+  const [sections, setSections] = useState<Section[]>([])
+  const [quiz, setQuiz] = useState<Quiz | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
-  // Load lessons data
+  // Determine if this is a final test
+  const isFinalTest = sectionId === "final"
+
+  // Load lesson, sections, and quiz data
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        await loadLessons()
+      if (!lessonId || !sectionId) {
+        setError("Missing lesson or section ID")
         setIsLoading(false)
+        return
+      }
+
+      try {
+        setIsLoading(true)
+        setError(null)
+
+        // Fetch lesson data
+        const lessonData = await fetchLessonById(lessonId)
+        if (!lessonData) {
+          setError("Lesson not found")
+          setIsLoading(false)
+          return
+        }
+        setLesson(lessonData)
+
+        // Fetch sections data
+        const sectionsData = await fetchSections(lessonId)
+        if (!sectionsData || sectionsData.length === 0) {
+          setError("No sections found for this lesson")
+          setIsLoading(false)
+          return
+        }
+        setSections(sectionsData)
+
+        // Fetch quiz data
+        const quizData = await fetchQuizByLessonAndSection(
+          lessonId,
+          sectionId,
+          isFinalTest
+        )
+        if (!quizData) {
+          // If this is a section quiz and it doesn't exist, redirect back to the lesson
+          if (!isFinalTest) {
+            toast({
+              title: "Quiz not available",
+              description:
+                "This section doesn't have a quiz. Returning to lesson.",
+              variant: "destructive",
+            })
+
+            // Find the section index
+            const sectionIndex = sectionsData.findIndex(
+              (section) =>
+                section.id === sectionId || String(section.id) === sectionId
+            )
+
+            if (sectionIndex >= 0 && sectionIndex < sectionsData.length - 1) {
+              // If there's a next section, navigate to it
+              navigate(`/lesson/${lessonId}?section=${sectionIndex + 1}&page=0`)
+            } else {
+              // Otherwise, just go back to the lesson
+              navigate(`/lesson/${lessonId}`)
+            }
+            return
+          } else {
+            setError("Quiz not found")
+            setIsLoading(false)
+            return
+          }
+        }
+        setQuiz(quizData)
       } catch (error) {
-        console.error("Error loading lessons:", error)
+        console.error("Error loading quiz data:", error)
+        setError("Failed to load quiz data")
         toast({
           title: "Error loading quiz",
           description:
             "There was a problem loading the quiz data. Please try again later.",
           variant: "destructive",
         })
+      } finally {
+        setIsLoading(false)
       }
     }
 
     fetchData()
-  }, [toast])
+  }, [lessonId, sectionId, isFinalTest, toast, navigate])
 
-  // Find lesson data - check if it's the daily bonus lesson
-  const lesson =
-    lessonId === "daily-bonus-lesson"
-      ? dailyBonusLesson
-      : lessonData.find((l) => l.id === lessonId)
-
-  // Get all sections for the lesson to check progress
-  const sections = lessonId ? getSectionsForLesson(lessonId) : []
-
-  // Get quiz data - handling both section quizzes and final test
-  const isFinalTest = sectionId === "final"
-  const quiz =
-    lessonId && sectionId
-      ? getQuizByLessonAndSection(lessonId, sectionId, isFinalTest)
-      : null
-
-  // Parse the current section number from the sectionId - handle both regular and daily bonus sections
+  // Parse the current section number from the sectionId
   const currentSectionIndex = (() => {
     if (isFinalTest) return sections.length - 1
 
-    if (sectionId?.startsWith("daily-bonus-section")) {
-      return parseInt(sectionId.replace("daily-bonus-section", "")) - 1
-    }
+    if (!sectionId || sectionId === "default") return 0
 
-    if (sectionId?.startsWith("section")) {
-      return parseInt(sectionId.replace("section", "")) - 1
-    }
-
-    return 0
+    // Try to find the section index by matching the section_id
+    const index = sections.findIndex(
+      (section) => section.id === sectionId || String(section.id) === sectionId
+    )
+    return index >= 0 ? index : 0
   })()
 
   // Reset state when quiz changes
@@ -83,22 +217,9 @@ const QuizPage = () => {
     }
   }, [quiz?.id])
 
-  // If quiz or lesson not found, handle gracefully
+  // For the final test, check if all section quizzes are completed
   useEffect(() => {
-    if (!isLoading && (!lesson || !quiz)) {
-      console.log("Quiz not found:", { lessonId, sectionId, lesson, quiz })
-      toast({
-        title: "Quiz not found",
-        description: "The requested quiz could not be found.",
-        variant: "destructive",
-      })
-      navigate("/")
-    }
-  }, [lesson, quiz, toast, navigate, lessonId, sectionId, isLoading])
-
-  useEffect(() => {
-    // For the final test, check if all section quizzes are completed
-    if (!isLoading && isFinalTest) {
+    if (!isLoading && isFinalTest && lesson && sections.length > 0) {
       // Skip checking for already completed final tests
       if (lessonService.isFinalTestCompleted(lessonId || "")) {
         return
@@ -118,7 +239,7 @@ const QuizPage = () => {
         navigate(`/lesson/${lessonId}`)
       }
     }
-  }, [isFinalTest, sections, lessonId, navigate, toast, isLoading])
+  }, [isFinalTest, sections, lessonId, navigate, toast, isLoading, lesson])
 
   if (isLoading) {
     return (
@@ -131,19 +252,25 @@ const QuizPage = () => {
     )
   }
 
-  if (!lesson || !quiz) {
+  if (error || !lesson || !quiz) {
     return (
-      <div className="min-h-screen bg-black text-white p-8 flex flex-col items-center justify-center">
-        <h2 className="text-2xl font-bold mb-4">Quiz not found</h2>
-        <p className="mb-6">
-          The quiz you're looking for doesn't exist or has been removed.
-        </p>
-        <button
-          className="px-4 py-2 bg-[#14F195] text-black rounded-md"
-          onClick={() => navigate("/")}
-        >
-          Return to Home
-        </button>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6 bg-gray-900 rounded-lg">
+          <h2 className="text-xl text-white mb-4">
+            {error || "Quiz not available"}
+          </h2>
+          <p className="text-gray-400 mb-6">
+            We couldn't load the quiz. This might be because the quiz doesn't
+            exist or there was a problem connecting to our servers.
+          </p>
+          <Button
+            variant="gradient"
+            onClick={() => navigate(`/lesson/${lessonId}`)}
+            className="mx-auto"
+          >
+            Return to Lesson
+          </Button>
+        </div>
       </div>
     )
   }
@@ -211,15 +338,6 @@ const QuizPage = () => {
 
   // Function to handle section quiz completion without feedback
   const handleSectionQuizComplete = () => {
-    // Determine the next section ID based on the lesson type
-    const getNextSectionId = () => {
-      const nextSectionIndex = currentSectionIndex + 1
-      if (nextSectionIndex < sections.length) {
-        return sections[nextSectionIndex].id
-      }
-      return null
-    }
-
     // For section quizzes, determine if there's a next section
     const isLastSection = currentSectionIndex >= sections.length - 1
 
@@ -235,19 +353,20 @@ const QuizPage = () => {
     } else {
       // If there are more sections, navigate to the next section
       const nextSectionIndex = currentSectionIndex + 1
-      const nextSectionId = getNextSectionId()
-      if (!nextSectionId) {
-        console.error("Next section ID not found")
+      const nextSection = sections[nextSectionIndex]
+
+      if (!nextSection) {
+        console.error("Next section not found")
         navigate("/")
         return
       }
 
-      const nextSectionFirstPageId = sections[nextSectionIndex].pages[0].id
+      const nextSectionFirstPageId = nextSection.pages[0].id
 
       // Update progress to next section
       lessonService.updateProgress(
         lessonId || "",
-        nextSectionId,
+        nextSection.id,
         nextSectionFirstPageId
       )
 
@@ -302,6 +421,7 @@ const QuizPage = () => {
             score={calculateScore()}
             totalQuestions={quiz.questions.length}
             onComplete={handleCompleteQuiz}
+            quiz={quiz}
           />
         )}
 
