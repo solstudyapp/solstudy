@@ -1,4 +1,3 @@
-
 import { Quiz, Section, UserProgress } from "@/types/lesson";
 
 // Mock data storage - in a real app, this would be a database

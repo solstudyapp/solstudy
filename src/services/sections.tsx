@@ -43,15 +43,19 @@ export async function fetchSections(
       return []
     }
 
-    // Handle both UUID and numeric ID formats
-    const id = safelyParseId(lessonId)
+    // For UUID-based IDs, we can pass the ID directly
+    // For older numeric IDs, we'll try to parse them
+    let id = lessonId
 
-    if (id === null) {
-      console.error("Invalid lesson ID:", lessonId)
-      return []
+    if (
+      typeof lessonId === "string" &&
+      !lessonId.includes("-") &&
+      !isNaN(Number(lessonId))
+    ) {
+      id = Number(lessonId)
     }
 
-    console.log("fetchSections - parsed lessonId:", id, "type:", typeof id)
+    console.log("fetchSections - using lessonId:", id, "type:", typeof id)
 
     // Fetch sections for the lesson
     try {

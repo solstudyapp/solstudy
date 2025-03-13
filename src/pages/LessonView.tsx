@@ -37,39 +37,34 @@ const LessonView = () => {
         setLoading(true)
         setError(null)
 
-        // Direct check if lesson exists
-        console.log("Directly checking if lesson exists with ID:", lessonId)
-        const { data: lessonExists, error: lessonCheckError } = await supabase
-          .from("lessons")
-          .select("id")
-          .eq("id", lessonId)
-          .single()
-
-        if (lessonCheckError || !lessonExists) {
-          console.error("Direct lesson check failed:", lessonCheckError)
-          setError("Lesson not found")
-          setLoading(false)
-          return
-        }
-
-        console.log("Direct lesson check succeeded:", lessonExists)
+        console.log("Fetching lesson with ID:", lessonId)
 
         // Fetch lesson data
         const lessonData = await fetchLessonById(lessonId)
         if (!lessonData) {
+          console.error("Lesson not found for ID:", lessonId)
           setError("Lesson not found")
           setLoading(false)
           return
         }
+
+        console.log("Lesson data fetched successfully:", lessonData)
         setLesson(lessonData)
 
         // Fetch sections data
         const sectionsData = await fetchSections(lessonId)
         if (!sectionsData || sectionsData.length === 0) {
+          console.error("No sections found for lesson ID:", lessonId)
           setError("No sections found for this lesson")
           setLoading(false)
           return
         }
+        
+        console.log(
+          "Sections data fetched successfully:",
+          sectionsData.length,
+          "sections"
+        )
         setSections(sectionsData)
       } catch (error) {
         console.error("Error loading lesson data:", error)

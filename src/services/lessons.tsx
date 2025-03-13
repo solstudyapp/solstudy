@@ -76,15 +76,16 @@ export async function fetchLessonById(
   try {
     console.log("fetchLessonById called with lessonId:", lessonId)
 
-    // Handle both UUID and numeric ID formats
-    const parsedId = safelyParseId(lessonId)
+    // For UUID-based IDs, we can pass the ID directly
+    // For older numeric IDs, we'll try to parse them
+    let parsedId = lessonId
 
-    if (parsedId === null) {
-      console.error("Invalid lesson ID format:", lessonId)
-      return null
+    // Only try to parse if it's not a UUID format
+    if (!lessonId.includes("-") && !isNaN(Number(lessonId))) {
+      parsedId = Number(lessonId).toString()
     }
 
-    console.log("fetchLessonById - parsed ID:", parsedId)
+    console.log("fetchLessonById - using ID:", parsedId)
 
     const lesson = (await db.fetchLessonById(
       parsedId
