@@ -31,6 +31,9 @@ interface ReferralData {
   created_at: string;
 }
 
+/**
+ * Service for managing user progress in lessons
+ */
 export const userProgressService = {
   /**
    * Get courses in progress for the current user
@@ -266,159 +269,406 @@ export const userProgressService = {
   },
   
   /**
-   * Update user progress when a page is completed
+   * Update user progress for a specific page
    */
-  updatePageProgress: async (pageData: PageCompletionData): Promise<boolean> => {
+  async updateProgress(
+    lessonId: string,
+    sectionId: string,
+    pageId: string
+  ): Promise<{ success: boolean; error?: string }> {
     try {
+      console.log(`Updating progress for lesson ${lessonId}, section ${sectionId}, page ${pageId}`);
+      
       // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
         console.error("No authenticated user found");
-        return false;
+        return { success: false, error: "Not authenticated" };
       }
       
-      // Check if this progress entry already exists
-      const { data: existingProgress, error: checkError } = await supabase
+      // Check if a progress record already exists
+      const { data: existingProgress, error: fetchError } = await supabase
         .from("user_progress")
         .select("*")
         .eq("user_id", user.id)
-        .eq("lesson_id", pageData.lessonId)
-        .eq("section_id", pageData.sectionId)
-        .eq("page_id", pageData.pageId)
+        .eq("lesson_id", lessonId)
         .single();
       
-      if (checkError && checkError.code !== 'PGRST116') { // PGRST116 is "no rows returned" which is expected if no entry exists
-        console.error("Error checking existing progress:", checkError);
-        return false;
+      if (fetchError && fetchError.code !== "PGRST116") { // PGRST116 is "no rows returned" which is fine
+        console.error("Error fetching progress:", fetchError);
+        return { success: false, error: fetchError.message };
       }
       
-      // If entry exists, update it
+      // If progress exists, update it; otherwise, create a new record
       if (existingProgress) {
         const { error: updateError } = await supabase
           .from("user_progress")
           .update({
-            completed: pageData.completed,
-            updated_at: new Date().toISOString()
+            current_section_id: sectionId,
+            current_page_id: pageId,
+            last_accessed_at: new Date().toISOString(),
           })
-          .eq("user_id", user.id)
-          .eq("lesson_id", pageData.lessonId)
-          .eq("section_id", pageData.sectionId)
-          .eq("page_id", pageData.pageId);
+          .eq("id", existingProgress.id);
         
         if (updateError) {
           console.error("Error updating progress:", updateError);
-          return false;
+          return { success: false, error: updateError.message };
         }
       } else {
-        // If no entry exists, create a new one
         const { error: insertError } = await supabase
           .from("user_progress")
           .insert({
             user_id: user.id,
-            lesson_id: pageData.lessonId,
-            section_id: pageData.sectionId,
-            page_id: pageData.pageId,
-            completed: pageData.completed,
-            updated_at: new Date().toISOString()
+            lesson_id: lessonId,
+            current_section_id: sectionId,
+            current_page_id: pageId,
+            completed_sections: [],
+            completed_quizzes: [],
+            is_completed: false,
+            points_earned: 0,
+            last_accessed_at: new Date().toISOString(),
           });
         
         if (insertError) {
-          console.error("Error inserting progress:", insertError);
-          return false;
+          console.error("Error creating progress:", insertError);
+          return { success: false, error: insertError.message };
         }
       }
       
-      return true;
+      return { success: true };
     } catch (error) {
-      console.error("Error in updatePageProgress:", error);
-      return false;
+      console.error("Error in updateProgress:", error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : "Unknown error occurred" 
+      };
     }
   },
   
   /**
    * Mark a section as completed
    */
-  completeSectionProgress: async (lessonId: string, sectionId: string): Promise<boolean> => {
+  async completeSection(
+    lessonId: string,
+    sectionId: string
+  ): Promise<{ success: boolean; error?: string }> {
     try {
+      console.log(`Completing section ${sectionId} for lesson ${lessonId}`);
+      
       // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
         console.error("No authenticated user found");
-        return false;
+        return { success: false, error: "Not authenticated" };
       }
       
-      // Get all pages for this section
-      const { data: pages, error: pagesError } = await supabase
-        .from("pages")
-        .select("id")
-        .eq("section_id", sectionId);
+      // Get the current progress
+      const { data: progress, error: fetchError } = await supabase
+        .from("user_progress")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("lesson_id", lessonId)
+        .single();
       
-      if (pagesError) {
-        console.error("Error fetching pages:", pagesError);
-        return false;
+      if (fetchError) {
+        console.error("Error fetching progress:", fetchError);
+        return { success: false, error: fetchError.message };
       }
       
-      if (!pages || pages.length === 0) {
-        console.error("No pages found for section:", sectionId);
-        return false;
+      if (!progress) {
+        // Create a new progress record with this section completed
+        const { error: insertError } = await supabase
+          .from("user_progress")
+          .insert({
+            user_id: user.id,
+            lesson_id: lessonId,
+            current_section_id: sectionId,
+            current_page_id: "",
+            completed_sections: [sectionId],
+            completed_quizzes: [],
+            is_completed: false,
+            points_earned: 0,
+            last_accessed_at: new Date().toISOString(),
+          });
+        
+        if (insertError) {
+          console.error("Error creating progress with completed section:", insertError);
+          return { success: false, error: insertError.message };
+        }
+      } else {
+        // Update the existing progress record
+        const completedSections = progress.completed_sections || [];
+        
+        // Only add the section if it's not already in the list
+        if (!completedSections.includes(sectionId)) {
+          completedSections.push(sectionId);
+        }
+        
+        const { error: updateError } = await supabase
+          .from("user_progress")
+          .update({
+            completed_sections: completedSections,
+            last_accessed_at: new Date().toISOString(),
+          })
+          .eq("id", progress.id);
+        
+        if (updateError) {
+          console.error("Error updating completed sections:", updateError);
+          return { success: false, error: updateError.message };
+        }
       }
       
-      // Mark all pages as completed
-      const updatePromises = pages.map(page => {
-        return userProgressService.updatePageProgress({
-          lessonId,
-          sectionId,
-          pageId: page.id,
-          completed: true
-        });
-      });
-      
-      await Promise.all(updatePromises);
-      
-      return true;
+      return { success: true };
     } catch (error) {
-      console.error("Error in completeSectionProgress:", error);
-      return false;
+      console.error("Error in completeSection:", error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : "Unknown error occurred" 
+      };
     }
   },
   
   /**
-   * Check if a page is completed
+   * Mark a quiz as completed and award points
    */
-  isPageCompleted: async (lessonId: string, sectionId: string, pageId: string): Promise<boolean> => {
+  async completeQuiz(
+    lessonId: string,
+    quizId: string,
+    score: number,
+    totalPoints: number
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      console.log(`Completing quiz ${quizId} for lesson ${lessonId} with score ${score}/${totalPoints}`);
+      
+      // Get the current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        console.error("No authenticated user found");
+        return { success: false, error: "Not authenticated" };
+      }
+      
+      // Calculate earned points based on score percentage
+      const earnedPoints = Math.round((score / 100) * totalPoints);
+      
+      // Get the current progress
+      const { data: progress, error: fetchError } = await supabase
+        .from("user_progress")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("lesson_id", lessonId)
+        .single();
+      
+      if (fetchError && fetchError.code !== "PGRST116") {
+        console.error("Error fetching progress:", fetchError);
+        return { success: false, error: fetchError.message };
+      }
+      
+      if (!progress) {
+        // Create a new progress record with this quiz completed
+        const { error: insertError } = await supabase
+          .from("user_progress")
+          .insert({
+            user_id: user.id,
+            lesson_id: lessonId,
+            current_section_id: "",
+            current_page_id: "",
+            completed_sections: [],
+            completed_quizzes: [quizId],
+            is_completed: false,
+            points_earned: earnedPoints,
+            last_accessed_at: new Date().toISOString(),
+          });
+        
+        if (insertError) {
+          console.error("Error creating progress with completed quiz:", insertError);
+          return { success: false, error: insertError.message };
+        }
+      } else {
+        // Update the existing progress record
+        const completedQuizzes = progress.completed_quizzes || [];
+        let totalPoints = progress.points_earned || 0;
+        
+        // Only add the quiz and points if it's not already completed
+        if (!completedQuizzes.includes(quizId)) {
+          completedQuizzes.push(quizId);
+          totalPoints += earnedPoints;
+        }
+        
+        const { error: updateError } = await supabase
+          .from("user_progress")
+          .update({
+            completed_quizzes: completedQuizzes,
+            points_earned: totalPoints,
+            last_accessed_at: new Date().toISOString(),
+          })
+          .eq("id", progress.id);
+        
+        if (updateError) {
+          console.error("Error updating completed quizzes:", updateError);
+          return { success: false, error: updateError.message };
+        }
+      }
+      
+      // Also update the user's total points in the users table
+      await this.updateUserTotalPoints(user.id);
+      
+      return { success: true };
+    } catch (error) {
+      console.error("Error in completeQuiz:", error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : "Unknown error occurred" 
+      };
+    }
+  },
+  
+  /**
+   * Mark a lesson as completed
+   */
+  async completeLesson(
+    lessonId: string
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      console.log(`Marking lesson ${lessonId} as completed`);
+      
+      // Get the current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        console.error("No authenticated user found");
+        return { success: false, error: "Not authenticated" };
+      }
+      
+      // Get the current progress
+      const { data: progress, error: fetchError } = await supabase
+        .from("user_progress")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("lesson_id", lessonId)
+        .single();
+      
+      if (fetchError && fetchError.code !== "PGRST116") {
+        console.error("Error fetching progress:", fetchError);
+        return { success: false, error: fetchError.message };
+      }
+      
+      if (!progress) {
+        // Create a new progress record with the lesson marked as completed
+        const { error: insertError } = await supabase
+          .from("user_progress")
+          .insert({
+            user_id: user.id,
+            lesson_id: lessonId,
+            current_section_id: "",
+            current_page_id: "",
+            completed_sections: [],
+            completed_quizzes: [],
+            is_completed: true,
+            points_earned: 0,
+            last_accessed_at: new Date().toISOString(),
+          });
+        
+        if (insertError) {
+          console.error("Error creating completed lesson progress:", insertError);
+          return { success: false, error: insertError.message };
+        }
+      } else {
+        // Update the existing progress record
+        const { error: updateError } = await supabase
+          .from("user_progress")
+          .update({
+            is_completed: true,
+            last_accessed_at: new Date().toISOString(),
+          })
+          .eq("id", progress.id);
+        
+        if (updateError) {
+          console.error("Error marking lesson as completed:", updateError);
+          return { success: false, error: updateError.message };
+        }
+      }
+      
+      return { success: true };
+    } catch (error) {
+      console.error("Error in completeLesson:", error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : "Unknown error occurred" 
+      };
+    }
+  },
+  
+  /**
+   * Get total points for the current user
+   */
+  async getTotalPoints(): Promise<number> {
     try {
       // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
         console.error("No authenticated user found");
-        return false;
+        return 0;
       }
       
-      // Check if this page is completed
-      const { data, error } = await supabase
+      // Get all completed lessons for this user
+      const { data: completedLessons, error } = await supabase
         .from("user_progress")
-        .select("completed")
-        .eq("user_id", user.id)
-        .eq("lesson_id", lessonId)
-        .eq("section_id", sectionId)
-        .eq("page_id", pageId)
-        .single();
+        .select("points_earned")
+        .eq("user_id", user.id);
       
       if (error) {
-        if (error.code === 'PGRST116') { // No rows returned
-          return false;
-        }
-        console.error("Error checking page completion:", error);
-        return false;
+        console.error("Error fetching completed lessons:", error);
+        return 0;
       }
       
-      return data?.completed || false;
+      // Sum up points from all completed lessons
+      const totalPoints = completedLessons.reduce((sum, lesson: any) => {
+        return sum + (lesson.points_earned || 0);
+      }, 0);
+      
+      return totalPoints;
     } catch (error) {
-      console.error("Error in isPageCompleted:", error);
-      return false;
+      console.error("Error in getTotalPoints:", error);
+      return 0;
+    }
+  },
+  
+  /**
+   * Update the user's total points in the users table
+   */
+  async updateUserTotalPoints(userId: string): Promise<void> {
+    try {
+      // Get all completed lessons for this user
+      const { data: completedLessons, error } = await supabase
+        .from("user_progress")
+        .select("points_earned")
+        .eq("user_id", userId);
+      
+      if (error) {
+        console.error("Error fetching completed lessons:", error);
+        return;
+      }
+      
+      // Sum up points from all completed lessons
+      const totalPoints = completedLessons.reduce((sum, lesson: any) => {
+        return sum + (lesson.points_earned || 0);
+      }, 0);
+      
+      // Update the user's total points
+      const { error: updateError } = await supabase
+        .from("user_profiles")
+        .update({ total_points: totalPoints })
+        .eq("id", userId);
+      
+      if (updateError) {
+        console.error("Error updating user total points:", updateError);
+      }
+    } catch (error) {
+      console.error("Error in updateUserTotalPoints:", error);
     }
   },
   
@@ -474,7 +724,7 @@ export const userProgressService = {
       
       // Add course points
       if (completedLessons && completedLessons.length > 0) {
-        completedLessons.forEach(lesson => {
+        completedLessons.forEach((lesson: any) => {
           const date = new Date(lesson.updated_at);
           const dateStr = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
           const points = lesson.lessons?.points || 0;
@@ -541,48 +791,40 @@ export const userProgressService = {
   },
   
   /**
-   * Get total points earned by the user
+   * Check if a page is completed
    */
-  getTotalPoints: async (): Promise<number> => {
+  isPageCompleted: async (lessonId: string, sectionId: string, pageId: string): Promise<boolean> => {
     try {
       // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
         console.error("No authenticated user found");
-        return 0;
+        return false;
       }
       
-      // Get all completed lessons
-      const { data: completedLessons, error: completedError } = await supabase
+      // Check if this page is completed
+      const { data, error } = await supabase
         .from("user_progress")
-        .select(`
-          lesson_id,
-          lessons:lesson_id (
-            points
-          )
-        `)
+        .select("completed")
         .eq("user_id", user.id)
-        .eq("completed", true);
+        .eq("lesson_id", lessonId)
+        .eq("section_id", sectionId)
+        .eq("page_id", pageId)
+        .single();
       
-      if (completedError) {
-        console.error("Error fetching completed lessons:", completedError);
-        return 0;
+      if (error) {
+        if (error.code === 'PGRST116') { // No rows returned
+          return false;
+        }
+        console.error("Error checking page completion:", error);
+        return false;
       }
       
-      if (!completedLessons || completedLessons.length === 0) {
-        return 0;
-      }
-      
-      // Sum up points from all completed lessons
-      const totalPoints = completedLessons.reduce((sum, lesson: any) => {
-        return sum + (lesson.lessons?.points || 0);
-      }, 0);
-      
-      return totalPoints;
+      return data?.completed || false;
     } catch (error) {
-      console.error("Error in getTotalPoints:", error);
-      return 0;
+      console.error("Error in isPageCompleted:", error);
+      return false;
     }
   }
 }; 

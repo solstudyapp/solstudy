@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom"
 import { toast } from "@/hooks/use-toast"
 import { lessonService } from "@/services/lessonService"
+import { userProgressService } from "@/services/userProgressService"
+import { useProgress } from "@/hooks/use-progress"
 import LessonSidebar from "@/components/lesson/LessonSidebar"
 import LessonHeader from "@/components/lesson/LessonHeader"
 import LessonContent from "@/components/lesson/LessonContent"
@@ -23,6 +25,8 @@ const LessonView = () => {
   const [lesson, setLesson] = useState<LessonType | null>(null)
   const [sections, setSections] = useState<Section[]>([])
   const [error, setError] = useState<string | null>(null)
+  const { completePage, completeSection } = useProgress()
+  const isFirstRender = useRef(true)
 
   // Load lesson and sections data from Supabase
   useEffect(() => {
@@ -59,7 +63,7 @@ const LessonView = () => {
           setLoading(false)
           return
         }
-        
+
         console.log(
           "Sections data fetched successfully:",
           sectionsData.length,
@@ -110,26 +114,11 @@ const LessonView = () => {
         }
       }
 
-      // If no valid URL params, get from saved progress
-      const userProgress = lessonService.getUserProgress(lesson.id)
-
-      // Find the section index from the saved progress
-      const progressSectionIndex = sections.findIndex(
-        (section) => section.id === userProgress.currentSectionId
-      )
-
-      // Find the page index from the saved progress
-      const section =
-        sections[progressSectionIndex >= 0 ? progressSectionIndex : 0]
-      const progressPageIndex = section
-        ? section.pages.findIndex(
-            (page) => page.id === userProgress.currentPageId
-          )
-        : 0
-
-      // Set state based on saved progress (if valid) or defaults (0, 0)
-      setCurrentSection(progressSectionIndex >= 0 ? progressSectionIndex : 0)
-      setCurrentPage(progressPageIndex >= 0 ? progressPageIndex : 0)
+      // If no valid URL params, try to find the last page the user was on
+      // This would be a good place to implement a "resume" feature using userProgressService
+      // For now, just start at the beginning
+      setCurrentSection(0)
+      setCurrentPage(0)
     }
   }, [lesson, sections, location.search])
 
@@ -158,17 +147,31 @@ const LessonView = () => {
 
   // Update saved progress when section or page changes
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
+
     if (lesson && sections.length > 0 && sections[currentSection]) {
       const currentSectionData = sections[currentSection]
       if (currentSectionData && currentSectionData.pages[currentPage]) {
-        lessonService.updateProgress(
+        // Use the userProgressService to update progress in the database
+        completePage(
           lesson.id,
           currentSectionData.id,
           currentSectionData.pages[currentPage].id
-        )
+        ).then((success) => {
+          if (success) {
+            console.log(
+              `Progress updated for ${lesson.id}: Section ${currentSectionData.id}, Page ${currentSectionData.pages[currentPage].id}`
+            )
+          } else {
+            console.error("Failed to update progress")
+          }
+        })
       }
     }
-  }, [lesson, currentSection, currentPage, sections])
+  }, [lesson?.id, currentSection, currentPage, sections, completePage])
 
   if (loading) {
     return (
@@ -256,79 +259,89 @@ const LessonView = () => {
     }
     // If there are more sections
     else if (currentSection < sections.length - 1) {
-      // Mark the current section as completed even without a quiz
-      lessonService.completeSection(lesson.id, currentSectionData.id)
+      // Mark the current section as completed using userProgressService
+      completeSection(lesson.id, currentSectionData.id).then((success) => {
+        if (success) {
+          console.log(
+            `Section ${currentSectionData.id} completed for lesson ${lesson.id}`
+          )
 
-      // Move to the next section
-      setCurrentSection(currentSection + 1)
-      setCurrentPage(0)
+          // Move to the next section
+          setCurrentSection(currentSection + 1)
+          setCurrentPage(0)
+        } else {
+          console.error("Failed to complete section")
+          toast({
+            title: "Error",
+            description: "Failed to save your progress. Please try again.",
+            variant: "destructive",
+          })
+        }
+      })
     }
     // If this is the last page of the last section
     else {
-      // Mark the section as completed
-      lessonService.completeSection(lesson.id, currentSectionData.id)
+      // Mark the section as completed using userProgressService
+      completeSection(lesson.id, currentSectionData.id).then((success) => {
+        if (success) {
+          console.log(
+            `Section ${currentSectionData.id} completed for lesson ${lesson.id}`
+          )
 
-      // Check if there's a final test
-      const checkFinalTest = async () => {
-        try {
-          const { data, error } = await supabase
-            .from("quizzes")
-            .select("id")
-            .eq("lesson_id", lessonId)
-            .eq("is_final_test", true)
+          // Check if there's a final test
+          const checkFinalTest = async () => {
+            try {
+              const { data, error } = await supabase
+                .from("quizzes")
+                .select("id")
+                .eq("lesson_id", lessonId)
+                .eq("is_final_test", true)
 
-          if (error) {
-            console.error("Error checking for final test:", error)
-            // If there's an error, just navigate to dashboard
-            toast({
-              title: "Lesson completed!",
-              description: "Congratulations! You've completed the lesson.",
-            })
-            navigate("/dashboard")
-            return
-          }
+              if (error) {
+                console.error("Error checking for final test:", error)
+                // If there's an error, just navigate to dashboard
+                toast({
+                  title: "Lesson completed!",
+                  description: "Congratulations! You've completed the lesson.",
+                })
+                navigate("/dashboard")
+                return
+              }
 
-          const hasFinalTest = data && data.length > 0
+              const hasFinalTest = data && data.length > 0
 
-          if (hasFinalTest) {
-            // Check if all sections are completed
-            const allSectionsCompleted = sections.every((section) =>
-              lessonService.isSectionCompleted(lesson.id, section.id)
-            )
-
-            if (!allSectionsCompleted) {
+              if (hasFinalTest) {
+                // Navigate to the final test
+                navigate(`/quiz/${lesson.id}/final`)
+              } else {
+                // If there's no final test, mark the lesson as completed and go to dashboard
+                toast({
+                  title: "Lesson completed!",
+                  description: "Congratulations! You've completed the lesson.",
+                })
+                navigate("/dashboard")
+              }
+            } catch (error) {
+              console.error("Error in checkFinalTest:", error)
+              // If there's an error, just navigate to dashboard
               toast({
-                title: "Complete all sections first",
-                description:
-                  "You need to complete all section quizzes before taking the final test.",
-                variant: "destructive",
+                title: "Lesson completed!",
+                description: "Congratulations! You've completed the lesson.",
               })
-              return
+              navigate("/dashboard")
             }
-
-            // Navigate to the final test
-            navigate(`/quiz/${lesson.id}/final`)
-          } else {
-            // If there's no final test, mark the lesson as completed and go to dashboard
-            lessonService.completeFinalTest(lesson.id)
-            toast({
-              title: "Lesson completed!",
-              description: "Congratulations! You've completed the lesson.",
-            })
-            navigate("/dashboard")
           }
-        } catch (error) {
-          console.error("Error in checkFinalTest:", error)
-          // If there's an error, just navigate to dashboard
-          toast({
-            title: "Lesson completed!",
-            description: "Congratulations! You've completed the lesson.",
-          })
-          navigate("/dashboard")
-        }
-      }
 
-      checkFinalTest()
+          checkFinalTest()
+        } else {
+          console.error("Failed to complete section")
+          toast({
+            title: "Error",
+            description: "Failed to save your progress. Please try again.",
+            variant: "destructive",
+          })
+        }
+      })
     }
   }
 
@@ -396,4 +409,3 @@ const LessonView = () => {
 }
 
 export default LessonView
-

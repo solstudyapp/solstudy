@@ -14,12 +14,11 @@ export function useProgress() {
     setIsUpdating(true);
     
     try {
-      const success = await userProgressService.updatePageProgress({
+      const success = await userProgressService.updateProgress(
         lessonId,
         sectionId,
-        pageId,
-        completed: true
-      });
+        pageId
+      );
       
       if (success) {
         // Update local state
@@ -84,7 +83,7 @@ export function useProgress() {
     setIsUpdating(true);
     
     try {
-      const success = await userProgressService.completeSectionProgress(lessonId, sectionId);
+      const success = await userProgressService.completeSection(lessonId, sectionId);
       
       if (!success) {
         toast({

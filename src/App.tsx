@@ -16,6 +16,7 @@ import AdminRoute from "./components/AdminRoute"
 import { loadLessons } from "./data/lessons"
 import { useToast } from "./hooks/use-toast"
 import { Loader2 } from "lucide-react"
+import { Toaster } from "@/components/ui/toaster"
 
 function App() {
   const [loading, setLoading] = useState(true)
@@ -52,67 +53,60 @@ function App() {
             <p className="text-white text-xl">Loading SolStudy...</p>
           </div>
         </div>
+        <Toaster />
       </div>
     )
   }
 
   return (
     <div className="min-h-screen flex flex-col bg-black">
-      <Routes>
-        <Route path="/auth" element={<AuthPage />} />
-        <Route
-          path="/email-confirmation"
-          element={<EmailConfirmationPageWrapper />}
-        />
-        <Route
-          path="*"
-          element={
-            <>
-              <Header />
-              <main className="flex-grow">
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route
-                    path="/dashboard"
-                    element={
-                      <ProtectedRoute>
-                        <Dashboard />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/admin/*"
-                    element={
-                      <AdminRoute>
-                        <AdminDashboard />
-                      </AdminRoute>
-                    }
-                  />
-                  <Route
-                    path="/lesson/:lessonId"
-                    element={
-                      <ProtectedRoute>
-                        <LessonView />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/quiz/:lessonId/:sectionId"
-                    element={
-                      <ProtectedRoute>
-                        <QuizPage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route path="/about" element={<About />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </main>
-              <Footer />
-            </>
-          }
-        />
-      </Routes>
+      <Header />
+      <main className="flex-grow">
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/auth" element={<AuthPage />} />
+          <Route
+            path="/email-confirmation"
+            element={<EmailConfirmationPageWrapper />}
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/lesson/:lessonId"
+            element={
+              <ProtectedRoute>
+                <LessonView />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/quiz/:lessonId/:sectionId"
+            element={
+              <ProtectedRoute>
+                <QuizPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </main>
+      <Footer />
+      <Toaster />
     </div>
   )
 }
