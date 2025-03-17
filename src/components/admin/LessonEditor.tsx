@@ -45,11 +45,19 @@ import { RichTextEditor } from "./RichTextEditor"
 import { fetchSections, saveSections } from "@/services/sections"
 import { toast } from "@/hooks/use-toast"
 import { safelyParseId } from "@/lib/type-converters"
+import { supabase } from "@/lib/supabase"
 
 interface LessonEditorProps {
   lesson: LessonType
   onSave: (lesson: LessonType, sections: Section[]) => void
   onCancel: () => void
+}
+
+interface DBQuiz {
+  id: string
+  title: string
+  lesson_id: string | null
+  section_id: number | null
 }
 
 const availableIcons = [
@@ -91,8 +99,7 @@ export const LessonEditor = ({
   const [sponsorLogoUrl, setSponsorLogoUrl] = useState<string>(
     lesson.sponsorLogo || ""
   )
-
-  const [availableCategories, setAvailableCategories] = useState<string[]>([
+  const [categories, setCategories] = useState<string[]>([
     "Blockchain",
     "DeFi",
     "NFTs",
@@ -100,6 +107,7 @@ export const LessonEditor = ({
     "Security",
     "Development",
   ])
+  const [quizzes, setQuizzes] = useState<DBQuiz[]>([])
 
   useEffect(() => {
     const loadSections = async () => {
@@ -133,7 +141,7 @@ export const LessonEditor = ({
                       "<h1>Introduction</h1><p>Welcome to this lesson!</p>",
                   },
                 ],
-                quizId: `quiz-${Date.now()}`,
+                quizId: null,
               },
             ]
             setSections(defaultSections)
@@ -159,7 +167,7 @@ export const LessonEditor = ({
                     "<h1>Introduction</h1><p>Welcome to this lesson!</p>",
                 },
               ],
-              quizId: `quiz-${Date.now()}`,
+              quizId: null,
             },
           ]
           setSections(defaultSections)
@@ -178,7 +186,7 @@ export const LessonEditor = ({
                 content: "<h1>Introduction</h1><p>Welcome to this lesson!</p>",
               },
             ],
-            quizId: `quiz-${Date.now()}`,
+            quizId: null,
           },
         ]
         setSections(defaultSections)
@@ -191,6 +199,26 @@ export const LessonEditor = ({
 
     loadSections()
   }, [lesson.id, lesson.icon, lesson.sponsorLogo])
+
+  useEffect(() => {
+    const fetchQuizzes = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("quizzes")
+          .select("id, title, lesson_id, section_id")
+          .order("title", { ascending: true })
+
+        if (error) throw error
+
+        console.log("LessonEditor - fetched quizzes:", data)
+        setQuizzes(data || [])
+      } catch (error) {
+        console.error("Error fetching quizzes:", error)
+      }
+    }
+
+    fetchQuizzes()
+  }, [])
 
   const determineInitialIconName = (iconElement: React.ReactNode): string => {
     const iconString = String(iconElement)
@@ -233,14 +261,16 @@ export const LessonEditor = ({
   const handleAddCategory = () => {
     if (newCategory.trim() === "") return
 
-    const updatedCategories = [...availableCategories]
+    const updatedCategories = [...categories]
     if (!updatedCategories.includes(newCategory.trim())) {
       updatedCategories.push(newCategory.trim())
-      setAvailableCategories(updatedCategories)
+      setCategories(updatedCategories)
     }
 
-    handleInputChange("category", newCategory.trim())
-
+    setEditedLesson((prev) => ({
+      ...prev,
+      category: newCategory.trim(),
+    }))
     setNewCategory("")
     setShowNewCategoryInput(false)
   }
@@ -332,7 +362,7 @@ export const LessonEditor = ({
           content: "<h1>New Page</h1><p>Add your content here.</p>",
         },
       ],
-      quizId: `quiz-${Date.now()}`,
+      quizId: null,
     }
 
     setSections((prev) => [...prev, newSection])
@@ -665,6 +695,17 @@ export const LessonEditor = ({
 
     const currentSection = sections[currentSectionIndex]
 
+    const availableQuizzes = quizzes.filter(
+      (quiz) =>
+        quiz.section_id === null ||
+        quiz.section_id === parseInt(currentSection.id) ||
+        sections.findIndex(
+          (s) => s.quizId === quiz.id && s.id !== currentSection.id
+        ) === -1
+    )
+
+    console.log("LessonEditor - availableQuizzes:", availableQuizzes)
+
     return (
       <div className="space-y-4 mb-4">
         <div className="flex flex-col gap-2">
@@ -679,14 +720,29 @@ export const LessonEditor = ({
         </div>
 
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium">Quiz ID</label>
-          <Input
-            value={currentSection.quizId}
-            onChange={(e) =>
-              updateSection(currentSectionIndex, "quizId", e.target.value)
+          <label className="text-sm font-medium">End of Section Quiz</label>
+          <Select
+            value={currentSection.quizId || "none"}
+            onValueChange={(value) =>
+              updateSection(
+                currentSectionIndex,
+                "quizId",
+                value === "none" ? null : value
+              )
             }
-            className="bg-white/10 border-white/20 text-white"
-          />
+          >
+            <SelectTrigger className="bg-white/10 border-white/20 text-white">
+              <SelectValue placeholder="Select a quiz" />
+            </SelectTrigger>
+            <SelectContent className="bg-black/70 backdrop-blur-md border-white/10 text-white">
+              <SelectItem value="none">No Quiz</SelectItem>
+              {availableQuizzes.map((quiz) => (
+                <SelectItem key={quiz.id} value={quiz.id}>
+                  {quiz.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
     )
@@ -758,7 +814,7 @@ export const LessonEditor = ({
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
                     <SelectContent className="bg-black/80 backdrop-blur-md border-white/10 text-white">
-                      {availableCategories.map((category) => (
+                      {categories.map((category) => (
                         <SelectItem key={category} value={category}>
                           {category}
                         </SelectItem>
