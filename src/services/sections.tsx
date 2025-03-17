@@ -43,16 +43,12 @@ export async function fetchSections(
       return []
     }
 
-    // For UUID-based IDs, we can pass the ID directly
-    // For older numeric IDs, we'll try to parse them
-    let id = lessonId
+    // Parse the lesson ID (will always return a string since it's a UUID)
+    const id = safelyParseId(lessonId, "lesson")
 
-    if (
-      typeof lessonId === "string" &&
-      !lessonId.includes("-") &&
-      !isNaN(Number(lessonId))
-    ) {
-      id = Number(lessonId)
+    if (id === null) {
+      console.error("fetchSections - Invalid lesson ID:", lessonId)
+      return []
     }
 
     console.log("fetchSections - using lessonId:", id, "type:", typeof id)
@@ -124,18 +120,18 @@ export async function saveSections(
       return { success: true }
     }
 
-    // Convert string ID to number if needed
-    const id = safelyParseId(lessonId)
+    // Parse the lesson ID (will always return a string since it's a UUID)
+    const id = safelyParseId(lessonId, "lesson")
 
     if (id === null) {
       console.error("saveSections - Invalid lesson ID:", lessonId)
       return {
         success: false,
-        error: `Invalid lesson ID: ${lessonId}. Expected a number.`,
+        error: `Invalid lesson ID: ${lessonId}`,
       }
     }
 
-    console.log("saveSections - converted lessonId:", id)
+    console.log("saveSections - using lessonId:", id)
 
     // First, get existing sections to determine what to add, update, or delete
     const existingSections = (await db.fetchSectionsByLessonId(

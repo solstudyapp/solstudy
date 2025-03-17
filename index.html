@@ -3,10 +3,45 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>solfi-scan-analyzer</title>
-    <meta name="description" content="Lovable Generated Project" />
-    <meta name="author" content="Lovable" />
-    <meta property="og:image" content="/og-image.png" />
+    <title>SolStudy - Learn, Earn, and Grow with Crypto</title>
+    <meta name="description"
+      content="Join SolStudy to learn about blockchain and crypto while earning rewards. Interactive lessons, quizzes, and a supportive community await!" />
+    <meta name="author" content="SolStudy" />
+    
+    <!-- Facebook Open Graph tags -->
+    <meta property="og:title" content="SolStudy - Learn Crypto, Earn Rewards" />
+    <meta property="og:description"
+      content="Join SolStudy to learn about blockchain and crypto while earning rewards. Use my referral link to get started and we'll both earn points!" />
+    <meta property="og:image" id="og-image" content="" />
+    <meta property="og:url" id="og-url" content="" />
+    <meta property="og:type" content="website" />
+    <meta property="fb:app_id" content="1199965348210699" />
+    
+    <!-- Twitter Card tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="SolStudy - Learn Crypto, Earn Rewards" />
+    <meta name="twitter:description"
+      content="Join SolStudy to learn about blockchain and crypto while earning rewards. Use my referral link to get started!" />
+    <meta name="twitter:image" id="twitter-image" content="" />
+    <script>
+      // Update meta tags with current URL and referral ID
+      window.addEventListener('load', function () {
+        const baseUrl = window.location.origin;
+        const urlParams = new URLSearchParams(window.location.search);
+        const refId = urlParams.get('ref');
+
+        // Update image URL
+        document.getElementById('og-image').setAttribute('content', `${baseUrl}/fb-image.png`);
+        document.getElementById('twitter-image').setAttribute('content', `${baseUrl}/fb-image.png`);
+
+        // Update URL with referral ID
+        const signupUrl = `${baseUrl}/signup?ref=${refId}`;
+        document.getElementById('og-url').setAttribute('content', signupUrl);
+
+        // Store the signup URL for use in sharing functions
+        window.solstudySignupUrl = signupUrl;
+      });
+    </script>
   </head>
 
   <body>

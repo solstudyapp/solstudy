@@ -44,6 +44,7 @@ import { LessonType, Section, Page } from "@/types/lesson"
 import { RichTextEditor } from "./RichTextEditor"
 import { fetchSections, saveSections } from "@/services/sections"
 import { toast } from "@/hooks/use-toast"
+import { safelyParseId } from "@/lib/type-converters"
 
 interface LessonEditorProps {
   lesson: LessonType
@@ -289,18 +290,18 @@ export const LessonEditor = ({
         onSave(editedLesson, sections)
       } else {
         // For existing lessons with valid IDs, save sections first
-        const numericLessonId = Number(editedLesson.id)
+        const parsedLessonId = safelyParseId(editedLesson.id)
         console.log(
           "LessonEditor - Saving existing lesson with ID:",
-          numericLessonId
+          parsedLessonId
         )
 
-        // Ensure the lesson ID is a valid number
-        if (isNaN(numericLessonId)) {
+        // Ensure the lesson ID is valid
+        if (parsedLessonId === null) {
           throw new Error(`Invalid lesson ID: ${editedLesson.id}`)
         }
 
-        const result = await saveSections(numericLessonId, sections)
+        const result = await saveSections(parsedLessonId, sections)
         console.log("LessonEditor - saveSections result:", result)
 
         if (!result.success) {

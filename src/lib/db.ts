@@ -98,10 +98,19 @@ export async function deleteLesson(id: number): Promise<{ success: boolean; erro
 export async function fetchSectionsByLessonId(lessonId: string | number): Promise<Section[]> {
   console.log('DB fetchSectionsByLessonId called with lessonId:', lessonId, 'Type:', typeof lessonId);
   
+  // Ensure lessonId is treated as a string (UUID)
+  const id = typeof lessonId === 'number' ? lessonId.toString() : lessonId;
+  
   const { data, error } = await supabase
     .from('sections')
-    .select('*')
-    .eq('lesson_id', lessonId)
+    .select(`
+      *,
+      quizzes (
+        id,
+        title
+      )
+    `)
+    .eq('lesson_id', id)
     .order('position', { ascending: true });
 
   if (error) {
@@ -113,10 +122,17 @@ export async function fetchSectionsByLessonId(lessonId: string | number): Promis
   return data || [];
 }
 
-export async function createSection(section: { lesson_id: string | number; title: string; position: number; quiz_id?: string }): Promise<{ id?: number; success: boolean; error?: string }> {
+export async function createSection(section: { lesson_id: string | number; title: string; position: number }): Promise<{ id?: number; success: boolean; error?: string }> {
+  // Ensure lesson_id is treated as a string (UUID)
+  const sectionData = {
+    lesson_id: typeof section.lesson_id === 'number' ? section.lesson_id.toString() : section.lesson_id,
+    title: section.title,
+    position: section.position
+  };
+
   const { data, error } = await supabase
     .from('sections')
-    .insert(section)
+    .insert(sectionData)
     .select();
 
   if (error) {
@@ -127,10 +143,20 @@ export async function createSection(section: { lesson_id: string | number; title
   return { id: data?.[0]?.id, success: true };
 }
 
-export async function updateSection(id: number, section: { title?: string; position?: number; quiz_id?: string }): Promise<{ success: boolean; error?: string }> {
+export async function updateSection(
+  id: number,
+  section: { lesson_id: string | number; title: string; position: number }
+): Promise<{ success: boolean; error?: string }> {
+  // Ensure lesson_id is treated as a string (UUID)
+  const sectionData = {
+    lesson_id: typeof section.lesson_id === 'number' ? section.lesson_id.toString() : section.lesson_id,
+    title: section.title,
+    position: section.position
+  };
+
   const { error } = await supabase
     .from('sections')
-    .update(section)
+    .update(sectionData)
     .eq('id', id);
 
   if (error) {

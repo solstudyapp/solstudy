@@ -45,12 +45,12 @@ export function frontendToDbLesson(lesson: LessonType): Omit<DbLessonData, 'id'>
 /**
  * Convert database section to frontend section
  */
-export function dbToFrontendSection(section: DbSection, pages: DbPage[]): Section {
+export function dbToFrontendSection(section: DbSection & { quizzes?: { id: string; title: string }[] }, pages: DbPage[]): Section {
   return {
     id: section.id.toString(),
     title: section.title,
     pages: pages.map(dbToFrontendPage),
-    quizId: section.quiz_id || `quiz-${section.id}`,
+    quizId: section.quizzes?.[0]?.id || null,
   };
 }
 
@@ -72,7 +72,6 @@ export function frontendToDbSection(section: Section, lessonId: string | number,
   return {
     lesson_id: lessonId,
     title: section.title,
-    quiz_id: section.quizId,
     position: position,
   };
 }
@@ -90,22 +89,30 @@ export function frontendToDbPage(page: Page, sectionId: number, position: number
 }
 
 /**
- * Safely handle ID conversion
- * Returns the ID as is for UUID strings, or converts numeric strings to numbers
+ * Safely parse an ID value. For lessons, always returns a string (since lessons use UUIDs).
+ * For other entities (sections, pages), returns a number if it's a numeric string.
  */
-export function safelyParseId(id: string | number): string | number | null {
-  if (typeof id === 'number') return id;
+export function safelyParseId(id: string | number, type: 'lesson' | 'section' | 'page' = 'lesson'): string | number | null {
+  // If it's already a number, return it for sections and pages
+  if (typeof id === 'number') {
+    return type === 'lesson' ? id.toString() : id
+  }
+
+  // If it's a string...
   if (typeof id === 'string') {
-    // Check if it's a UUID (simple check for now)
-    if (id.includes('-') || id.length === 36) {
-      return id;
+    // For lessons, we want to keep the string format (UUID)
+    if (type === 'lesson') {
+      return id
     }
-    // If it's a numeric string, convert to number
-    if (!isNaN(Number(id))) {
-      return Number(id);
+
+    // For sections and pages, convert to number if possible
+    if (!isNaN(Number(id)) && !id.includes('-')) {
+      return Number(id)
     }
   }
-  return null;
+
+  // If we couldn't parse it properly
+  return null
 }
 
 /**

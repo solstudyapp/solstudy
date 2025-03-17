@@ -58,6 +58,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { fetchLessons } from "@/services/lessons"
+import { shareOnFacebook, shareOnTwitter } from "@/utils/social"
 
 // This function is now only used as a fallback if real data can't be fetched
 const generateMockPointsData = () => {
@@ -178,7 +179,9 @@ const Dashboard = () => {
           setPointsData(generateMockPointsData())
         }
 
-        setReferralLink(`https://solstudy.com/signup?ref=${referralCode}`)
+        setReferralLink(
+          `${import.meta.env.VITE_PUBLIC_URL}/signup?ref=${referralCode}`
+        )
       } catch (error) {
         console.error("Error loading dashboard data:", error)
         toast({
@@ -203,20 +206,23 @@ const Dashboard = () => {
     })
   }
 
-  const shareOnFacebook = () => {
-    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-      referralLink
-    )}`
-    window.open(url, "_blank", "width=600,height=400")
+  const handleShareOnFacebook = () => {
+    shareOnFacebook({
+      url: referralLink,
+      title: "Join me on SolStudy!",
+      description:
+        "Learn about blockchain and crypto while earning rewards. Use my referral link to get started and we'll both earn points!",
+    })
   }
 
-  const shareOnTwitter = () => {
-    const text =
-      "Join me on SolStudy to learn about blockchain and Solana! Use my referral link:"
-    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-      text
-    )}&url=${encodeURIComponent(referralLink)}`
-    window.open(url, "_blank", "width=600,height=400")
+  const handleShareOnTwitter = () => {
+    shareOnTwitter({
+      url: referralLink,
+      title: "Join me on SolStudy! 🚀",
+      description:
+        "Learn about blockchain and crypto while earning rewards. Use my referral link to get started!",
+      hashtags: ["blockchain", "crypto", "education", "solana"],
+    })
   }
 
   if (loading) {
@@ -518,7 +524,7 @@ const Dashboard = () => {
                     <div className="flex justify-center gap-4">
                       <Button
                         variant="gradient"
-                        onClick={shareOnFacebook}
+                        onClick={handleShareOnFacebook}
                         className="flex items-center gap-2"
                       >
                         <Facebook size={16} />
@@ -526,7 +532,7 @@ const Dashboard = () => {
                       </Button>
                       <Button
                         variant="gradient"
-                        onClick={shareOnTwitter}
+                        onClick={handleShareOnTwitter}
                         className="flex items-center gap-2"
                       >
                         <img

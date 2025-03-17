@@ -10,7 +10,7 @@ export interface Section {
   id: string;
   title: string;
   pages: Page[];
-  quizId: string;
+  quizId: string | null;
 }
 
 export type LessonType = {
@@ -82,7 +82,7 @@ export interface DbSection {
   title: string;
   lesson_id: string | number;
   position: number;
-  quiz_id?: string;
+  quizzes?: { id: string; title: string }[];
 }
 
 export interface DbPage {
