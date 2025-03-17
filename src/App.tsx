@@ -17,6 +17,7 @@ import { loadLessons } from "./data/lessons"
 import { useToast } from "./hooks/use-toast"
 import { Loader2 } from "lucide-react"
 import { Toaster } from "@/components/ui/toaster"
+import { ensureImagesBucketExists } from "./lib/storage-setup"
 
 function App() {
   const [loading, setLoading] = useState(true)
@@ -27,7 +28,11 @@ function App() {
   useEffect(() => {
     const initializeApp = async () => {
       try {
+        // Load lessons data
         await loadLessons()
+
+        // Ensure the images bucket exists in Supabase storage
+        await ensureImagesBucketExists()
       } catch (error) {
         console.error("Error initializing app:", error)
         toast({
@@ -66,6 +71,7 @@ function App() {
           <Route path="/" element={<Index />} />
           <Route path="/about" element={<About />} />
           <Route path="/auth" element={<AuthPage />} />
+          <Route path="/signup" element={<AuthPage defaultTab="signup" />} />
           <Route
             path="/email-confirmation"
             element={<EmailConfirmationPageWrapper />}

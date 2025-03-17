@@ -34,6 +34,7 @@ import TiptapLink from "@tiptap/extension-link"
 import TiptapImage from "@tiptap/extension-image"
 import UnderlineExtension from "@tiptap/extension-underline"
 import TextAlign from "@tiptap/extension-text-align"
+import { imageService } from "@/services/imageService"
 
 // Toolbar Button Component
 interface ToolbarButtonProps {
@@ -43,7 +44,12 @@ interface ToolbarButtonProps {
   isActive?: boolean
 }
 
-const ToolbarButton = ({ onClick, icon, title, isActive = false }: ToolbarButtonProps) => (
+const ToolbarButton = ({
+  onClick,
+  icon,
+  title,
+  isActive = false,
+}: ToolbarButtonProps) => (
   <Button
     type="button"
     variant="ghost"
@@ -70,7 +76,11 @@ interface EditorToolbarProps {
   openImageDialog: () => void
 }
 
-const EditorToolbar = ({ editor, openLinkDialog, openImageDialog }: EditorToolbarProps) => {
+const EditorToolbar = ({
+  editor,
+  openLinkDialog,
+  openImageDialog,
+}: EditorToolbarProps) => {
   if (!editor) {
     return null
   }
@@ -342,23 +352,20 @@ export const RichTextEditor = ({
       return
     }
 
-    // Mock file upload - in a real app, this would upload to a server/CDN
     setUploading(true)
     try {
-      // This is a simplified mock of an image upload
-      // In a real application, this would be an API call to upload the image
-      await new Promise((resolve) => setTimeout(resolve, 1000)) // Simulate upload delay
+      // Upload the image using the image service
+      const imageUrl = await imageService.uploadImage(file)
 
-      // Create a local object URL for demo purposes
-      // In production, this would be replaced with the URL from your server
-      const objectUrl = URL.createObjectURL(file)
-      setImageUrl(objectUrl)
+      // Set the image URL
+      setImageUrl(imageUrl)
 
       toast({
         title: "Image uploaded",
-        description: "Image has been uploaded successfully",
+        description: "Image has been uploaded successfully to Supabase storage",
       })
     } catch (error) {
+      console.error("Error uploading image:", error)
       toast({
         title: "Upload failed",
         description: "Failed to upload image. Please try again.",

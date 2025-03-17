@@ -695,16 +695,10 @@ export const LessonEditor = ({
 
     const currentSection = sections[currentSectionIndex]
 
-    const availableQuizzes = quizzes.filter(
-      (quiz) =>
-        quiz.section_id === null ||
-        quiz.section_id === parseInt(currentSection.id) ||
-        sections.findIndex(
-          (s) => s.quizId === quiz.id && s.id !== currentSection.id
-        ) === -1
+    // Find the associated quiz for this section
+    const associatedQuiz = quizzes.find(
+      (quiz) => quiz.id === currentSection.quizId
     )
-
-    console.log("LessonEditor - availableQuizzes:", availableQuizzes)
 
     return (
       <div className="space-y-4 mb-4">
@@ -721,28 +715,13 @@ export const LessonEditor = ({
 
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium">End of Section Quiz</label>
-          <Select
-            value={currentSection.quizId || "none"}
-            onValueChange={(value) =>
-              updateSection(
-                currentSectionIndex,
-                "quizId",
-                value === "none" ? null : value
-              )
-            }
-          >
-            <SelectTrigger className="bg-white/10 border-white/20 text-white">
-              <SelectValue placeholder="Select a quiz" />
-            </SelectTrigger>
-            <SelectContent className="bg-black/70 backdrop-blur-md border-white/10 text-white">
-              <SelectItem value="none">No Quiz</SelectItem>
-              {availableQuizzes.map((quiz) => (
-                <SelectItem key={quiz.id} value={quiz.id}>
-                  {quiz.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-2">
+            <Input
+              value={associatedQuiz ? associatedQuiz.title : "No Quiz Assigned"}
+              disabled
+              className="bg-white/5 border-white/10 text-white/70"
+            />
+          </div>
         </div>
       </div>
     )

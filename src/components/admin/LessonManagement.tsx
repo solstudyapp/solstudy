@@ -437,13 +437,9 @@ const LessonManagement = () => {
         <DialogContent className="bg-[#1A1F2C] text-white border-white/10 max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {isNewLesson ? "Create New Lesson" : "Edit Lesson"}
+              {isNewLesson ? "Create New Lesson" : "Edit Lesson"}:{" "}
+              {currentLesson?.title}
             </DialogTitle>
-            <DialogDescription className="text-white/70">
-              {isNewLesson
-                ? "Create a new lesson from scratch"
-                : `Edit the lesson: ${currentLesson?.title}`}
-            </DialogDescription>
           </DialogHeader>
 
           {currentLesson && (

@@ -6,7 +6,7 @@ export async function fetchAllLessons(): Promise<LessonType[]> {
   const { data, error } = await supabase
     .from('lessons')
     .select('*')
-    .order('created_at', { ascending: false });
+    .order('title', { ascending: true });
 
   if (error) {
     console.error('Error fetching lessons:', error);

@@ -270,9 +270,9 @@ describe("LessonEditor Component", () => {
 
     // Check that the quiz data was loaded correctly
     await waitFor(() => {
-      // The component should have logged the available quizzes
+      // The component should have logged the fetched quizzes
       expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining("availableQuizzes"),
+        expect.stringContaining("fetched quizzes"),
         expect.arrayContaining([
           expect.objectContaining({
             id: "quiz-1",

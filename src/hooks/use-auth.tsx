@@ -16,7 +16,11 @@ type AuthContextType = {
   emailForConfirmation: string | null
   setEmailForConfirmation: (email: string | null) => void
   handleSignIn: (email: string, password: string) => Promise<boolean>
-  handleSignUp: (email: string, password: string) => Promise<boolean>
+  handleSignUp: (
+    email: string,
+    password: string,
+    referrerInfo?: { id: string; code: string } | null
+  ) => Promise<boolean>
   handleSignOut: () => Promise<void>
 }
 
@@ -80,10 +84,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const handleSignUp = async (
     email: string,
-    password: string
+    password: string,
+    referrerInfo?: { id: string; code: string } | null
   ): Promise<boolean> => {
     setLoading(true)
-    const response = await signUp(email, password)
+    const response = await signUp(email, password, referrerInfo)
     setLoading(false)
 
     if (!response.success) {

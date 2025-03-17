@@ -1,5 +1,10 @@
 import { useState, useEffect } from "react"
-import { Link, useNavigate, useLocation } from "react-router-dom"
+import {
+  Link,
+  useNavigate,
+  useLocation,
+  useSearchParams,
+} from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -11,10 +16,12 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Apple, Facebook, Github, Mail, Loader2 } from "lucide-react"
+import { Apple, Facebook, Github, Mail, Loader2, UserPlus } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { SocialAuthButtons } from "@/components/auth/SocialAuthButtons"
 import { FEATURES } from "@/config/features"
+import { getReferralCodeByCode } from "@/services/referralService"
+import { toast } from "@/hooks/use-toast"
 
 type LocationState = {
   from?: {
@@ -22,14 +29,51 @@ type LocationState = {
   }
 }
 
-const AuthPage = () => {
+interface AuthPageProps {
+  defaultTab?: "signin" | "signup"
+}
+
+const AuthPage = ({ defaultTab = "signin" }: AuthPageProps) => {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
+  const [referralCode, setReferralCode] = useState<string | null>(null)
+  const [referrerInfo, setReferrerInfo] = useState<{
+    id: string
+    code: string
+  } | null>(null)
   const { handleSignIn, handleSignUp, loading, user } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const [searchParams] = useSearchParams()
   const state = location.state as LocationState
+
+  // Check for referral code in URL
+  useEffect(() => {
+    const ref = searchParams.get("ref")
+    if (ref) {
+      setReferralCode(ref)
+      checkReferralCode(ref)
+    }
+  }, [searchParams])
+
+  // Check if the referral code is valid
+  const checkReferralCode = async (code: string) => {
+    const response = await getReferralCodeByCode(code)
+    if (response.success && response.data) {
+      setReferrerInfo({
+        id: response.data.referrer_id,
+        code: response.data.id,
+      })
+    } else {
+      toast({
+        title: "Invalid referral code",
+        description: "The referral code is invalid or has expired.",
+        variant: "destructive",
+      })
+      setReferralCode(null)
+    }
+  }
 
   // Redirect if user is already logged in
   useEffect(() => {
@@ -47,7 +91,9 @@ const AuthPage = () => {
     }
 
     if (isSignUp) {
-      const success = await handleSignUp(email, password)
+      // Pass the referral info if available
+      console.log("Referrer info:", referrerInfo)
+      const success = await handleSignUp(email, password, referrerInfo)
       if (success) {
         navigate("/email-confirmation")
       }
@@ -78,7 +124,7 @@ const AuthPage = () => {
           </p>
         </div>
 
-        <Tabs defaultValue="signin" className="w-full">
+        <Tabs defaultValue={defaultTab} className="w-full">
           <TabsList className="grid grid-cols-2 w-full bg-white/5 backdrop-blur-md text-white border border-white/10">
             <TabsTrigger
               value="signin"
@@ -191,6 +237,17 @@ const AuthPage = () => {
                     className="bg-white/5 border-white/10"
                   />
                 </div>
+                {referralCode && (
+                  <div className="bg-[#14F195]/10 border border-[#14F195]/30 rounded-md p-3 text-sm">
+                    <p className="text-white flex items-center">
+                      <UserPlus className="h-4 w-4 mr-2 text-[#14F195]" />
+                      <span>
+                        <strong>Referral bonus:</strong> You've been referred!
+                        Both you and your friend will earn points.
+                      </span>
+                    </p>
+                  </div>
+                )}
                 <div className="bg-[#14F195]/10 border border-[#14F195]/30 rounded-md p-3 text-sm">
                   <p className="text-white">
                     <strong>Bonus:</strong> Get 100 points just for signing up!

@@ -30,6 +30,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const refId = urlParams.get('ref');
 
+        console.log('baseUrl', `${baseUrl}/fb-image.png`);
         // Update image URL
         document.getElementById('og-image').setAttribute('content', `${baseUrl}/fb-image.png`);
         document.getElementById('twitter-image').setAttribute('content', `${baseUrl}/fb-image.png`);

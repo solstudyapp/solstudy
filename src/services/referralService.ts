@@ -12,60 +12,204 @@ export interface Referral {
   expires_at: string;
 }
 
+export type ReferralResponse = {
+  success: boolean;
+  error?: {
+    message: string;
+  };
+  data?: any;
+};
+
+/**
+ * Create a new referral code for a user or return the existing one
+ */
+export async function createReferralCode(userId: string): Promise<ReferralResponse> {
+  try {
+    // First check if the user already has a referral code
+    const { data: existingCodes, error: checkError } = await supabase
+      .from('referral_codes')
+      .select('*')
+      .eq('referrer_id', userId)
+      .eq('is_active', true)
+      .limit(1);
+    
+    if (checkError) {
+      return {
+        success: false,
+        error: {
+          message: checkError.message,
+        },
+      };
+    }
+    
+    // If user already has an active referral code, return it
+    if (existingCodes && existingCodes.length > 0) {
+      return {
+        success: true,
+        data: existingCodes[0],
+      };
+    }
+    
+    // Generate a unique referral code using the database function
+    const { data: codeData, error: codeError } = await supabase.rpc('generate_unique_referral_code');
+    
+    if (codeError) {
+      return {
+        success: false,
+        error: {
+          message: codeError.message,
+        },
+      };
+    }
+    
+    const code = codeData;
+    
+    // Insert the referral code into the database
+    const { data, error } = await supabase
+      .from('referral_codes')
+      .insert({
+        referrer_id: userId,
+        code,
+      })
+      .select()
+      .single();
+    
+    if (error) {
+      return {
+        success: false,
+        error: {
+          message: error.message,
+        },
+      };
+    }
+    
+    return {
+      success: true,
+      data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: {
+        message: error instanceof Error ? error.message : 'An unknown error occurred',
+      },
+    };
+  }
+}
+
+/**
+ * Get all referral codes for a user
+ */
+export async function getUserReferralCodes(userId: string): Promise<ReferralResponse> {
+  try {
+    const { data, error } = await supabase
+      .from('referral_codes')
+      .select('*')
+      .eq('referrer_id', userId)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      return {
+        success: false,
+        error: {
+          message: error.message,
+        },
+      };
+    }
+    
+    return {
+      success: true,
+      data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: {
+        message: error instanceof Error ? error.message : 'An unknown error occurred',
+      },
+    };
+  }
+}
+
+/**
+ * Get a referral code by its code
+ */
+export async function getReferralCodeByCode(code: string): Promise<ReferralResponse> {
+  try {
+    console.log('Getting referral code by code:', code);
+    const { data, error } = await supabase
+      .from('referral_codes')
+      .select('*')
+      .eq('code', code)
+      .eq('is_active', true)
+      .single();
+
+    console.log('Referral code data:', data);
+    console.log('Error:', error);
+    
+    if (error) {
+      return {
+        success: false,
+        error: {
+          message: error.message,
+        },
+      };
+    }
+    
+    return {
+      success: true,
+      data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: {
+        message: error instanceof Error ? error.message : 'An unknown error occurred',
+      },
+    };
+  }
+}
+
+/**
+ * Complete a referral when a user signs up with a referral code
+ */
+export async function completeReferral(referralCodeId: string, refereeId: string, pointsEarned: number = 100): Promise<ReferralResponse> {
+  try {
+    const { data, error } = await supabase
+      .from('referrals')
+      .insert({
+        referral_code_id: referralCodeId,
+        referee_id: refereeId,
+        points_earned: pointsEarned,
+      })
+      .select()
+      .single();
+    
+    if (error) {
+      return {
+        success: false,
+        error: {
+          message: error.message,
+        },
+      };
+    }
+    
+    return {
+      success: true,
+      data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: {
+        message: error instanceof Error ? error.message : 'An unknown error occurred',
+      },
+    };
+  }
+}
+
 export const referralService = {
-  // Generate a new referral code for the current user
-  async generateReferralCode(): Promise<string | null> {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No authenticated user');
-
-      // Generate a unique referral code
-      const { data: referralCode, error: codeError } = await supabase
-        .rpc('generate_unique_referral_code');
-
-      if (codeError) throw codeError;
-
-      // Create the referral record
-      const { data: referral, error: insertError } = await supabase
-        .from('referrals')
-        .insert({
-          referrer_id: user.id,
-          referral_code: referralCode,
-        })
-        .select()
-        .single();
-
-      if (insertError) throw insertError;
-
-      return referral.referral_code;
-    } catch (error) {
-      console.error('Error generating referral code:', error);
-      return null;
-    }
-  },
-
-  // Get referral code for the current user
-  async getReferralCode(): Promise<string | null> {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No authenticated user');
-
-      const { data: referral, error } = await supabase
-        .from('referrals')
-        .select('referral_code')
-        .eq('referrer_id', user.id)
-        .eq('status', 'pending')
-        .single();
-
-      if (error) throw error;
-
-      return referral?.referral_code || null;
-    } catch (error) {
-      console.error('Error getting referral code:', error);
-      return null;
-    }
-  },
-
   // Get referral stats for the current user
   async getReferralStats(): Promise<{
     total_referrals: number;
@@ -96,38 +240,6 @@ export const referralService = {
     }
   },
 
-  // Process a referral when a new user signs up
-  async processReferral(refereeId: string, referralCode: string): Promise<boolean> {
-    try {
-      // Find the referral record
-      const { data: referral, error: findError } = await supabase
-        .from('referrals')
-        .select()
-        .eq('referral_code', referralCode)
-        .eq('status', 'pending')
-        .single();
-
-      if (findError) throw findError;
-
-      // Update the referral record
-      const { error: updateError } = await supabase
-        .from('referrals')
-        .update({
-          referee_id: refereeId,
-          status: 'completed',
-          points_earned: 100, // You can adjust this value or make it configurable
-        })
-        .eq('id', referral.id);
-
-      if (updateError) throw updateError;
-
-      return true;
-    } catch (error) {
-      console.error('Error processing referral:', error);
-      return false;
-    }
-  },
-
   // Get all referrals for the current user
   async getReferrals(): Promise<Referral[]> {
     try {
@@ -136,10 +248,18 @@ export const referralService = {
 
       const { data: referrals, error } = await supabase
         .from('referrals')
-        .select('*')
-        .eq('referrer_id', user.id)
+        .select(`*,
+          referral_code:referral_codes (
+            code
+          ),
+          referee:user_profiles (
+            id,
+            full_name,
+            email,
+            user_id
+          )`)
+        .eq('referee.user_id', user.id)
         .order('created_at', { ascending: false });
-
       if (error) throw error;
 
       return referrals || [];

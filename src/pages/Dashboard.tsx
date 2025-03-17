@@ -35,6 +35,7 @@ import { lessonService } from "@/services/lessonService";
 import {
   userProgressService,
   PointsHistoryData,
+  ReferralHistoryData,
 } from "@/services/userProgressService"
 import { lessonData, loadLessons } from "@/data/lessons"
 import { useToast } from "@/hooks/use-toast"
@@ -59,6 +60,7 @@ import {
 } from "@/components/ui/table"
 import { fetchLessons } from "@/services/lessons"
 import { shareOnFacebook, shareOnTwitter } from "@/utils/social"
+import { ReferralCard } from "@/components/dashboard/ReferralCard"
 
 // This function is now only used as a fallback if real data can't be fetched
 const generateMockPointsData = () => {
@@ -82,33 +84,6 @@ const generateMockPointsData = () => {
   return data
 }
 
-const mockReferrals = [
-  {
-    id: 1,
-    name: "Alex Johnson",
-    email: "alex.j@example.com",
-    date: "2023-08-15",
-    status: "completed",
-    points: 100,
-  },
-  {
-    id: 2,
-    name: "Maria Garcia",
-    email: "maria.g@example.com",
-    date: "2023-09-02",
-    status: "completed",
-    points: 100,
-  },
-  {
-    id: 3,
-    name: "Sam Wilson",
-    email: "sam.w@example.com",
-    date: "2023-10-17",
-    status: "pending",
-    points: 0,
-  },
-]
-
 const Dashboard = () => {
   const { toast } = useToast()
   const [userPoints, setUserPoints] = useState(0)
@@ -116,7 +91,7 @@ const Dashboard = () => {
   const [completedLessons, setCompletedLessons] = useState<any[]>([])
   const [referralCode, setReferralCode] = useState("SOLSTUDY123")
   const [pointsData, setPointsData] = useState<PointsHistoryData[]>([])
-  const [referrals, setReferrals] = useState(mockReferrals)
+  const [referrals, setReferrals] = useState<ReferralHistoryData[]>([])
   const [referralLink, setReferralLink] = useState("")
   const [loading, setLoading] = useState(true)
   const [allLessons, setAllLessons] = useState<LessonType[]>([])
@@ -182,6 +157,15 @@ const Dashboard = () => {
         setReferralLink(
           `${import.meta.env.VITE_PUBLIC_URL}/signup?ref=${referralCode}`
         )
+
+        // Fetch referral history
+        const referralHistory = await userProgressService.getReferralHistory()
+        console.log("Referral history:", referralHistory)
+
+        // Update the referrals state with the data from API
+        if (referralHistory && referralHistory.length > 0) {
+          setReferrals(referralHistory)
+        }
       } catch (error) {
         console.error("Error loading dashboard data:", error)
         toast({
@@ -203,25 +187,6 @@ const Dashboard = () => {
     toast({
       title: "Referral link copied!",
       description: "Your referral link has been copied to clipboard.",
-    })
-  }
-
-  const handleShareOnFacebook = () => {
-    shareOnFacebook({
-      url: referralLink,
-      title: "Join me on SolStudy!",
-      description:
-        "Learn about blockchain and crypto while earning rewards. Use my referral link to get started and we'll both earn points!",
-    })
-  }
-
-  const handleShareOnTwitter = () => {
-    shareOnTwitter({
-      url: referralLink,
-      title: "Join me on SolStudy! 🚀",
-      description:
-        "Learn about blockchain and crypto while earning rewards. Use my referral link to get started!",
-      hashtags: ["blockchain", "crypto", "education", "solana"],
     })
   }
 
@@ -488,64 +453,9 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card className="glass-card text-white col-span-1 md:col-span-2">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Users className="mr-2 h-5 w-5 text-[#14F195]" />
-                    Referral Program
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="bg-white/10 rounded-lg p-6 text-center">
-                    <h3 className="text-xl font-medium mb-3">
-                      Share SolStudy and earn rewards!
-                    </h3>
-                    <p className="text-white/70 mb-6">
-                      Invite friends to join SolStudy. You'll earn 100 points
-                      for each person who signs up using your referral link.
-                    </p>
-
-                    <div className="relative mb-6">
-                      <div className="bg-white/5 border border-white/20 rounded-lg p-4 flex justify-between items-center">
-                        <div className="font-mono text-lg truncate mr-2">
-                          {referralLink}
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="border-white/20 text-white hover:bg-white/10 flex-shrink-0"
-                          onClick={handleCopyReferralCode}
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-center gap-4">
-                      <Button
-                        variant="gradient"
-                        onClick={handleShareOnFacebook}
-                        className="flex items-center gap-2"
-                      >
-                        <Facebook size={16} />
-                        Share on Facebook
-                      </Button>
-                      <Button
-                        variant="gradient"
-                        onClick={handleShareOnTwitter}
-                        className="flex items-center gap-2"
-                      >
-                        <img
-                          src="https://about.x.com/content/dam/about-twitter/x/brand-toolkit/logo-black.png.twimg.1920.png"
-                          alt="X logo"
-                          className="w-4 h-4 invert"
-                        />
-                        Share on X
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="col-span-1 md:col-span-2">
+                <ReferralCard />
+              </div>
             </div>
 
             <Card className="glass-card text-white">
@@ -561,10 +471,8 @@ const Dashboard = () => {
                     <Table>
                       <TableHeader>
                         <TableRow className="border-white/10">
-                          <TableHead className="text-white">Name</TableHead>
                           <TableHead className="text-white">Email</TableHead>
                           <TableHead className="text-white">Date</TableHead>
-                          <TableHead className="text-white">Status</TableHead>
                           <TableHead className="text-white text-right">
                             Points
                           </TableHead>
@@ -577,34 +485,20 @@ const Dashboard = () => {
                             className="border-white/10"
                           >
                             <TableCell className="text-white">
-                              {referral.name}
-                            </TableCell>
-                            <TableCell className="text-white">
-                              {referral.email}
+                              {referral.referee?.email || "Unknown"}
                             </TableCell>
                             <TableCell className="text-white">
                               <div className="flex items-center">
                                 <Calendar className="mr-2 h-4 w-4 text-white/70" />
-                                {new Date(referral.date).toLocaleDateString()}
+                                {new Date(
+                                  referral.created_at
+                                ).toLocaleDateString()}
                               </div>
-                            </TableCell>
-                            <TableCell>
-                              {referral.status === "completed" ? (
-                                <div className="flex items-center text-[#14F195]">
-                                  <CheckCircle className="mr-1 h-4 w-4" />
-                                  Completed
-                                </div>
-                              ) : (
-                                <div className="flex items-center text-yellow-500">
-                                  <Clock className="mr-1 h-4 w-4" />
-                                  Pending
-                                </div>
-                              )}
                             </TableCell>
                             <TableCell className="text-right font-medium">
                               {referral.status === "completed" ? (
                                 <span className="text-[#14F195]">
-                                  +{referral.points}
+                                  +{referral.points_earned}
                                 </span>
                               ) : (
                                 <span className="text-white/50">--</span>
