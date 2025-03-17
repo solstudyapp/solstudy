@@ -57,7 +57,7 @@ export async function createLesson(lesson: Omit<LessonType, 'id'>): Promise<{ id
   return { id: data?.[0]?.id, success: true };
 }
 
-export async function updateLesson(id: number, lesson: Partial<LessonType>): Promise<{ success: boolean; error?: string }> {
+export async function updateLesson(id: string | number, lesson: Partial<LessonType>): Promise<{ success: boolean; error?: string }> {
   const { error } = await supabase
     .from('lessons')
     .update({
@@ -80,7 +80,7 @@ export async function updateLesson(id: number, lesson: Partial<LessonType>): Pro
   return { success: true };
 }
 
-export async function deleteLesson(id: number): Promise<{ success: boolean; error?: string }> {
+export async function deleteLesson(id: string | number): Promise<{ success: boolean; error?: string }> {
   const { error } = await supabase
     .from('lessons')
     .delete()
@@ -211,7 +211,7 @@ export async function fetchPagesBySectionId(sectionId: number): Promise<Page[]> 
   return data || [];
 }
 
-export async function createPage(page: { section_id: number; title: string; content?: string; position: number }): Promise<{ id?: number; success: boolean; error?: string }> {
+export async function createPage(page: { section_id: string | number; title: string; content?: string; position: number }): Promise<{ id?: number; success: boolean; error?: string }> {
   const { data, error } = await supabase
     .from('pages')
     .insert({
@@ -228,7 +228,7 @@ export async function createPage(page: { section_id: number; title: string; cont
   return { id: data?.[0]?.id, success: true };
 }
 
-export async function updatePage(id: number, page: { title?: string; content?: string; position?: number }): Promise<{ success: boolean; error?: string }> {
+export async function updatePage(id: string | number, page: { title?: string; content?: string; position?: number }): Promise<{ success: boolean; error?: string }> {
   const updateData: { title?: string; content?: string; position?: number; content_html?: string } = { ...page };
   
   // If content is being updated, also update content_html

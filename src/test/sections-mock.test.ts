@@ -4,6 +4,8 @@ import { Section, Page } from '../types/lesson';
 import * as dbModule from '@/lib/db';
 
 describe('Sections Service with Mocks', () => {
+  const TEST_UUID = 'b93adc56-7644-4bbf-ace3-202942c4ac14';
+  
   // Create mock db functions
   const mockDb = {
     fetchSectionsByLessonId: vi.fn(),
@@ -48,10 +50,21 @@ describe('Sections Service with Mocks', () => {
 
     it('should fetch sections and pages for a valid lesson ID', async () => {
       // Mock data
-      const lessonId = 1;
       const mockSections = [
-        { id: 1, title: 'Section 1', lesson_id: lessonId, position: 0, quiz_id: 'quiz-1' },
-        { id: 2, title: 'Section 2', lesson_id: lessonId, position: 1, quiz_id: 'quiz-2' },
+        { 
+          id: 1, 
+          title: 'Section 1', 
+          lesson_id: TEST_UUID, 
+          position: 0,
+          quizzes: [{ id: 'quiz-1', title: 'Quiz 1' }]
+        },
+        { 
+          id: 2, 
+          title: 'Section 2', 
+          lesson_id: TEST_UUID, 
+          position: 1,
+          quizzes: [{ id: 'quiz-2', title: 'Quiz 2' }]
+        },
       ];
       
       const mockPages1 = [
@@ -72,10 +85,10 @@ describe('Sections Service with Mocks', () => {
       });
 
       // Call the function
-      const result = await fetchSections(lessonId);
+      const result = await fetchSections(TEST_UUID);
 
       // Assertions
-      expect(mockDb.fetchSectionsByLessonId).toHaveBeenCalledWith(lessonId);
+      expect(mockDb.fetchSectionsByLessonId).toHaveBeenCalledWith(TEST_UUID);
       expect(mockDb.fetchPagesBySectionId).toHaveBeenCalledTimes(2);
       expect(mockDb.fetchPagesBySectionId).toHaveBeenCalledWith(1);
       expect(mockDb.fetchPagesBySectionId).toHaveBeenCalledWith(2);
@@ -100,11 +113,11 @@ describe('Sections Service with Mocks', () => {
       mockDb.fetchSectionsByLessonId.mockRejectedValue(new Error('Database error'));
 
       // Call the function
-      const result = await fetchSections(1);
+      const result = await fetchSections(TEST_UUID);
 
       // Assertions
       expect(result).toEqual([]);
-      expect(mockDb.fetchSectionsByLessonId).toHaveBeenCalledWith(1);
+      expect(mockDb.fetchSectionsByLessonId).toHaveBeenCalledWith(TEST_UUID);
     });
   });
 
@@ -121,24 +134,23 @@ describe('Sections Service with Mocks', () => {
       expect(mockDb.createSection).not.toHaveBeenCalled();
     });
 
-    it('should validate numeric lesson ID', async () => {
-      // Test with non-numeric ID
+    it('should validate lesson ID', async () => {
+      // Test with invalid ID format
       const result = await saveSections('invalid-id', []);
       expect(result).toEqual({ 
         success: false, 
-        error: 'Invalid lesson ID: invalid-id. Expected a number.' 
+        error: 'Invalid lesson ID: invalid-id. Expected a UUID.' 
       });
       expect(mockDb.createSection).not.toHaveBeenCalled();
     });
 
     it('should save new sections and pages', async () => {
       // Mock data
-      const lessonId = 1;
       const sections: Section[] = [
         {
           id: 'section-123',
           title: 'New Section',
-          quizId: 'quiz-123',
+          quizId: null,
           pages: [
             { id: 'page-123', title: 'New Page', content: 'Content' }
           ]
@@ -151,14 +163,13 @@ describe('Sections Service with Mocks', () => {
       mockDb.createPage.mockResolvedValue({ id: 20, success: true });
 
       // Call the function
-      const result = await saveSections(lessonId, sections);
+      const result = await saveSections(TEST_UUID, sections);
 
       // Assertions
       expect(result).toEqual({ success: true });
       expect(mockDb.createSection).toHaveBeenCalledWith({
-        lesson_id: lessonId,
+        lesson_id: TEST_UUID,
         title: 'New Section',
-        quiz_id: 'quiz-123',
         position: 0
       });
       expect(mockDb.createPage).toHaveBeenCalledWith({
@@ -171,9 +182,8 @@ describe('Sections Service with Mocks', () => {
 
     it('should update existing sections and pages', async () => {
       // Mock data
-      const lessonId = 1;
       const existingSections = [
-        { id: 10, title: 'Existing Section', lesson_id: lessonId, position: 0 }
+        { id: 10, title: 'Existing Section', lesson_id: TEST_UUID, position: 0 }
       ];
       const existingPages = [
         { id: 20, title: 'Existing Page', section_id: 10, content: 'Old content', position: 0 }
@@ -183,7 +193,7 @@ describe('Sections Service with Mocks', () => {
         {
           id: '10', // Existing section ID as string
           title: 'Updated Section',
-          quizId: 'quiz-10',
+          quizId: null,
           pages: [
             { id: '20', title: 'Updated Page', content: 'New content' } // Existing page ID as string
           ]
@@ -197,15 +207,14 @@ describe('Sections Service with Mocks', () => {
       mockDb.updatePage.mockResolvedValue({ success: true });
 
       // Call the function
-      const result = await saveSections(lessonId, sections);
+      const result = await saveSections(TEST_UUID, sections);
 
       // Assertions
       expect(result).toEqual({ success: true });
       expect(mockDb.updateSection).toHaveBeenCalledWith(10, {
         title: 'Updated Section',
-        quiz_id: 'quiz-10',
         position: 0,
-        lesson_id: 1
+        lesson_id: TEST_UUID
       });
       expect(mockDb.updatePage).toHaveBeenCalledWith(20, {
         title: 'Updated Page',
@@ -217,17 +226,16 @@ describe('Sections Service with Mocks', () => {
 
     it('should delete sections that are no longer present', async () => {
       // Mock data
-      const lessonId = 1;
       const existingSections = [
-        { id: 10, title: 'Section to Keep', lesson_id: lessonId, position: 0 },
-        { id: 11, title: 'Section to Delete', lesson_id: lessonId, position: 1 }
+        { id: 10, title: 'Section to Keep', lesson_id: TEST_UUID, position: 0 },
+        { id: 11, title: 'Section to Delete', lesson_id: TEST_UUID, position: 1 }
       ];
       
       const sections: Section[] = [
         {
           id: '10', // Only keeping this section
           title: 'Section to Keep',
-          quizId: 'quiz-10',
+          quizId: null,
           pages: []
         }
       ];
@@ -239,17 +247,16 @@ describe('Sections Service with Mocks', () => {
       mockDb.deleteSection.mockResolvedValue({ success: true });
 
       // Call the function
-      const result = await saveSections(lessonId, sections);
+      const result = await saveSections(TEST_UUID, sections);
 
       // Assertions
       expect(result).toEqual({ success: true });
       expect(mockDb.deleteSection).toHaveBeenCalledWith(11);
-      expect(mockDb.updateSection).toHaveBeenCalledWith(10, expect.objectContaining({
+      expect(mockDb.updateSection).toHaveBeenCalledWith(10, {
         title: 'Section to Keep',
-        quiz_id: 'quiz-10',
         position: 0,
-        lesson_id: 1
-      }));
+        lesson_id: TEST_UUID
+      });
     });
 
     it('should handle errors during saving', async () => {
@@ -257,13 +264,10 @@ describe('Sections Service with Mocks', () => {
       mockDb.fetchSectionsByLessonId.mockRejectedValue(new Error('Database error'));
 
       // Call the function
-      const result = await saveSections(1, []);
+      const result = await saveSections(TEST_UUID, []);
 
       // Assertions
-      expect(result).toEqual({ 
-        success: false, 
-        error: 'Database error' 
-      });
+      expect(result).toEqual({ success: false, error: 'Database error' });
     });
   });
 }); 

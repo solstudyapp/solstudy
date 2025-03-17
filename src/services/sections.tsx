@@ -127,7 +127,7 @@ export async function saveSections(
       console.error("saveSections - Invalid lesson ID:", lessonId)
       return {
         success: false,
-        error: `Invalid lesson ID: ${lessonId}`,
+        error: `Invalid lesson ID: ${lessonId}. Expected a UUID.`,
       }
     }
 
@@ -143,9 +143,15 @@ export async function saveSections(
     const existingSectionIds = existingSections
       ? existingSections.map((s) => s.id)
       : []
+
+    console.log("Existing section IDs:", existingSectionIds)
+
     const newSectionIds = sections
       .map((s) => {
-        // If the section ID is a string that can be converted to a number, do so
+        console.log(
+          `Checking section ID ${s.id}, isTemporary: ${isTemporaryId(s.id)}`
+        )
+        // If the section ID is a string that can be converted to a number and is not a temporary ID
         if (
           typeof s.id === "string" &&
           !isNaN(Number(s.id)) &&
@@ -156,6 +162,8 @@ export async function saveSections(
         return null // This is a new section with a temporary ID
       })
       .filter((id) => id !== null) as number[]
+
+    console.log("New section IDs:", newSectionIds)
 
     // Sections to delete (exist in DB but not in the new list)
     const sectionsToDelete = existingSectionIds.filter(
@@ -174,6 +182,12 @@ export async function saveSections(
       const section = sections[i]
       const isNewSection = isTemporaryId(section.id)
 
+      console.log(`Processing section ${i}:`, {
+        id: section.id,
+        isTemporary: isNewSection,
+        title: section.title,
+      })
+
       // Prepare section data
       const sectionData = frontendToDbSection(section, id, i)
 
@@ -181,6 +195,7 @@ export async function saveSections(
 
       if (isNewSection) {
         // Insert new section
+        console.log(`Creating new section: ${section.title}`)
         const result = await db.createSection(sectionData)
 
         if (!result.success) {
@@ -194,6 +209,9 @@ export async function saveSections(
       } else {
         // Update existing section
         const numericId = Number(section.id)
+        console.log(
+          `Updating existing section: ${section.title} with ID ${numericId}`
+        )
 
         const result = await db.updateSection(numericId, sectionData)
 

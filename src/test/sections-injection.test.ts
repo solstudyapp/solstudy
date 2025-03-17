@@ -50,8 +50,20 @@ describe('Sections Service with Dependency Injection', () => {
       // Mock data
       const lessonId = 1;
       const mockSections = [
-        { id: 1, title: 'Section 1', lesson_id: lessonId, position: 0, quiz_id: 'quiz-1' },
-        { id: 2, title: 'Section 2', lesson_id: lessonId, position: 1, quiz_id: 'quiz-2' },
+        { 
+          id: 1, 
+          title: 'Section 1', 
+          lesson_id: lessonId, 
+          position: 0, 
+          quizzes: [{ id: 'quiz-1', title: 'Quiz 1' }]
+        },
+        { 
+          id: 2, 
+          title: 'Section 2', 
+          lesson_id: lessonId, 
+          position: 1, 
+          quizzes: [{ id: 'quiz-2', title: 'Quiz 2' }]
+        },
       ];
       
       const mockPages1 = [
@@ -75,7 +87,7 @@ describe('Sections Service with Dependency Injection', () => {
       const result = await fetchSections(lessonId);
 
       // Assertions
-      expect(mockDb.fetchSectionsByLessonId).toHaveBeenCalledWith(lessonId);
+      expect(mockDb.fetchSectionsByLessonId).toHaveBeenCalledWith(lessonId.toString());
       expect(mockDb.fetchPagesBySectionId).toHaveBeenCalledTimes(2);
       expect(mockDb.fetchPagesBySectionId).toHaveBeenCalledWith(1);
       expect(mockDb.fetchPagesBySectionId).toHaveBeenCalledWith(2);
@@ -104,7 +116,7 @@ describe('Sections Service with Dependency Injection', () => {
 
       // Assertions
       expect(result).toEqual([]);
-      expect(mockDb.fetchSectionsByLessonId).toHaveBeenCalledWith(1);
+      expect(mockDb.fetchSectionsByLessonId).toHaveBeenCalledWith('1');
     });
   });
 
@@ -121,12 +133,12 @@ describe('Sections Service with Dependency Injection', () => {
       expect(mockDb.createSection).not.toHaveBeenCalled();
     });
 
-    it('should validate numeric lesson ID', async () => {
-      // Test with non-numeric ID
+    it('should validate UUID lesson ID', async () => {
+      // Test with invalid ID format
       const result = await saveSections('invalid-id', []);
       expect(result).toEqual({ 
         success: false, 
-        error: 'Invalid lesson ID: invalid-id. Expected a number.' 
+        error: 'Invalid lesson ID: invalid-id. Expected a UUID.' 
       });
       expect(mockDb.createSection).not.toHaveBeenCalled();
     });
@@ -156,9 +168,8 @@ describe('Sections Service with Dependency Injection', () => {
       // Assertions
       expect(result).toEqual({ success: true });
       expect(mockDb.createSection).toHaveBeenCalledWith({
-        lesson_id: lessonId,
+        lesson_id: lessonId.toString(),
         title: 'New Section',
-        quiz_id: 'quiz-123',
         position: 0
       });
       expect(mockDb.createPage).toHaveBeenCalledWith({

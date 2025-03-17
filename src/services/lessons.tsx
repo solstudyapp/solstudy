@@ -116,20 +116,23 @@ export async function saveLesson(
 ): Promise<{ success: boolean; error?: string; data?: { id: string }[] }> {
   try {
     // Check if the lesson has an ID that's not a temporary ID
-    const isUpdate =
-      lesson.id && !lesson.id.startsWith("new-") && !isNaN(Number(lesson.id))
+    const isUuid =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        lesson.id
+      )
+    const isUpdate = lesson.id && !lesson.id.startsWith("new-") && isUuid
 
     if (isUpdate) {
       console.log("saveLesson - Updating lesson:", lesson.id)
 
-      // Convert string ID to number
-      const numericId = Number(lesson.id)
+      // If it's a UUID, use it directly; otherwise convert string ID to number
+      const lessonId = lesson.id
 
       // Create a database lesson object
       const dbLesson = frontendToDbLesson(lesson)
 
       // Type assertion to match the expected parameter type
-      const result = await db.updateLesson(numericId, dbLesson as any)
+      const result = await db.updateLesson(lessonId, dbLesson as any)
 
       return {
         success: result.success,
@@ -167,20 +170,8 @@ export async function deleteLesson(
   lessonId: string | number
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    // Convert string ID to number if needed
-    const id =
-      typeof lessonId === "string" && !isNaN(Number(lessonId))
-        ? Number(lessonId)
-        : lessonId
-
-    if (typeof id !== "number") {
-      return {
-        success: false,
-        error: `Invalid lesson ID: ${lessonId}. Expected a number.`,
-      }
-    }
-
-    return await db.deleteLesson(id)
+    // If it's a UUID, use it directly; otherwise try to convert to number
+    return await db.deleteLesson(lessonId)
   } catch (error) {
     console.error("Error in deleteLesson:", error)
     return {

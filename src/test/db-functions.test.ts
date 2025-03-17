@@ -19,8 +19,20 @@ describe('Database Functions', () => {
       // Mock data
       const lessonId = 1;
       const mockSections = [
-        { id: 1, title: 'Section 1', lesson_id: lessonId, position: 0 },
-        { id: 2, title: 'Section 2', lesson_id: lessonId, position: 1 },
+        { 
+          id: 1, 
+          title: 'Section 1', 
+          lesson_id: lessonId, 
+          position: 0,
+          quizzes: [{ id: 'quiz-1', title: 'Quiz 1' }]
+        },
+        { 
+          id: 2, 
+          title: 'Section 2', 
+          lesson_id: lessonId, 
+          position: 1,
+          quizzes: [{ id: 'quiz-2', title: 'Quiz 2' }]
+        },
       ];
       
       // Setup mock chain
@@ -48,8 +60,14 @@ describe('Database Functions', () => {
 
       // Assertions
       expect(supabase.from).toHaveBeenCalledWith('sections');
-      expect(mockFrom.select).toHaveBeenCalledWith('*');
-      expect(mockSelect.eq).toHaveBeenCalledWith('lesson_id', lessonId);
+      expect(mockFrom.select).toHaveBeenCalledWith(`
+      *,
+      quizzes (
+        id,
+        title
+      )
+    `);
+      expect(mockSelect.eq).toHaveBeenCalledWith('lesson_id', lessonId.toString());
       expect(mockEq.order).toHaveBeenCalledWith('position', { ascending: true });
       expect(result).toEqual(mockSections);
     });

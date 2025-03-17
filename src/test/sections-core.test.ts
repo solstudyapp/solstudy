@@ -25,13 +25,19 @@ describe('Sections Service - Core Tests', () => {
       expect(result).toEqual({ success: true });
     });
 
-    it('should validate numeric lesson ID', async () => {
-      // Test with non-numeric ID
+    it('should validate lesson ID', async () => {
+      // Test with invalid ID format
       const result = await saveSections('invalid-id', []);
       expect(result).toEqual({ 
         success: false, 
-        error: 'Invalid lesson ID: invalid-id. Expected a number.' 
+        error: 'Invalid lesson ID: invalid-id. Expected a UUID.' 
       });
+    });
+
+    it('should accept UUID lesson IDs', async () => {
+      // Test with a valid UUID
+      const result = await saveSections('b93adc56-7644-4bbf-ace3-202942c4ac14', []);
+      expect(result.success).toBe(true);
     });
   });
 }); 

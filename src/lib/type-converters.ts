@@ -100,9 +100,21 @@ export function safelyParseId(id: string | number, type: 'lesson' | 'section' | 
 
   // If it's a string...
   if (typeof id === 'string') {
-    // For lessons, we want to keep the string format (UUID)
+    // For lessons, we want to validate and return the UUID
     if (type === 'lesson') {
-      return id
+      // Check if it's a valid UUID format
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (uuidRegex.test(id)) {
+        return id;
+      }
+      
+      // If it's a pure numeric string, convert it (for backward compatibility)
+      if (!isNaN(Number(id)) && !id.includes('-')) {
+        return id;
+      }
+      
+      // If it's not a valid UUID or numeric string
+      return null;
     }
 
     // For sections and pages, convert to number if possible
@@ -119,12 +131,18 @@ export function safelyParseId(id: string | number, type: 'lesson' | 'section' | 
  * Check if a string ID is a temporary ID
  */
 export function isTemporaryId(id: string): boolean {
+  // Check if it's a valid UUID format (not temporary)
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (uuidRegex.test(id)) {
+    return false;
+  }
+  
   return (
     id.startsWith('new-') || 
     id.startsWith('section-') || 
     id.includes('section') || 
     id.startsWith('page-') || 
     id.includes('page') || 
-    isNaN(Number(id))
+    (isNaN(Number(id)) && id !== 'lesson-new' && !id.startsWith('new-lesson-'))
   );
 } 
