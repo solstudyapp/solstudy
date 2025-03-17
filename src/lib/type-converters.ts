@@ -131,6 +131,11 @@ export function safelyParseId(id: string | number, type: 'lesson' | 'section' | 
  * Check if a string ID is a temporary ID
  */
 export function isTemporaryId(id: string): boolean {
+  // Special cases that should always be considered temporary
+  if (id === 'lesson-new' || id.startsWith('new-lesson-')) {
+    return true;
+  }
+  
   // Check if it's a valid UUID format (not temporary)
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   if (uuidRegex.test(id)) {
