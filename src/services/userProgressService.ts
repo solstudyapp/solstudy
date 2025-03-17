@@ -628,11 +628,10 @@ export const userProgressService = {
         console.error("No authenticated user found");
         return 0;
       }
-      
-      // Get all completed lessons for this user
-      const { data: completedLessons, error } = await supabase
-        .from("user_progress")
-        .select("points_earned")
+  
+      const { data: userPoints, error } = await supabase
+        .from("user_profiles")
+        .select("points")
         .eq("user_id", user.id);
       
       if (error) {
@@ -640,12 +639,7 @@ export const userProgressService = {
         return 0;
       }
       
-      // Sum up points from all completed lessons
-      const totalPoints = completedLessons.reduce((sum, lesson: any) => {
-        return sum + (lesson.points_earned || 0);
-      }, 0);
-      
-      return totalPoints;
+      return userPoints[0].points;
     } catch (error) {
       console.error("Error in getTotalPoints:", error);
       return 0;

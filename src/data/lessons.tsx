@@ -18,7 +18,7 @@ export const dailyBonusLesson: LessonType = {
   rating: 5.0,
   reviewCount: 0,
   icon: <Database size={24} />,
-  sponsored: false,
+  is_sponsored: false,
   sponsorLogo: "",
   points: 50,
   bonusLesson: true,

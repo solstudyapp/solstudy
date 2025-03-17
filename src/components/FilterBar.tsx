@@ -49,14 +49,15 @@ export const FilterBar = ({
                 variant="ghost"
                 size="sm"
                 className={cn(
-                  "text-white/70 hover:text-white bg-white/10 hover:bg-white/20 rounded-full",
-                  activeDifficulty === difficulty && "bg-white/20 text-white"
+                  "p-0 h-7 bg-transparent hover:bg-transparent",
+                  activeDifficulty === difficulty &&
+                    "ring-2 ring-white/40 ring-offset-1 ring-offset-transparent"
                 )}
                 onClick={() => setActiveDifficulty(difficulty)}
               >
-                All Levels
+                <DifficultyBadge difficulty={difficulty as "all"} size="sm" />
               </Button>
-            );
+            )
           }
           
           return (

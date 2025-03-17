@@ -15,7 +15,7 @@ export function dbToFrontendLesson(lesson: DbLessonData): LessonType {
     rating: lesson.rating || 0,
     reviewCount: lesson.reviewCount || 0,
     icon: null, // Frontend will handle icon rendering
-    sponsored: lesson.sponsored || false,
+    is_sponsored: lesson.is_sponsored || false,
     sponsorLogo: lesson.sponsorLogo || "",
     points: lesson.points || 0,
     bonusLesson: lesson.bonusLesson || false,
@@ -33,7 +33,7 @@ export function frontendToDbLesson(lesson: LessonType): Omit<DbLessonData, 'id'>
     category: lesson.category,
     rating: lesson.rating || 0,
     reviewCount: lesson.reviewCount || 0,
-    sponsored: lesson.sponsored || false,
+    is_sponsored: lesson.is_sponsored || false,
     sponsorLogo: lesson.sponsorLogo || "",
     points: lesson.points || 0,
     // Convert icon ReactNode to string if needed

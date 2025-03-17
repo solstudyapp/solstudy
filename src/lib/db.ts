@@ -44,7 +44,7 @@ export async function createLesson(lesson: Omit<LessonType, 'id'>): Promise<{ id
       category: lesson.category,
       rating: lesson.rating || 0,
       rating_count: lesson.reviewCount || 0,
-      is_sponsored: lesson.sponsored,
+      is_sponsored: lesson.is_sponsored,
       points: lesson.points,
     })
     .select();
@@ -67,7 +67,7 @@ export async function updateLesson(id: string | number, lesson: Partial<LessonTy
       category: lesson.category,
       rating: lesson.rating,
       rating_count: lesson.reviewCount,
-      is_sponsored: lesson.sponsored,
+      is_sponsored: lesson.is_sponsored,
       points: lesson.points,
     })
     .eq('id', id);

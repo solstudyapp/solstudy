@@ -3,8 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 interface DifficultyBadgeProps {
-  difficulty: "beginner" | "intermediate" | "advanced";
-  size?: "sm" | "md";
+  difficulty: "beginner" | "intermediate" | "advanced" | "all"
+  size?: "sm" | "md"
 }
 
 export const DifficultyBadge = ({ difficulty, size = "md" }: DifficultyBadgeProps) => {
