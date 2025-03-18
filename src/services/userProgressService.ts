@@ -67,10 +67,14 @@ export const userProgressService = {
       const { data: progressData, error: progressError } = await supabase
         .from("user_progress")
         .select(`
+          id,
           lesson_id,
-          completed,
           is_completed,
           updated_at,
+          completed_sections,
+          completed_quizzes,
+          current_section_id,
+          current_page_id,
           lessons:lesson_id (
             id,
             title,
@@ -80,7 +84,7 @@ export const userProgressService = {
           )
         `)
         .eq("user_id", user.id)
-        .eq("is_completed", false)
+        .eq("is_completed", false) // Only get lessons not marked as completed
         .order("updated_at", { ascending: false });
       
       if (progressError) {
@@ -92,81 +96,81 @@ export const userProgressService = {
         return [];
       }
       
-      // Group by lesson_id and calculate progress
-      const lessonProgressMap = new Map<string, { 
-        totalPages: number; 
-        completedPages: number; 
-        lastActivity: string;
-        lesson: any;
-      }>();
+      console.log("Found courses in progress:", progressData.length, progressData);
       
-      // First, get all unique lesson IDs
-      const lessonIds = [...new Set(progressData.map(p => p.lesson_id))];
+      // Process each lesson in progress
+      const userProgressData: UserProgressData[] = [];
       
-      // For each lesson, get the total number of pages
-      for (const lessonId of lessonIds) {
-        if (!lessonId) continue;
-        
-        // Get the lesson data from the first entry
-        const lessonData = progressData.find(p => p.lesson_id === lessonId)?.lessons;
-        
-        if (!lessonData) continue;
-        
-        const { data: sectionsData, error: sectionsError } = await supabase
-          .from("sections")
-          .select("id")
-          .eq("lesson_id", lessonId);
-        
-        // Get total pages for this lesson
-        const { data: pagesData, error: pagesError } = await supabase
-          .from("pages")
-          .select("id")
-          .eq("section_id", sectionsData[0].id);
-        
-        if (pagesError) {
-          console.error(`Error fetching pages for lesson ${lessonId}:`, pagesError);
-          continue;
-        }
-              
-        const totalPages = pagesData?.length || 0;
-        // Count completed pages for this lesson
-        const completedPages = progressData
-          .filter(p => p.lesson_id === lessonId && p.completed)
-          .length;
-        
-        // Get the most recent activity
-        const lastActivity = progressData
-          .filter(p => p.lesson_id === lessonId)
-          .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())[0]?.updated_at;
-        
-        lessonProgressMap.set(lessonId, {
-          totalPages,
-          completedPages,
-          lastActivity: lastActivity || new Date().toISOString(),
-          lesson: lessonData
-        });
-      }
-      
-      // Convert to array and calculate progress percentage
-      return Array.from(lessonProgressMap.entries())
-        .map(([lessonId, data]) => {
-          const progress = data.totalPages > 0 
-            ? Math.round((data.completedPages / data.totalPages) * 100) 
-            : 0;
-
+      for (const entry of progressData) {
+        try {
+          const lessonData = entry.lessons;
           
-          // Only include lessons that are in progress (not 0% and not 100%)
+          if (!lessonData) {
+            console.warn(`No lesson data found for lesson_id: ${entry.lesson_id}`);
+            continue;
+          }
+          
+          // Get the lesson ID
+          const lessonId = entry.lesson_id;
+          
+          // Get the most recent activity timestamp
+          const lastActivity = entry.updated_at || new Date().toISOString();
+          
+          // Safely handle potentially malformed JSON data
+          let completedSections: string[] = [];
+          if (entry.completed_sections) {
+            try {
+              // If it's already an array, use it directly
+              if (Array.isArray(entry.completed_sections)) {
+                completedSections = entry.completed_sections;
+              } 
+              // If it's a string (malformed JSON), try to parse it
+              else if (typeof entry.completed_sections === 'string') {
+                // Handle malformed JSON by extracting IDs using regex
+                const matches = entry.completed_sections.match(/"([^"]+)"/g);
+                if (matches) {
+                  completedSections = matches.map(m => m.replace(/"/g, ''));
+                }
+              }
+            } catch (e) {
+              console.error(`Error parsing completed_sections for lesson ${lessonId}:`, e);
+            }
+          }
+          
+          // Get all sections for this lesson to calculate progress
+          const { data: sectionsData, error: sectionsError } = await supabase
+            .from("sections")
+            .select("id")
+            .eq("lesson_id", lessonId);
+          
+          if (sectionsError) {
+            console.error(`Error fetching sections for lesson ${lessonId}:`, sectionsError);
+            continue;
+          }
+          
+          const totalSections = sectionsData?.length || 0;
+          if (totalSections === 0) continue; // Skip lessons with no sections
+          
+          // Calculate progress as a percentage of completed sections
+          const progress = totalSections > 0 
+            ? Math.round((completedSections.length / totalSections) * 100) 
+            : 0;
+          
+          // Only include if progress is between 0 and 99%
           if (progress >= 0 && progress < 100) {
-            return {
+            userProgressData.push({
               lessonId,
               progress,
-              lastActivity: data.lastActivity,
-              ...data.lesson
-            };
+              lastActivity,
+              ...lessonData
+            });
           }
-          return null;
-        })
-        .filter(Boolean) as UserProgressData[];
+        } catch (error) {
+          console.error(`Error processing lesson progress for ${entry.lesson_id}:`, error);
+        }
+      }
+      
+      return userProgressData;
     } catch (error) {
       console.error("Error in getCoursesInProgress:", error);
       return [];
@@ -190,9 +194,13 @@ export const userProgressService = {
       const { data: progressData, error: progressError } = await supabase
         .from("user_progress")
         .select(`
+          id,
           lesson_id,
           is_completed,
           updated_at,
+          completed_sections,
+          completed_quizzes,
+          points_earned,
           lessons:lesson_id (
             id,
             title,
@@ -214,88 +222,31 @@ export const userProgressService = {
         return [];
       }
       
-      // Group by lesson_id
-      const lessonCompletionMap = new Map<string, { 
-        totalPages: number; 
-        completedPages: number; 
-        completedDate: string;
-        lesson: any;
-      }>();
+      console.log("Found completed courses:", progressData.length, progressData);
       
-      // First, get all unique lesson IDs
-      const lessonIds = [...new Set(progressData.map(p => p.lesson_id))];
-      
-      // For each lesson, get the total number of pages
-      for (const lessonId of lessonIds) {
-        if (!lessonId) continue;
+      // Convert to CompletedLessonData format
+      return progressData.map(entry => {
+        // Get the lesson data
+        const lessonData = entry.lessons;
         
-        // Get the lesson data from the first entry
-        const lessonData = progressData.find(p => p.lesson_id === lessonId)?.lessons;
-        
-        if (!lessonData) continue;
-        
-        const { data: sectionsData, error: sectionsError } = await supabase
-          .from("sections")
-          .select("id")
-          .eq("lesson_id", lessonId);
-          
-        if (sectionsError) {
-          console.error(`Error fetching sections for lesson ${lessonId}:`, sectionsError);
-          continue;
-        }
-
-        console.log("sectionsData", sectionsData);
-        // Get total pages for this lesson
-        const { data: pagesData, error: pagesError } = await supabase
-          .from("pages")
-          .select("id")
-          .eq("section_id", sectionsData[0].id);
-        
-        if (pagesError) {
-          console.error(`Error fetching pages for lesson ${lessonId}:`, pagesError);
-          continue;
-        }
-        
-        const totalPages = pagesData?.length || 0;
-
-        // Count completed pages for this lesson
-        const completedPages = progressData
-          .filter(p => p.lesson_id === lessonId && p.is_completed)
-          .length;
-
-        // Get the most recent completion date
-        const completedDate = progressData
-          .filter(p => p.lesson_id === lessonId && p.is_completed)
-          .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())[0]?.updated_at;
-
-        lessonCompletionMap.set(lessonId, {
-          totalPages,
-          completedPages,
-          completedDate: completedDate || new Date().toISOString(),
-          lesson: lessonData
-        });
-      }
-      
-      console.log("lessonCompletionMap", lessonCompletionMap);
-      // Convert to array and filter for completed lessons (100% progress)
-      return Array.from(lessonCompletionMap.entries())
-        .map(([lessonId, data]) => {
-          const progress = data.totalPages > 0 
-            ? Math.round((data.completedPages / data.totalPages) * 100) 
-            : 0;
-          
-          // Only include lessons that are completed (100%)
-          if (progress === 100) {
-            return {
-              lessonId,
-              completedDate: new Date(data.completedDate).toLocaleDateString(),
-              earnedPoints: data.lesson.points || 0,
-              ...data.lesson
-            };
-          }
+        if (!lessonData) {
+          console.warn(`No lesson data found for lesson_id: ${entry.lesson_id}`);
           return null;
-        })
-        .filter(Boolean) as CompletedLessonData[];
+        }
+        
+        // Get completion date from updated_at
+        const completedDate = entry.updated_at || new Date().toISOString();
+        
+        // Get earned points (use points_earned if available, otherwise use lesson.points)
+        const earnedPoints = entry.points_earned || (lessonData as any).points || 0;
+        
+        return {
+          lessonId: entry.lesson_id,
+          completedDate: new Date(completedDate).toLocaleDateString(),
+          earnedPoints: earnedPoints,
+          ...lessonData
+        };
+      }).filter(Boolean) as CompletedLessonData[];
     } catch (error) {
       console.error("Error in getCompletedCourses:", error);
       return [];
