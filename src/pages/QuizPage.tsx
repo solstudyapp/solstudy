@@ -12,6 +12,7 @@ import { fetchLessonById } from "@/services/lessons"
 import { fetchSections } from "@/services/sections"
 import { LessonType, Section, Quiz } from "@/types/lesson"
 import { Button } from "@/components/ui/button"
+import { LessonRatingModal } from "@/components/lesson/LessonRatingModal"
 
 // Interface for quiz data from Supabase
 interface DBQuiz {
@@ -105,6 +106,7 @@ const QuizPage = () => {
   const [sections, setSections] = useState<Section[]>([])
   const [quiz, setQuiz] = useState<Quiz | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [showRatingModal, setShowRatingModal] = useState(false)
 
   // Determine if this is a final test
   const isFinalTest = sectionId === "final"
@@ -383,12 +385,8 @@ const QuizPage = () => {
   const handleFeedbackComplete = () => {
     setShowFeedback(false)
 
-    // After the final test, go to dashboard
-    toast({
-      title: "Course completed!",
-      description: "Congratulations! You've completed the entire course.",
-    })
-    navigate("/dashboard")
+    // After the final test, show rating modal
+    setShowRatingModal(true)
   }
 
   // Determine if user has answered the current question
@@ -429,6 +427,20 @@ const QuizPage = () => {
           <FeedbackDialog
             lessonId={lessonId || ""}
             onComplete={handleFeedbackComplete}
+          />
+        )}
+
+        {/* Rating Modal */}
+        {showRatingModal && lesson && (
+          <LessonRatingModal
+            isOpen={showRatingModal}
+            onClose={() => {
+              setShowRatingModal(false)
+              // Navigate to dashboard after closing the rating modal
+              navigate("/dashboard")
+            }}
+            lessonId={String(lesson.id)}
+            lessonTitle={lesson.title}
           />
         )}
       </div>

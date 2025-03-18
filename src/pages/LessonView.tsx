@@ -7,6 +7,7 @@ import { useProgress } from "@/hooks/use-progress"
 import LessonSidebar from "@/components/lesson/LessonSidebar"
 import LessonHeader from "@/components/lesson/LessonHeader"
 import LessonContent from "@/components/lesson/LessonContent"
+import { LessonRatingModal } from "@/components/lesson/LessonRatingModal"
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
 import { fetchLessonById } from "@/services/lessons"
@@ -25,6 +26,7 @@ const LessonView = () => {
   const [lesson, setLesson] = useState<LessonType | null>(null)
   const [sections, setSections] = useState<Section[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [showRatingModal, setShowRatingModal] = useState(false)
   const { completePage, completeSection } = useProgress()
   const isFirstRender = useRef(true)
 
@@ -147,6 +149,7 @@ const LessonView = () => {
 
   // Update saved progress when section or page changes
   useEffect(() => {
+    console.log("Updating progress")
     if (isFirstRender.current) {
       isFirstRender.current = false
       return
@@ -171,7 +174,7 @@ const LessonView = () => {
         })
       }
     }
-  }, [lesson?.id, currentSection, currentPage, sections, completePage])
+  }, [lesson, currentSection, currentPage, sections])
 
   if (loading) {
     return (
@@ -299,12 +302,8 @@ const LessonView = () => {
 
               if (error) {
                 console.error("Error checking for final test:", error)
-                // If there's an error, just navigate to dashboard
-                toast({
-                  title: "Lesson completed!",
-                  description: "Congratulations! You've completed the lesson.",
-                })
-                navigate("/dashboard")
+                // Show rating modal instead of going directly to dashboard
+                setShowRatingModal(true)
                 return
               }
 
@@ -314,21 +313,13 @@ const LessonView = () => {
                 // Navigate to the final test
                 navigate(`/quiz/${lesson.id}/final`)
               } else {
-                // If there's no final test, mark the lesson as completed and go to dashboard
-                toast({
-                  title: "Lesson completed!",
-                  description: "Congratulations! You've completed the lesson.",
-                })
-                navigate("/dashboard")
+                // If there's no final test, show the rating modal
+                setShowRatingModal(true)
               }
             } catch (error) {
               console.error("Error in checkFinalTest:", error)
-              // If there's an error, just navigate to dashboard
-              toast({
-                title: "Lesson completed!",
-                description: "Congratulations! You've completed the lesson.",
-              })
-              navigate("/dashboard")
+              // Show rating modal
+              setShowRatingModal(true)
             }
           }
 
@@ -404,6 +395,16 @@ const LessonView = () => {
           />
         </div>
       </div>
+
+      {/* Add the rating modal */}
+      {lesson && (
+        <LessonRatingModal
+          isOpen={showRatingModal}
+          onClose={() => setShowRatingModal(false)}
+          lessonId={lesson.id}
+          lessonTitle={lesson.title}
+        />
+      )}
     </div>
   )
 }

@@ -13,7 +13,7 @@ export function dbToFrontendLesson(lesson: DbLessonData): LessonType {
     sections: 0, // Will be populated later
     pages: 0, // Will be populated later
     rating: lesson.rating || 0,
-    reviewCount: lesson.reviewCount || 0,
+    reviewCount: lesson.rating_count || 0,
     icon: null, // Frontend will handle icon rendering
     is_sponsored: lesson.is_sponsored || false,
     sponsorLogo: lesson.sponsorLogo || "",

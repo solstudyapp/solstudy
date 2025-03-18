@@ -55,18 +55,20 @@ const LessonContent = ({
         </p>
       </div>
 
-      <div className="prose prose-invert max-w-none">
+      <div className="prose prose-invert max-w-none pb-4">
         {parse(currentPageData.content)}
       </div>
 
-      <div className="mt-8 border-t border-white/10 pt-6">
-        <PageCompletion
-          lessonId={lesson.id}
-          sectionId={sectionId}
-          pageId={currentPageData.id}
-          onComplete={isLastPageOfSection ? undefined : navigateNext}
-        />
-      </div>
+      {!isLastPage && (
+        <div className="mt-8 border-t border-white/10 pt-6">
+          <PageCompletion
+            lessonId={lesson.id}
+            sectionId={sectionId}
+            pageId={currentPageData.id}
+            onComplete={isLastPageOfSection ? undefined : navigateNext}
+          />
+        </div>
+      )}
 
       <LessonNavigation
         lessonId={lesson.id}

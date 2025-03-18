@@ -34,7 +34,7 @@ export function PageCompletion({
     }
 
     checkCompletion()
-  }, [lessonId, sectionId, pageId, checkPageCompletion])
+  }, [lessonId, sectionId, pageId])
 
   const handleMarkAsCompleted = async () => {
     const success = await completePage(lessonId, sectionId, pageId)

@@ -69,7 +69,7 @@ export interface DbLessonData {
   difficulty?: string;
   category?: string;
   rating?: number;
-  reviewCount?: number;
+  rating_count?: number;
   is_sponsored?: boolean;
   sponsorLogo?: string;
   points?: number;
