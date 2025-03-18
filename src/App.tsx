@@ -9,6 +9,7 @@ import AuthPage from "./pages/AuthPage"
 import EmailConfirmationPageWrapper from "./pages/EmailConfirmationPageWrapper"
 import LessonView from "./pages/LessonView"
 import QuizPage from "./pages/QuizPage"
+import QuizProgressPage from "./pages/QuizProgressPage"
 import NotFound from "./pages/NotFound"
 import About from "./pages/About"
 import ProtectedRoute from "./components/ProtectedRoute"
@@ -81,6 +82,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/quiz-progress"
+            element={
+              <ProtectedRoute>
+                <QuizProgressPage />
               </ProtectedRoute>
             }
           />

@@ -23,19 +23,21 @@ const Footer = () => {
   };
 
   const socialLinks = [
-    { icon: <Facebook size={32} />, url: "https://facebook.com", label: "Facebook" },
-    { icon: <Instagram size={32} />, url: "https://instagram.com", label: "Instagram" },
-    { icon: <Linkedin size={32} />, url: "https://linkedin.com", label: "LinkedIn" },
-    { 
-      icon: <img 
-        src="https://about.x.com/content/dam/about-twitter/x/brand-toolkit/logo-black.png.twimg.1920.png" 
-        alt="X logo" 
-        className="w-6 h-6 invert" // Invert to make it white
-      />, 
-      url: "https://x.com", 
-      label: "X" 
-    }
-  ];
+    // { icon: <Facebook size={32} />, url: "https://facebook.com", label: "Facebook" },
+    // { icon: <Instagram size={32} />, url: "https://instagram.com", label: "Instagram" },
+    // { icon: <Linkedin size={32} />, url: "https://linkedin.com", label: "LinkedIn" },
+    {
+      icon: (
+        <img
+          src="https://about.x.com/content/dam/about-twitter/x/brand-toolkit/logo-black.png.twimg.1920.png"
+          alt="X logo"
+          className="w-6 h-6 invert" // Invert to make it white
+        />
+      ),
+      url: "https://x.com/solstudy",
+      label: "X",
+    },
+  ]
 
   return (
     <footer className="border-t border-white/10 bg-black/80 backdrop-blur-lg mt-16">

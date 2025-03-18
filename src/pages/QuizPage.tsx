@@ -13,6 +13,8 @@ import { fetchSections } from "@/services/sections"
 import { LessonType, Section, Quiz } from "@/types/lesson"
 import { Button } from "@/components/ui/button"
 import { LessonRatingModal } from "@/components/lesson/LessonRatingModal"
+import { userProgressService } from "@/services/userProgressService"
+import { quizService } from "@/services/quizService"
 
 // Interface for quiz data from Supabase
 interface DBQuiz {
@@ -315,23 +317,75 @@ const QuizPage = () => {
     }, 0)
   }
 
-  const handleCompleteQuiz = () => {
+  const handleCompleteQuiz = async (earnedPoints: number) => {
     const score = calculateScore()
+    const totalQuestions = quiz?.questions?.length || 1
+    const percentScore = (score / totalQuestions) * 100
 
-    // Mark the section as completed or record final test completion
+    console.log(
+      `Quiz completed with score: ${score}/${totalQuestions} (${percentScore}%), earned points: ${earnedPoints}`
+    )
+
+    // First check if the quiz is already completed
+    if (quiz && (await quizService.hasCompletedQuiz(quiz.id))) {
+      console.log(`Quiz ${quiz.id} already completed, skipping DB update`)
+
+      // Still mark local progress for UI feedback
+      if (isFinalTest) {
+        lessonService.completeQuiz(quiz, score, earnedPoints)
+        lessonService.completeFinalTest(lessonId || "")
+        setShowFeedback(true)
+      } else {
+        lessonService.completeQuiz(quiz, score, earnedPoints)
+        lessonService.completeSection(lessonId || "", sectionId || "")
+        handleSectionQuizComplete()
+      }
+      return
+    }
+
+    // Mark the section as completed or record final test completion locally
     if (isFinalTest) {
       // Only complete the test if it hasn't been completed before
       if (!lessonService.isFinalTestCompleted(lessonId || "")) {
-        lessonService.completeQuiz(quiz, score)
+        // Pass the earned points to the completeQuiz method for local storage
+        lessonService.completeQuiz(quiz, score, earnedPoints)
         lessonService.completeFinalTest(lessonId || "")
+
+        // Update total points in Supabase
+        if (quiz) {
+          try {
+            await userProgressService.completeQuiz(
+              lessonId || "",
+              quiz.id,
+              percentScore,
+              earnedPoints
+            )
+          } catch (error) {
+            console.error("Error updating quiz completion in Supabase:", error)
+          }
+        }
       }
 
       // Show feedback dialog after the final test
       setShowFeedback(true)
     } else {
-      // For section quizzes, mark the section as completed
-      lessonService.completeQuiz(quiz, score)
+      // For section quizzes, mark the section as completed locally
+      lessonService.completeQuiz(quiz, score, earnedPoints)
       lessonService.completeSection(lessonId || "", sectionId || "")
+
+      // Update points in Supabase
+      if (quiz) {
+        try {
+          await userProgressService.completeQuiz(
+            lessonId || "",
+            quiz.id,
+            percentScore,
+            earnedPoints
+          )
+        } catch (error) {
+          console.error("Error updating quiz completion in Supabase:", error)
+        }
+      }
 
       // For section quizzes, proceed directly to navigation without showing feedback
       handleSectionQuizComplete()

@@ -66,7 +66,7 @@ export const lessonService = {
   },
   
   // Mark a quiz as completed and award points
-  completeQuiz: (quiz: Quiz, score: number): void => {
+  completeQuiz: (quiz: Quiz, score: number, earnedPoints: number): void => {
     if (!quiz) {
       console.error("Cannot complete quiz: quiz is undefined");
       return;
@@ -78,14 +78,15 @@ export const lessonService = {
     if (!progress.completedQuizzes.includes(quiz.id)) {
       progress.completedQuizzes.push(quiz.id);
       
-      // Calculate points based on score
-      const earnedPoints = Math.round((score / quiz.questions.length) * quiz.rewardPoints);
-      progress.earnedPoints += earnedPoints;
+      // Use the earned points passed from the QuizPage component
+      // If earnedPoints is not provided, calculate based on score
+      const pointsToAdd = earnedPoints || Math.round((score / quiz.questions.length) * quiz.rewardPoints);
+      progress.earnedPoints += pointsToAdd;
       
       // Update user total points
-      userPointsStore[CURRENT_USER_ID] = (userPointsStore[CURRENT_USER_ID] || 0) + earnedPoints;
+      userPointsStore[CURRENT_USER_ID] = (userPointsStore[CURRENT_USER_ID] || 0) + pointsToAdd;
       
-      console.log(`Quiz ${quiz.id} completed with score ${score}/${quiz.questions.length} and earned ${earnedPoints} points`);
+      console.log(`Quiz ${quiz.id} completed with score ${score}/${quiz.questions.length} and earned ${pointsToAdd} points`);
     }
     
     userProgressStore[key] = progress;

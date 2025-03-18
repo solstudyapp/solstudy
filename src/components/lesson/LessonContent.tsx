@@ -1,7 +1,6 @@
 import React from "react"
 import { LessonType, Page, Section } from "@/types/lesson"
 import LessonNavigation from "./LessonNavigation"
-import { PageCompletion } from "./PageCompletion"
 import parse from "html-react-parser"
 
 interface LessonContentProps {
@@ -58,17 +57,6 @@ const LessonContent = ({
       <div className="prose prose-invert max-w-none pb-4">
         {parse(currentPageData.content)}
       </div>
-
-      {!isLastPage && (
-        <div className="mt-8 border-t border-white/10 pt-6">
-          <PageCompletion
-            lessonId={lesson.id}
-            sectionId={sectionId}
-            pageId={currentPageData.id}
-            onComplete={isLastPageOfSection ? undefined : navigateNext}
-          />
-        </div>
-      )}
 
       <LessonNavigation
         lessonId={lesson.id}

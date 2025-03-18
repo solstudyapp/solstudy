@@ -34,8 +34,12 @@ const generateDateLabels = (days: number) => {
   const data = []
   const today = new Date()
 
+  // Calculate appropriate interval based on period length
+  // For 7 days, show every day; for 30 days, show ~6 days; for 90 days, show ~15 days
+  const interval = days <= 7 ? 1 : Math.max(1, Math.floor(days / 6))
+
   // Generate data for the specified number of days
-  for (let i = days; i >= 0; i -= Math.max(1, Math.floor(days / 6))) {
+  for (let i = days; i >= 0; i -= interval) {
     const date = subDays(today, i)
     const formattedDate = format(date, "MMM d")
 
@@ -107,14 +111,29 @@ const StatCard = ({
 // Custom tooltip component for charts
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
+    const value = payload[0].value
+    const name = payload[0].name || payload[0].dataKey
+
+    let displayName = name
+    if (name === "users") displayName = "Active Users"
+    if (name === "points") displayName = "Points Earned"
+    if (name === "lessons") displayName = "Lessons Completed"
+
     return (
-      <div className="bg-black/80 p-2 border border-white/20 rounded text-xs">
-        <p className="font-medium text-white">{label}</p>
-        {payload.map((entry: any, index: number) => (
-          <p key={index} style={{ color: entry.color }}>
-            {entry.name}: {entry.value}
+      <div className="bg-black/90 p-3 border border-white/20 rounded-md shadow-lg">
+        <p className="font-medium text-white text-sm mb-1">{label}</p>
+        <div className="flex items-center gap-2">
+          <div
+            className="w-3 h-3 rounded-full"
+            style={{ backgroundColor: payload[0].color }}
+          />
+          <p
+            className="text-sm font-medium"
+            style={{ color: payload[0].color }}
+          >
+            {displayName}: <span className="text-white">{value}</span>
           </p>
-        ))}
+        </div>
       </div>
     )
   }
@@ -133,6 +152,16 @@ const ChartCard = ({
   dataProp: string
   period: string
 }) => {
+  // Get max value to set appropriate Y-axis domain
+  const maxValue = Math.max(...data.map((item) => Number(item[dataProp]))) || 10
+  // Add 20% padding to max value for better visualization
+  const yAxisMax = Math.ceil(maxValue * 1.2)
+
+  // Select appropriate colors based on the data type
+  const strokeColor = dataProp === "users" ? "#14F195" : "#9945FF"
+  const dotColor = dataProp === "users" ? "#14F195" : "#9945FF"
+  const activeDotColor = "#ffffff"
+
   return (
     <Card className="admin-card">
       <CardHeader>
@@ -163,15 +192,19 @@ const ChartCard = ({
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
+                domain={[0, yAxisMax]}
               />
               <Tooltip content={<CustomTooltip />} />
               <Line
                 type="monotone"
                 dataKey={dataProp}
-                stroke="#9945FF"
-                activeDot={{ r: 6, fill: "#14F195" }}
+                stroke={strokeColor}
+                activeDot={{ r: 6, fill: activeDotColor }}
                 strokeWidth={2}
-                dot={{ r: 4, fill: "#9945FF", strokeWidth: 0 }}
+                dot={{ r: 4, fill: dotColor, strokeWidth: 0 }}
+                name={dataProp === "users" ? "Active Users" : "Points Earned"}
+                isAnimationActive={true}
+                animationDuration={1000}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -300,79 +333,137 @@ const AdminOverview = () => {
           ? 100
           : 0
 
-      // 9. Populate chart data with user activity over time
-      // This is a simplified approach - in a real app, you'd query activity logs
-      const populatedChartData = dateLabels.map((day) => {
-        const dayDate = new Date(day.timestamp)
+      // 9. Get activity data for the selected period
+      // Calculate the start date for our query
+      const periodStartDate = subDays(now, days)
 
-        // Count users active on this day (simplified)
-        const activeOnDay =
-          userProfiles?.filter((user) => {
-            const lastActivity = new Date(user.last_activity)
-            return (
-              lastActivity >= startOfDay(dayDate) &&
-              lastActivity <= endOfDay(dayDate)
-            )
-          }).length || 0
+      // Create a map to store data for each day in our period
+      const activityByDay = new Map()
 
-        // Calculate points earned on this day
-        const pointsOnDay =
-          userProfiles?.reduce((sum, user) => {
-            const lastActivity = new Date(user.last_activity)
-            // If user was active on this day, count their points contribution
-            // This is a simplified approach - ideally you'd have a points_history table
-            if (
-              lastActivity >= startOfDay(dayDate) &&
-              lastActivity <= endOfDay(dayDate)
-            ) {
-              // Distribute total points across active days
-              // This is an estimation since we don't have actual daily points data
-              const userActiveDays = Math.max(
-                1,
-                Math.floor(
-                  (new Date().getTime() - new Date(user.created_at).getTime()) /
-                    (1000 * 60 * 60 * 24)
-                )
-              )
-              return sum + Math.round((user.points || 0) / userActiveDays)
+      // Initialize data for all days in the period
+      for (let i = 0; i <= days; i++) {
+        const date = subDays(now, days - i)
+        const dateStr = format(date, "yyyy-MM-dd")
+        const formattedDate = format(date, "MMM d")
+
+        activityByDay.set(dateStr, {
+          date: formattedDate,
+          day: i === days ? "Today" : `${days - i}d ago`,
+          timestamp: date.toISOString(),
+          users: 0,
+          points: 0,
+          lessons: 0,
+        })
+      }
+
+      // Fetch user activity data from user_progress table
+      const { data: userProgressData, error: progressError } = await supabase
+        .from("user_progress")
+        .select("updated_at, is_completed, points_earned, lesson_id, user_id")
+        .gte("updated_at", periodStartDate.toISOString())
+        .order("updated_at", { ascending: true })
+
+      if (progressError) {
+        console.error("Error fetching user progress data:", progressError)
+      } else if (userProgressData && userProgressData.length > 0) {
+        // Process user activity data
+        const activeUsersByDay = new Map()
+        const completedLessonsByDay = new Map()
+
+        userProgressData.forEach((progress) => {
+          const date = new Date(progress.updated_at)
+          const dateKey = format(date, "yyyy-MM-dd")
+
+          // Update active users count
+          if (!activeUsersByDay.has(dateKey)) {
+            activeUsersByDay.set(dateKey, new Set())
+          }
+          activeUsersByDay.get(dateKey).add(progress.user_id)
+
+          // Track completed lessons
+          if (progress.is_completed) {
+            if (!completedLessonsByDay.has(dateKey)) {
+              completedLessonsByDay.set(dateKey, new Set())
             }
-            return sum
-          }, 0) || 0
+            completedLessonsByDay.get(dateKey).add(progress.lesson_id)
+          }
 
-        // Calculate lessons completed on this day
-        const lessonsOnDay =
-          userProfiles?.reduce((sum, user) => {
-            const lastActivity = new Date(user.last_activity)
-            // If user was active on this day, count their lessons contribution
-            if (
-              lastActivity >= startOfDay(dayDate) &&
-              lastActivity <= endOfDay(dayDate)
-            ) {
-              // Distribute total lessons across active days
-              // This is an estimation since we don't have actual daily lesson completion data
-              const userActiveDays = Math.max(
-                1,
-                Math.floor(
-                  (new Date().getTime() - new Date(user.created_at).getTime()) /
-                    (1000 * 60 * 60 * 24)
-                )
-              )
-              return (
-                sum + Math.round((user.lessons_completed || 0) / userActiveDays)
-              )
+          // If we have this date in our chart data, update it
+          if (activityByDay.has(dateKey)) {
+            const dayData = activityByDay.get(dateKey)
+
+            // Add points earned on this day
+            if (progress.points_earned) {
+              dayData.points += progress.points_earned
             }
-            return sum
-          }, 0) || 0
 
-        return {
-          ...day,
-          users: activeOnDay,
-          // Use real points data instead of random values
-          points: pointsOnDay,
-          // Use real lessons data instead of random values
-          lessons: lessonsOnDay,
-        }
-      })
+            activityByDay.set(dateKey, dayData)
+          }
+        })
+
+        // Update users count for each day
+        activeUsersByDay.forEach((usersSet, dateKey) => {
+          if (activityByDay.has(dateKey)) {
+            const dayData = activityByDay.get(dateKey)
+            dayData.users = usersSet.size
+            activityByDay.set(dateKey, dayData)
+          }
+        })
+
+        // Update completed lessons count for each day
+        completedLessonsByDay.forEach((lessonsSet, dateKey) => {
+          if (activityByDay.has(dateKey)) {
+            const dayData = activityByDay.get(dateKey)
+            dayData.lessons = lessonsSet.size
+            activityByDay.set(dateKey, dayData)
+          }
+        })
+      }
+
+      // Fetch referral points data
+      const { data: referralData, error: referralError } = await supabase
+        .from("referrals")
+        .select("created_at, points_earned, status")
+        .eq("status", "completed")
+        .gte("created_at", periodStartDate.toISOString())
+        .order("created_at", { ascending: true })
+
+      if (referralError) {
+        console.error("Error fetching referral data:", referralError)
+      } else if (referralData && referralData.length > 0) {
+        // Add referral points to our daily data
+        referralData.forEach((referral) => {
+          const date = new Date(referral.created_at)
+          const dateKey = format(date, "yyyy-MM-dd")
+
+          // If we have this date in our chart data, update points
+          if (activityByDay.has(dateKey) && referral.points_earned) {
+            const dayData = activityByDay.get(dateKey)
+            dayData.points += referral.points_earned
+            activityByDay.set(dateKey, dayData)
+          }
+        })
+      }
+
+      // Filter out data points based on interval to ensure we don't have too many labels
+      const interval = days <= 7 ? 1 : Math.max(1, Math.floor(days / 6))
+      let dayCounter = 0
+
+      // Convert map to array and ensure it's properly sorted
+      const populatedChartData = Array.from(activityByDay.values())
+        .sort(
+          (a, b) =>
+            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+        )
+        // Filter to show appropriate number of data points based on period
+        .filter((_, index, array) => {
+          // Always include first and last data point
+          if (index === 0 || index === array.length - 1) return true
+
+          // Otherwise include based on interval
+          dayCounter++
+          return dayCounter % interval === 0
+        })
 
       // Update state with fetched data
       setStats({
@@ -461,7 +552,7 @@ const AdminOverview = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                 <ChartCard
                   title="User Activity"
                   data={chartData}
@@ -472,6 +563,12 @@ const AdminOverview = () => {
                   title="Points Distribution"
                   data={chartData}
                   dataProp="points"
+                  period={period}
+                />
+                <ChartCard
+                  title="Lesson Completions"
+                  data={chartData}
+                  dataProp="lessons"
                   period={period}
                 />
               </div>

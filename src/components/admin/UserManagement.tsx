@@ -414,13 +414,13 @@ const UserManagement = () => {
                           align="end"
                           className="bg-black/70 backdrop-blur-md border-white/10 text-white"
                         >
-                          <DropdownMenuItem
+                          {/* <DropdownMenuItem
                             onClick={() => handleSingleAirdrop(user)}
                             className="hover:bg-white/10 cursor-pointer"
                           >
                             <Gift size={16} className="mr-2" />
                             Send Points
-                          </DropdownMenuItem>
+                          </DropdownMenuItem> */}
                           <DropdownMenuItem
                             onClick={() => handleSingleUserSettings(user)}
                             className="hover:bg-white/10 cursor-pointer"

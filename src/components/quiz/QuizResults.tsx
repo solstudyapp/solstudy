@@ -6,7 +6,7 @@ import { Quiz } from "@/types/lesson"
 interface QuizResultsProps {
   score: number
   totalQuestions: number
-  onComplete: () => void
+  onComplete: (earnedPoints: number) => void
   quiz?: Quiz // Make quiz optional for backward compatibility
 }
 
@@ -21,6 +21,7 @@ const QuizResults = ({
   const earnedPoints = Math.round(
     (score / questionCount) * (quiz?.rewardPoints || 100)
   )
+
   const isFinalTest = quiz?.isFinalTest || false
 
   return (
@@ -51,7 +52,7 @@ const QuizResults = ({
           </div>
 
           <Button
-            onClick={onComplete}
+            onClick={() => onComplete(earnedPoints)}
             className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0 mt-4"
           >
             {isFinalTest ? "Finish Lesson" : "Complete Quiz"}

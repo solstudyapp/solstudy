@@ -474,10 +474,10 @@ export const userProgressService = {
     lessonId: string,
     quizId: string,
     score: number,
-    totalPoints: number
+    earnedPoints: number
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      console.log(`Completing quiz ${quizId} for lesson ${lessonId} with score ${score}/${totalPoints}`);
+      console.log(`Completing quiz ${quizId} for lesson ${lessonId} with score ${score} and earned points ${earnedPoints}`);
       
       // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
@@ -487,10 +487,46 @@ export const userProgressService = {
         return { success: false, error: "Not authenticated" };
       }
       
-      // Calculate earned points based on score percentage
-      const earnedPoints = Math.round((score / 100) * totalPoints);
+      // First check if the user has already completed this quiz
+      const { data: existingCompletion, error: checkError } = await supabase
+        .from("user_quizzes")
+        .select("id, points_earned, completed_at")
+        .eq("user_id", user.id)
+        .eq("quiz_id", quizId)
+        .single();
       
-      // Get the current progress
+      if (checkError && checkError.code !== "PGRST116") {
+        console.error("Error checking existing quiz completion:", checkError);
+        return { success: false, error: checkError.message };
+      }
+      
+      // If the user has already completed this quiz, return early
+      if (existingCompletion) {
+        console.log(`User has already completed quiz ${quizId} on ${existingCompletion.completed_at} and earned ${existingCompletion.points_earned} points`);
+        return { success: true, error: "Quiz already completed" };
+      }
+      
+      // Record the quiz completion in user_quizzes table
+      const { error: insertError } = await supabase
+        .from("user_quizzes")
+        .insert({
+          user_id: user.id,
+          quiz_id: quizId,
+          lesson_id: lessonId,
+          score: score, // score as percentage
+          points_earned: earnedPoints,
+          completed_at: new Date().toISOString(),
+        });
+      
+      if (insertError) {
+        console.error("Error recording quiz completion:", insertError);
+        return { success: false, error: insertError.message };
+      }
+      
+      console.log(`Recorded quiz completion for user ${user.id}, quiz ${quizId}, earned ${earnedPoints} points`);
+      
+      // Also update the user_progress table to mark this quiz as completed
+      // This is helpful for tracking overall lesson progress
       const { data: progress, error: fetchError } = await supabase
         .from("user_progress")
         .select("*")
@@ -499,59 +535,34 @@ export const userProgressService = {
         .single();
       
       if (fetchError && fetchError.code !== "PGRST116") {
-        console.error("Error fetching progress:", fetchError);
-        return { success: false, error: fetchError.message };
+        console.error("Error fetching user progress:", fetchError);
+        // Continue even if this fails, as the important part is the user_quizzes record
       }
       
-      if (!progress) {
-        // Create a new progress record with this quiz completed
-        const { error: insertError } = await supabase
-          .from("user_progress")
-          .insert({
-            user_id: user.id,
-            lesson_id: lessonId,
-            current_section_id: "",
-            current_page_id: "",
-            completed_sections: [],
-            completed_quizzes: [quizId],
-            is_completed: false,
-            points_earned: earnedPoints,
-            last_accessed_at: new Date().toISOString(),
-          });
-        
-        if (insertError) {
-          console.error("Error creating progress with completed quiz:", insertError);
-          return { success: false, error: insertError.message };
-        }
-      } else {
+      if (progress) {
         // Update the existing progress record
         const completedQuizzes = progress.completed_quizzes || [];
-        let totalPoints = progress.points_earned || 0;
         
-        // Only add the quiz and points if it's not already completed
+        // Only add the quiz if it's not already in the list
         if (!completedQuizzes.includes(quizId)) {
           completedQuizzes.push(quizId);
-          totalPoints += earnedPoints;
-        }
-        
-        const { error: updateError } = await supabase
-          .from("user_progress")
-          .update({
-            completed_quizzes: completedQuizzes,
-            points_earned: totalPoints,
-            last_accessed_at: new Date().toISOString(),
-          })
-          .eq("id", progress.id);
-        
-        if (updateError) {
-          console.error("Error updating completed quizzes:", updateError);
-          return { success: false, error: updateError.message };
+          
+          const { error: updateError } = await supabase
+            .from("user_progress")
+            .update({
+              completed_quizzes: completedQuizzes,
+              last_accessed_at: new Date().toISOString(),
+            })
+            .eq("id", progress.id);
+          
+          if (updateError) {
+            console.error("Error updating user progress:", updateError);
+            // Continue even if this fails
+          }
         }
       }
       
-      // Also update the user's total points in the users table
-      await this.updateUserTotalPoints(user.id);
-      
+      // The database trigger will automatically update the user's total points
       return { success: true };
     } catch (error) {
       console.error("Error in completeQuiz:", error);
@@ -643,6 +654,8 @@ export const userProgressService = {
         }
       }
       
+      // The database trigger now handles updating the user's total points
+      
       return { success: true };
     } catch (error) {
       console.error("Error in completeLesson:", error);
@@ -672,7 +685,7 @@ export const userProgressService = {
         .eq("user_id", user.id);
       
       if (error) {
-        console.error("Error fetching completed lessons:", error);
+        console.error("Error fetching user points:", error);
         return 0;
       }
       
@@ -680,41 +693,6 @@ export const userProgressService = {
     } catch (error) {
       console.error("Error in getTotalPoints:", error);
       return 0;
-    }
-  },
-  
-  /**
-   * Update the user's total points in the users table
-   */
-  async updateUserTotalPoints(userId: string): Promise<void> {
-    try {
-      // Get all completed lessons for this user
-      const { data: completedLessons, error } = await supabase
-        .from("user_progress")
-        .select("points_earned")
-        .eq("user_id", userId);
-      
-      if (error) {
-        console.error("Error fetching completed lessons:", error);
-        return;
-      }
-      
-      // Sum up points from all completed lessons
-      const totalPoints = completedLessons.reduce((sum, lesson: any) => {
-        return sum + (lesson.points_earned || 0);
-      }, 0);
-      
-      // Update the user's total points
-      const { error: updateError } = await supabase
-        .from("user_profiles")
-        .update({ points: totalPoints })
-        .eq("id", userId);
-      
-      if (updateError) {
-        console.error("Error updating user total points:", updateError);
-      }
-    } catch (error) {
-      console.error("Error in updateUserTotalPoints:", error);
     }
   },
   
@@ -736,27 +714,6 @@ export const userProgressService = {
       const startDate = new Date();
       startDate.setDate(endDate.getDate() - 29); // 30 days including today
       
-      // Get all completed lessons with points in the date range
-      const { data: completedLessons, error: completedError } = await supabase
-        .from("user_progress")
-        .select(`
-          lesson_id,
-          updated_at,
-          lessons:lesson_id (
-            points
-          )
-        `)
-        .eq("user_id", user.id)
-        .eq("completed", true)
-        .gte("updated_at", startDate.toISOString())
-        .lte("updated_at", endDate.toISOString())
-        .order("updated_at", { ascending: true });
-      
-      if (completedError) {
-        console.error("Error fetching points history:", completedError);
-        return [];
-      }
-      
       // Create a map of dates to points
       const pointsMap = new Map<string, { coursePoints: number, referralPoints: number }>();
       
@@ -768,12 +725,22 @@ export const userProgressService = {
         pointsMap.set(dateStr, { coursePoints: 0, referralPoints: 0 });
       }
       
-      // Add course points
-      if (completedLessons && completedLessons.length > 0) {
-        completedLessons.forEach((lesson: any) => {
-          const date = new Date(lesson.updated_at);
+      // 1. Get course points from user_progress table
+      const { data: userProgressPoints, error: progressError } = await supabase
+        .from("user_progress")
+        .select("points_earned, updated_at")
+        .eq("user_id", user.id)
+        .gte("updated_at", startDate.toISOString())
+        .lte("updated_at", endDate.toISOString())
+        .order("updated_at", { ascending: true });
+      
+      if (progressError) {
+        console.error("Error fetching user progress points:", progressError);
+      } else if (userProgressPoints && userProgressPoints.length > 0) {
+        userProgressPoints.forEach((progress: { points_earned: number; updated_at: string }) => {
+          const date = new Date(progress.updated_at);
           const dateStr = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-          const points = lesson.lessons?.points || 0;
+          const points = progress.points_earned || 0;
           
           const existing = pointsMap.get(dateStr) || { coursePoints: 0, referralPoints: 0 };
           pointsMap.set(dateStr, {
@@ -783,25 +750,35 @@ export const userProgressService = {
         });
       }
       
-      // Add referral points - commented out until referral table exists
-      // This is a placeholder for future implementation
-      /*
-      try {
-        const { data: referralData, error: referralError } = await supabase
+      // 2. Get referral points
+      // First get the user's referral codes
+      const { data: referralCodes, error: codesError } = await supabase
+        .from("referral_codes")
+        .select("id")
+        .eq("referrer_id", user.id);
+      
+      if (codesError) {
+        console.error("Error fetching referral codes:", codesError);
+      } else if (referralCodes && referralCodes.length > 0) {
+        // Get points from referrals using these codes
+        const referralCodeIds = referralCodes.map(code => code.id);
+        
+        const { data: referralPoints, error: referralError } = await supabase
           .from("referrals")
-          .select("points, created_at")
-          .eq("referrer_id", user.id)
+          .select("points_earned, created_at, status")
+          .in("referral_code_id", referralCodeIds)
+          .eq("status", "completed") // Only count completed referrals
           .gte("created_at", startDate.toISOString())
           .lte("created_at", endDate.toISOString())
           .order("created_at", { ascending: true });
         
         if (referralError) {
           console.error("Error fetching referral points:", referralError);
-        } else if (referralData && referralData.length > 0) {
-          referralData.forEach((referral: { points: number; created_at: string }) => {
+        } else if (referralPoints && referralPoints.length > 0) {
+          referralPoints.forEach((referral: { points_earned: number; created_at: string }) => {
             const date = new Date(referral.created_at);
             const dateStr = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-            const points = referral.points || 0;
+            const points = referral.points_earned || 0;
             
             const existing = pointsMap.get(dateStr) || { coursePoints: 0, referralPoints: 0 };
             pointsMap.set(dateStr, {
@@ -810,10 +787,7 @@ export const userProgressService = {
             });
           });
         }
-      } catch (error) {
-        console.error("Error processing referral data:", error);
       }
-      */
       
       // Convert map to array and sort by date
       const result: PointsHistoryData[] = Array.from(pointsMap.entries())

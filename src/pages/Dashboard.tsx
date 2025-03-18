@@ -238,6 +238,17 @@ const Dashboard = () => {
                   <p className="text-white/70 mt-2">
                     Keep learning to earn more!
                   </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-4 border-white/20 text-white hover:bg-white/10"
+                    asChild
+                  >
+                    <Link to="/quiz-progress">
+                      <BarChart className="mr-2 h-4 w-4" />
+                      View Quiz Progress
+                    </Link>
+                  </Button>
                 </CardContent>
               </Card>
 
