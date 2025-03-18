@@ -5,7 +5,13 @@ import { Section, Page, LessonType } from '@/types/lesson';
 export async function fetchAllLessons(): Promise<LessonType[]> {
   const { data, error } = await supabase
     .from('lessons')
-    .select('*')
+    .select(`*,
+      sponsor:sponsors (
+        id,
+        name,
+        logo_url
+      )
+    `)
     .order('title', { ascending: true });
 
   if (error) {
@@ -21,7 +27,13 @@ export async function fetchLessonById(id: string | number): Promise<LessonType |
   
   const { data, error } = await supabase
     .from('lessons')
-    .select('*')
+    .select(`*,
+      sponsors (
+        id,
+        name,
+        logo_url
+      )
+    `)
     .eq('id', id)
     .single();
 

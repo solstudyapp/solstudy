@@ -26,6 +26,7 @@ export type LessonType = {
   reviewCount: number;
   icon: ReactNode;
   is_sponsored: boolean;
+  sponsorId?: number | null;
   sponsorLogo: string;
   points: number;
   bonusLesson?: boolean;
@@ -71,7 +72,11 @@ export interface DbLessonData {
   rating?: number;
   rating_count?: number;
   is_sponsored?: boolean;
-  sponsorLogo?: string;
+  sponsor?: {
+    id: string;
+    name: string;
+    logo_url: string;
+  };
   points?: number;
   icon?: string; // Store icon as string in DB
   bonusLesson?: boolean;

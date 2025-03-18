@@ -108,7 +108,7 @@ const LessonManagement = () => {
       rating: 0,
       reviewCount: 0,
       icon: <Database size={24} />,
-      sponsored: false,
+      is_sponsored: false,
       sponsorLogo: "",
       points: 100,
     }
@@ -365,7 +365,7 @@ const LessonManagement = () => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        {lesson.sponsored ? (
+                        {lesson.is_sponsored ? (
                           <Badge className="bg-purple-500/30 text-purple-50">
                             Sponsored
                           </Badge>

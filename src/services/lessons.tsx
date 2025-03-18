@@ -59,6 +59,7 @@ export async function fetchLessons(): Promise<LessonType[]> {
   try {
     const data = (await db.fetchAllLessons()) as unknown as DbLessonData[]
 
+    console.log("data 456", data)
     // Transform the data to match the LessonType
     return data.map(dbToFrontendLesson)
   } catch (error) {

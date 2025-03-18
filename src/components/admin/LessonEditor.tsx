@@ -60,6 +60,12 @@ interface DBQuiz {
   section_id: number | null
 }
 
+interface Sponsor {
+  id: number
+  name: string
+  logo_url: string
+}
+
 const availableIcons = [
   { name: "Database", component: <Database size={24} /> },
   { name: "LineChart", component: <LineChart size={24} /> },
@@ -96,9 +102,10 @@ export const LessonEditor = ({
   const [newCategory, setNewCategory] = useState<string>("")
   const [showNewCategoryInput, setShowNewCategoryInput] =
     useState<boolean>(false)
-  const [sponsorLogoUrl, setSponsorLogoUrl] = useState<string>(
-    lesson.sponsorLogo || ""
+  const [sponsorId, setSponsorId] = useState<number | null>(
+    lesson.sponsorId || null
   )
+  const [sponsors, setSponsors] = useState<Sponsor[]>([])
   const [categories, setCategories] = useState<string[]>([
     "Blockchain",
     "DeFi",
@@ -194,11 +201,11 @@ export const LessonEditor = ({
 
       const initialIconName = determineInitialIconName(lesson.icon)
       setSelectedIconName(initialIconName)
-      setSponsorLogoUrl(lesson.sponsorLogo || "")
+      setSponsorId(lesson.sponsorId || null)
     }
 
     loadSections()
-  }, [lesson.id, lesson.icon, lesson.sponsorLogo])
+  }, [lesson.id, lesson.icon, lesson.sponsorId])
 
   useEffect(() => {
     const fetchQuizzes = async () => {
@@ -218,6 +225,26 @@ export const LessonEditor = ({
     }
 
     fetchQuizzes()
+  }, [])
+
+  useEffect(() => {
+    const fetchSponsors = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("sponsors")
+          .select("*")
+          .order("name", { ascending: true })
+
+        if (error) throw error
+
+        console.log("LessonEditor - fetched sponsors:", data)
+        setSponsors(data || [])
+      } catch (error) {
+        console.error("Error fetching sponsors:", error)
+      }
+    }
+
+    fetchSponsors()
   }, [])
 
   const determineInitialIconName = (iconElement: React.ReactNode): string => {
@@ -276,27 +303,27 @@ export const LessonEditor = ({
   }
 
   const handleSponsoredChange = (checked: boolean) => {
-    handleInputChange("sponsored", checked)
-    if (!checked) {
-      handleInputChange("sponsorLogo", "")
-      setSponsorLogoUrl("")
-    }
+    setEditedLesson((prev) => ({
+      ...prev,
+      is_sponsored: checked,
+      // If not sponsored, reset sponsor ID
+      sponsorId: checked ? prev.sponsorId : null,
+    }))
   }
 
-  const handleSponsorLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (files && files[0]) {
-      const file = files[0]
-      const reader = new FileReader()
+  const handleSponsorChange = (selectedSponsorId: string) => {
+    const id = parseInt(selectedSponsorId)
+    setSponsorId(id)
 
-      reader.onload = (e) => {
-        const result = e.target?.result as string
-        setSponsorLogoUrl(result)
-        handleInputChange("sponsorLogo", result)
-      }
+    // Get the selected sponsor's logo URL
+    const selectedSponsor = sponsors.find((sponsor) => sponsor.id === id)
+    const logoUrl = selectedSponsor ? selectedSponsor.logo_url : null
 
-      reader.readAsDataURL(file)
-    }
+    setEditedLesson((prev) => ({
+      ...prev,
+      sponsorId: id,
+      sponsorLogo: logoUrl,
+    }))
   }
 
   const handleSaveLesson = async () => {
@@ -904,7 +931,7 @@ export const LessonEditor = ({
               <div className="flex items-center space-x-2">
                 <Switch
                   id="sponsored"
-                  checked={!!editedLesson.sponsored}
+                  checked={!!editedLesson.is_sponsored}
                   onCheckedChange={handleSponsoredChange}
                 />
                 <Label htmlFor="sponsored">Sponsored Lesson</Label>
@@ -926,42 +953,50 @@ export const LessonEditor = ({
                 </Label>
               </div>
 
-              {editedLesson.sponsored && (
+              {editedLesson.is_sponsored && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Sponsor Logo</label>
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center gap-2">
-                      <Label
-                        htmlFor="sponsorLogo"
-                        className="flex items-center px-4 py-2 bg-white/10 border border-white/20 rounded-md cursor-pointer hover:bg-white/20 transition-colors"
-                      >
-                        <Upload size={16} className="mr-2" />
-                        {sponsorLogoUrl ? "Change Logo" : "Upload Logo"}
-                      </Label>
-                      <Input
-                        id="sponsorLogo"
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleSponsorLogoChange}
-                      />
-                    </div>
+                  <label className="text-sm font-medium">Sponsor</label>
+                  <Select
+                    value={sponsorId?.toString() || ""}
+                    onValueChange={handleSponsorChange}
+                  >
+                    <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                      <SelectValue placeholder="Select a sponsor" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-black/80 backdrop-blur-md border-white/10 text-white">
+                      {sponsors.map((sponsor) => (
+                        <SelectItem
+                          key={sponsor.id}
+                          value={sponsor.id.toString()}
+                        >
+                          {sponsor.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
 
-                    {sponsorLogoUrl ? (
-                      <div className="p-4 bg-white/5 rounded-md">
+                  {/* Show the selected sponsor's logo if available */}
+                  {sponsorId && (
+                    <div className="p-4 bg-white/5 rounded-md mt-2">
+                      {sponsors.find((s) => s.id === sponsorId)?.logo_url ? (
                         <img
-                          src={sponsorLogoUrl}
+                          src={
+                            sponsors.find((s) => s.id === sponsorId)?.logo_url
+                          }
                           alt="Sponsor Logo"
                           className="h-12 object-contain mx-auto"
                         />
-                      </div>
-                    ) : (
-                      <div className="p-4 bg-white/5 rounded-md flex items-center justify-center text-white/50">
-                        <AlertCircle size={16} className="mr-2" />
-                        No logo uploaded
-                      </div>
-                    )}
-                  </div>
+                      ) : (
+                        <div className="text-white/50 text-center">
+                          <AlertCircle
+                            size={16}
+                            className="inline-block mr-2"
+                          />
+                          No logo available for this sponsor
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

@@ -4,6 +4,7 @@ import { LessonType, Section, Page, DbLessonData, DbSection, DbPage } from "@/ty
  * Convert database lesson data to frontend lesson type
  */
 export function dbToFrontendLesson(lesson: DbLessonData): LessonType {
+  console.log("lesson 123", lesson);
   return {
     id: typeof lesson.id === 'string' ? lesson.id : lesson.id.toString(),
     title: lesson.title,
@@ -16,7 +17,7 @@ export function dbToFrontendLesson(lesson: DbLessonData): LessonType {
     reviewCount: lesson.rating_count || 0,
     icon: null, // Frontend will handle icon rendering
     is_sponsored: lesson.is_sponsored || false,
-    sponsorLogo: lesson.sponsorLogo || "",
+    sponsorLogo: lesson.sponsor?.logo_url || "",
     points: lesson.points || 0,
     bonusLesson: lesson.bonusLesson || false,
   };

@@ -21,10 +21,6 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
     navigate(`/lesson/${lesson.id}`)
   }
 
-  // Use CoinGecko logo for all lessons
-  const sponsorLogo =
-    "https://static.coingecko.com/s/coingecko-logo-8903d34ce19ca4be1c81f0db30e924154750d208683fad7ae6f2ce06c76d0a56.png"
-
   return (
     <Card
       className={cn(
@@ -93,7 +89,7 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
             </div>
             <div className="h-8 bg-black/20 rounded flex items-center justify-center p-1">
               <img
-                src={sponsorLogo}
+                src={lesson.sponsorLogo}
                 alt="CoinGecko Logo"
                 className="h-6 max-w-[100px] object-contain"
               />
