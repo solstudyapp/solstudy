@@ -69,6 +69,7 @@ export const userProgressService = {
         .select(`
           lesson_id,
           completed,
+          is_completed,
           updated_at,
           lessons:lesson_id (
             id,
@@ -79,6 +80,7 @@ export const userProgressService = {
           )
         `)
         .eq("user_id", user.id)
+        .eq("is_completed", false)
         .order("updated_at", { ascending: false });
       
       if (progressError) {
@@ -110,19 +112,23 @@ export const userProgressService = {
         
         if (!lessonData) continue;
         
+        const { data: sectionsData, error: sectionsError } = await supabase
+          .from("sections")
+          .select("id")
+          .eq("lesson_id", lessonId);
+        
         // Get total pages for this lesson
         const { data: pagesData, error: pagesError } = await supabase
           .from("pages")
           .select("id")
-          .eq("section_id", supabase.from("sections").select("id").eq("lesson_id", lessonId));
+          .eq("section_id", sectionsData[0].id);
         
         if (pagesError) {
           console.error(`Error fetching pages for lesson ${lessonId}:`, pagesError);
           continue;
         }
-        
+              
         const totalPages = pagesData?.length || 0;
-        
         // Count completed pages for this lesson
         const completedPages = progressData
           .filter(p => p.lesson_id === lessonId && p.completed)
@@ -147,9 +153,10 @@ export const userProgressService = {
           const progress = data.totalPages > 0 
             ? Math.round((data.completedPages / data.totalPages) * 100) 
             : 0;
+
           
           // Only include lessons that are in progress (not 0% and not 100%)
-          if (progress > 0 && progress < 100) {
+          if (progress >= 0 && progress < 100) {
             return {
               lessonId,
               progress,
@@ -425,6 +432,9 @@ export const userProgressService = {
           return { success: false, error: insertError.message };
         }
       } else {
+        if (progress.is_completed) {
+          return { success: true };
+        }
         // Update the existing progress record
         const completedSections = progress.completed_sections || [];
         
@@ -614,6 +624,9 @@ export const userProgressService = {
           return { success: false, error: insertError.message };
         }
       } else {
+        if (progress.is_completed) {
+          return { success: true };
+        }
         // Update the existing progress record
         const { error: updateError } = await supabase
           .from("user_progress")

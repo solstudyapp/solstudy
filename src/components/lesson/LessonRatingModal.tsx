@@ -62,6 +62,44 @@ export const LessonRatingModal = ({
         return
       }
 
+      // Check if the user has already rated this lesson
+      const { data: existingRating, error: existingRatingError } =
+        await supabase
+          .from("lesson_ratings")
+          .select("*")
+          .eq("lesson_id", lessonId)
+          .eq("user_id", user.id)
+
+      if (existingRating) {
+        // Submit the rating to Supabase
+        const { error: updateError } = await supabase
+          .from("lesson_ratings")
+          .update({
+            rating,
+            feedback: feedback.trim() || null,
+          })
+          .eq("lesson_id", lessonId)
+          .eq("user_id", user.id)
+
+        if (updateError) {
+          console.error("Error updating rating:", updateError)
+          toast({
+            title: "Error",
+            description: "Failed to update your rating. Please try again.",
+            variant: "destructive",
+          })
+          setIsSubmitting(false)
+          return
+        }
+        toast({
+          title: "Thank you!",
+          description: "Your feedback has been submitted successfully.",
+        })
+        onClose()
+        navigate("/dashboard")
+        return
+      }
+
       // Submit the rating to Supabase
       const { error } = await supabase.from("lesson_ratings").insert({
         lesson_id: lessonId,

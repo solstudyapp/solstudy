@@ -927,7 +927,7 @@ export const LessonEditor = ({
               />
             </div>
 
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1">
               <div className="flex items-center space-x-2">
                 <Switch
                   id="sponsored"
@@ -936,7 +936,7 @@ export const LessonEditor = ({
                 />
                 <Label htmlFor="sponsored">Sponsored Lesson</Label>
               </div>
-
+              {/* Hide bonus lesson for now
               <div className="flex items-center space-x-2">
                 <Switch
                   id="bonusLesson"
@@ -951,11 +951,10 @@ export const LessonEditor = ({
                     Bonus Lesson of the Day
                   </span>
                 </Label>
-              </div>
+              </div> */}
 
               {editedLesson.is_sponsored && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Sponsor</label>
                   <Select
                     value={sponsorId?.toString() || ""}
                     onValueChange={handleSponsorChange}

@@ -41,11 +41,14 @@ const Footer = () => {
     <footer className="border-t border-white/10 bg-black/80 backdrop-blur-lg mt-16">
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-          {/* Column 1: Subscription Form */}
+          {/* Hide for now
           <div>
-            <h3 className="text-xl font-semibold mb-4 text-white">Become an Educator</h3>
+            <h3 className="text-xl font-semibold mb-4 text-white">
+              Become an Educator
+            </h3>
             <p className="text-white/70 mb-4">
-              Join our platform as a course creator or sponsor and reach thousands of crypto enthusiasts.
+              Join our platform as a course creator or sponsor and reach
+              thousands of crypto enthusiasts.
             </p>
             <form onSubmit={handleSubmit} className="space-y-3">
               <Input
@@ -56,24 +59,26 @@ const Footer = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white"
               >
                 Get Started
               </Button>
             </form>
-          </div>
+          </div> */}
 
           {/* Column 2: Social Media Links */}
           <div>
-            <h3 className="text-xl font-semibold mb-4 text-white">Connect With Us</h3>
+            <h3 className="text-xl font-semibold mb-4 text-white">
+              Connect With Us
+            </h3>
             <div className="grid grid-cols-2 gap-4">
               {socialLinks.map((social, index) => (
-                <a 
-                  key={index} 
-                  href={social.url} 
-                  target="_blank" 
+                <a
+                  key={index}
+                  href={social.url}
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 text-white/70 hover:text-white transition-colors"
                   aria-label={social.label}
@@ -84,8 +89,7 @@ const Footer = () => {
               ))}
             </div>
           </div>
-
-          {/* Column 3: Bonus Lesson */}
+          {/*  Hide for now
           <div>
             <h3 className="text-xl font-semibold mb-4 text-white">Bonus Lesson of the Day</h3>
             {bonusLesson && (
@@ -105,15 +109,15 @@ const Footer = () => {
                 </div>
               </div>
             )}
-          </div>
+          </div> */}
         </div>
-        
+
         <div className="mt-12 pt-6 border-t border-white/10 text-center text-white/50 text-sm">
           © {new Date().getFullYear()} SolStudy. All rights reserved.
         </div>
       </div>
     </footer>
-  );
+  )
 };
 
 export default Footer;
