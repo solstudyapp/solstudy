@@ -29,7 +29,7 @@ const LessonNavigation = ({
 }: LessonNavigationProps) => {
   const navigate = useNavigate()
   const { toast } = useToast()
-  const { isUpdating, completeSection } = useProgress()
+  const { isUpdating, completeSection, completeLesson } = useProgress()
   const [hasQuiz, setHasQuiz] = useState<boolean>(false)
   const [hasFinalTest, setHasFinalTest] = useState<boolean>(false)
   const [isCheckingQuiz, setIsCheckingQuiz] = useState<boolean>(false)
@@ -125,6 +125,15 @@ const LessonNavigation = ({
   }, [lessonId, sectionId, isLastPageOfSection, isLastPage])
 
   const handleNextSection = async () => {
+    if (isLastPage) {
+      // Mark the lesson as completed
+      try {
+        const success = await completeLesson(lessonId)
+      } catch (error) {
+        console.error("Error completing lesson:", error)
+      }
+    }
+
     if (isLastPageOfSection) {
       // Mark the section as completed
       try {

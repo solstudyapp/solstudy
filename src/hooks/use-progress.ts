@@ -1,116 +1,124 @@
-import { useState } from 'react';
-import { userProgressService, PageCompletionData } from '@/services/userProgressService';
-import { useToast } from '@/hooks/use-toast';
+import { useState } from "react"
+import { userProgressService } from "@/services/userProgressService"
+import { useToast } from "./use-toast"
 
 export function useProgress() {
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [isCompleted, setIsCompleted] = useState<Record<string, boolean>>({});
-  const { toast } = useToast();
+  const [isUpdating, setIsUpdating] = useState(false)
+  const { toast } = useToast()
 
   /**
    * Mark a page as completed
    */
-  const completePage = async (lessonId: string, sectionId: string, pageId: string): Promise<boolean> => {
-    setIsUpdating(true);
-    
+  const completePage = async (
+    lessonId: string,
+    sectionId: string,
+    pageId: string
+  ): Promise<boolean> => {
     try {
-      const success = await userProgressService.updateProgress(
+      setIsUpdating(true)
+      const result = await userProgressService.updateProgress(
         lessonId,
         sectionId,
         pageId
-      );
-      
-      if (success) {
-        // Update local state
-        setIsCompleted(prev => ({
-          ...prev,
-          [`${lessonId}-${sectionId}-${pageId}`]: true
-        }));
-        
-        return true;
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to update progress. Please try again.",
-          variant: "destructive"
-        });
-        return false;
-      }
+      )
+      return result.success
     } catch (error) {
-      console.error("Error completing page:", error);
+      console.error("Error updating progress:", error)
       toast({
         title: "Error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive"
-      });
-      return false;
+        description: "Failed to save your progress. Please try again.",
+        variant: "destructive",
+      })
+      return false
     } finally {
-      setIsUpdating(false);
+      setIsUpdating(false)
     }
-  };
+  }
 
   /**
-   * Check if a page is completed
+   * Mark a section as completed
    */
-  const checkPageCompletion = async (lessonId: string, sectionId: string, pageId: string): Promise<boolean> => {
-    const cacheKey = `${lessonId}-${sectionId}-${pageId}`;
-    
-    // Return from cache if available
-    if (isCompleted[cacheKey] !== undefined) {
-      return isCompleted[cacheKey];
-    }
-    
+  const completeSection = async (
+    lessonId: string,
+    sectionId: string
+  ): Promise<boolean> => {
     try {
-      const completed = await userProgressService.isPageCompleted(lessonId, sectionId, pageId);
-      
-      // Update local state
-      setIsCompleted(prev => ({
-        ...prev,
-        [cacheKey]: completed
-      }));
-      
-      return completed;
+      setIsUpdating(true)
+      const result = await userProgressService.completeSection(
+        lessonId,
+        sectionId
+      )
+      return result.success
     } catch (error) {
-      console.error("Error checking page completion:", error);
-      return false;
-    }
-  };
-
-  /**
-   * Mark an entire section as completed
-   */
-  const completeSection = async (lessonId: string, sectionId: string): Promise<boolean> => {
-    setIsUpdating(true);
-    
-    try {
-      const success = await userProgressService.completeSection(lessonId, sectionId);
-      
-      if (!success) {
-        toast({
-          title: "Error",
-          description: "Failed to complete section. Please try again.",
-          variant: "destructive"
-        });
-      }
-      
-      return success;
-    } catch (error) {
-      console.error("Error completing section:", error);
+      console.error("Error completing section:", error)
       toast({
         title: "Error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive"
-      });
-      return false;
+        description: "Failed to save your progress. Please try again.",
+        variant: "destructive",
+      })
+      return false
     } finally {
-      setIsUpdating(false);
+      setIsUpdating(false)
     }
-  };
+  }
+
+  /**
+   * Mark a quiz as completed
+   */
+  const completeQuiz = async (
+    lessonId: string,
+    quizId: string,
+    score: number,
+    totalPoints: number
+  ): Promise<boolean> => {
+    try {
+      setIsUpdating(true)
+      const result = await userProgressService.completeQuiz(
+        lessonId,
+        quizId,
+        score,
+        totalPoints
+      )
+      return result.success
+    } catch (error) {
+      console.error("Error completing quiz:", error)
+      toast({
+        title: "Error",
+        description: "Failed to save your quiz results. Please try again.",
+        variant: "destructive",
+      })
+      return false
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  /**
+   * Mark a lesson as completed
+   */
+  const completeLesson = async (lessonId: string): Promise<boolean> => {
+    try {
+      setIsUpdating(true)
+      const result = await userProgressService.completeLesson(lessonId)
+      return result.success
+    } catch (error) {
+      console.error("Error completing lesson:", error)
+      toast({
+        title: "Error",
+        description: "Failed to mark lesson as completed. Please try again.",
+        variant: "destructive",
+      })
+      return false
+    } finally {
+      setIsUpdating(false)
+    }
+  }
 
   return {
     isUpdating,
     completePage,
-    checkPageCompletion,
-    completeSection
-  };
-} 
+    completeSection,
+    completeQuiz,
+    completeLesson,
+  }
+}

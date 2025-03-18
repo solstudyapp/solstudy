@@ -184,7 +184,7 @@ export const userProgressService = {
         .from("user_progress")
         .select(`
           lesson_id,
-          completed,
+          is_completed,
           updated_at,
           lessons:lesson_id (
             id,
@@ -195,7 +195,7 @@ export const userProgressService = {
           )
         `)
         .eq("user_id", user.id)
-        .eq("completed", true)
+        .eq("is_completed", true)
         .order("updated_at", { ascending: false });
       
       if (progressError) {
@@ -227,11 +227,22 @@ export const userProgressService = {
         
         if (!lessonData) continue;
         
+        const { data: sectionsData, error: sectionsError } = await supabase
+          .from("sections")
+          .select("id")
+          .eq("lesson_id", lessonId);
+          
+        if (sectionsError) {
+          console.error(`Error fetching sections for lesson ${lessonId}:`, sectionsError);
+          continue;
+        }
+
+        console.log("sectionsData", sectionsData);
         // Get total pages for this lesson
         const { data: pagesData, error: pagesError } = await supabase
           .from("pages")
           .select("id")
-          .eq("section_id", supabase.from("sections").select("id").eq("lesson_id", lessonId));
+          .eq("section_id", sectionsData[0].id);
         
         if (pagesError) {
           console.error(`Error fetching pages for lesson ${lessonId}:`, pagesError);
@@ -239,17 +250,17 @@ export const userProgressService = {
         }
         
         const totalPages = pagesData?.length || 0;
-        
+
         // Count completed pages for this lesson
         const completedPages = progressData
-          .filter(p => p.lesson_id === lessonId && p.completed)
+          .filter(p => p.lesson_id === lessonId && p.is_completed)
           .length;
-        
+
         // Get the most recent completion date
         const completedDate = progressData
-          .filter(p => p.lesson_id === lessonId && p.completed)
+          .filter(p => p.lesson_id === lessonId && p.is_completed)
           .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())[0]?.updated_at;
-        
+
         lessonCompletionMap.set(lessonId, {
           totalPages,
           completedPages,
@@ -258,6 +269,7 @@ export const userProgressService = {
         });
       }
       
+      console.log("lessonCompletionMap", lessonCompletionMap);
       // Convert to array and filter for completed lessons (100% progress)
       return Array.from(lessonCompletionMap.entries())
         .map(([lessonId, data]) => {
@@ -557,6 +569,17 @@ export const userProgressService = {
         return { success: false, error: "Not authenticated" };
       }
       
+      const { data: lesson, error: lessonError } = await supabase
+        .from("lessons")
+        .select("points")
+        .eq("id", lessonId)
+        .single();
+        
+      if (lessonError) {
+        console.error("Error fetching lesson:", lessonError);
+        return { success: false, error: lessonError.message };
+      }
+      
       // Get the current progress
       const { data: progress, error: fetchError } = await supabase
         .from("user_progress")
@@ -582,7 +605,7 @@ export const userProgressService = {
             completed_sections: [],
             completed_quizzes: [],
             is_completed: true,
-            points_earned: 0,
+            points_earned: lesson.points,
             last_accessed_at: new Date().toISOString(),
           });
         
@@ -596,6 +619,7 @@ export const userProgressService = {
           .from("user_progress")
           .update({
             is_completed: true,
+            points_earned: lesson.points,
             last_accessed_at: new Date().toISOString(),
           })
           .eq("id", progress.id);
