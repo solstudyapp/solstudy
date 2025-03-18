@@ -1,4 +1,10 @@
-import { ChevronLeft, ChevronRight, FileQuestion, Loader2 } from "lucide-react"
+import {
+  ChevronLeft,
+  ChevronRight,
+  FileQuestion,
+  Loader2,
+  CheckCircle,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useNavigate } from "react-router-dom"
 import { useState, useEffect } from "react"
@@ -33,6 +39,8 @@ const LessonNavigation = ({
   const [hasQuiz, setHasQuiz] = useState<boolean>(false)
   const [hasFinalTest, setHasFinalTest] = useState<boolean>(false)
   const [isCheckingQuiz, setIsCheckingQuiz] = useState<boolean>(false)
+  const [quizId, setQuizId] = useState<string | null>(null)
+  const [quizCompleted, setQuizCompleted] = useState<boolean>(false)
 
   // Check if a quiz exists for this section
   useEffect(() => {
@@ -104,6 +112,7 @@ const LessonNavigation = ({
         if (error) {
           console.error("Error checking for quiz:", error)
           setHasQuiz(false)
+          setQuizId(null)
         } else {
           const quizExists = data && data.length > 0
           console.log(
@@ -112,10 +121,23 @@ const LessonNavigation = ({
             } for section ${sectionId}`
           )
           setHasQuiz(quizExists)
+
+          // If quiz exists, save the quiz ID and check if it's completed
+          if (quizExists && data && data.length > 0) {
+            setQuizId(data[0].id)
+
+            // Now check if the user has completed this quiz
+            await checkQuizCompletion(data[0].id)
+          } else {
+            setQuizId(null)
+            setQuizCompleted(false)
+          }
         }
       } catch (error) {
         console.error("Error in checkQuizExists:", error)
         setHasQuiz(false)
+        setQuizId(null)
+        setQuizCompleted(false)
       } finally {
         setIsCheckingQuiz(false)
       }
@@ -123,6 +145,42 @@ const LessonNavigation = ({
 
     checkQuizExists()
   }, [lessonId, sectionId, isLastPageOfSection, isLastPage])
+
+  // Check if the user has completed the quiz
+  const checkQuizCompletion = async (quizIdToCheck: string) => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!user) {
+        console.error("No authenticated user found")
+        setQuizCompleted(false)
+        return
+      }
+
+      // Check if the quiz is in user_quizzes
+      const { data, error } = await supabase
+        .from("user_quizzes")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("quiz_id", quizIdToCheck)
+        .single()
+
+      if (error && error.code !== "PGRST116") {
+        console.error("Error checking quiz completion:", error)
+        setQuizCompleted(false)
+        return
+      }
+
+      // If we found a record, the quiz is completed
+      setQuizCompleted(!!data)
+      console.log(`Quiz ${quizIdToCheck} completed: ${!!data}`)
+    } catch (error) {
+      console.error("Error in checkQuizCompletion:", error)
+      setQuizCompleted(false)
+    }
+  }
 
   const handleNextSection = async () => {
     if (isLastPage) {
@@ -181,23 +239,43 @@ const LessonNavigation = ({
 
       {isLastPageOfSection ? (
         hasQuiz ? (
-          <Button
-            className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0"
-            onClick={handleTakeQuiz}
-            disabled={isCheckingQuiz || isUpdating}
-          >
-            {isCheckingQuiz || isUpdating ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {isCheckingQuiz ? "Checking..." : "Saving progress..."}
-              </>
-            ) : (
-              <>
-                Take Section Quiz
-                <FileQuestion className="ml-2 h-4 w-4" />
-              </>
-            )}
-          </Button>
+          quizCompleted ? (
+            // If quiz is completed, show a success button
+            <Button
+              className="bg-green-600/70 hover:bg-green-600/90 text-white border-0"
+              onClick={() => {
+                toast({
+                  title: "Quiz already completed",
+                  description: "You can continue to the next section.",
+                })
+                if (!isLastPage) {
+                  handleNextSection()
+                }
+              }}
+            >
+              <CheckCircle className="mr-2 h-4 w-4" />
+              Quiz Completed
+            </Button>
+          ) : (
+            // If quiz is not completed, show the take quiz button
+            <Button
+              className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0"
+              onClick={handleTakeQuiz}
+              disabled={isCheckingQuiz || isUpdating}
+            >
+              {isCheckingQuiz || isUpdating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {isCheckingQuiz ? "Checking..." : "Saving progress..."}
+                </>
+              ) : (
+                <>
+                  Take Section Quiz
+                  <FileQuestion className="ml-2 h-4 w-4" />
+                </>
+              )}
+            </Button>
+          )
         ) : isLastPage && hasFinalTest ? (
           <Button
             onClick={handleNextSection}

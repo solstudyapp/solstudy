@@ -117,12 +117,123 @@ const LessonView = () => {
       }
 
       // If no valid URL params, try to find the last page the user was on
-      // This would be a good place to implement a "resume" feature using userProgressService
-      // For now, just start at the beginning
-      setCurrentSection(0)
-      setCurrentPage(0)
+      const getUserProgress = async () => {
+        try {
+          console.log("Fetching user progress for lesson:", lessonId)
+
+          // Get the user progress for this lesson
+          const {
+            data: { user },
+          } = await supabase.auth.getUser()
+
+          if (!user) {
+            console.error("No authenticated user found")
+            setCurrentSection(0)
+            setCurrentPage(0)
+            return
+          }
+
+          const { data: progress, error } = await supabase
+            .from("user_progress")
+            .select(
+              "current_section_id, current_page_id, completed_sections, completed_quizzes"
+            )
+            .eq("user_id", user.id)
+            .eq("lesson_id", lessonId)
+            .single()
+
+          if (error) {
+            if (error.code === "PGRST116") {
+              // No progress record found, start from beginning
+              console.log("No progress record found, starting from beginning")
+              setCurrentSection(0)
+              setCurrentPage(0)
+            } else {
+              console.error("Error fetching user progress:", error)
+              setCurrentSection(0)
+              setCurrentPage(0)
+            }
+            return
+          }
+
+          if (progress) {
+            console.log("Found user progress:", progress)
+
+            // If there's a current section and page ID, use them
+            if (progress.current_section_id && progress.current_page_id) {
+              // Find the section index
+              const sectionIndex = sections.findIndex(
+                (section) => section.id === progress.current_section_id
+              )
+
+              if (sectionIndex !== -1) {
+                // Find the page index
+                const pageIndex = sections[sectionIndex].pages.findIndex(
+                  (page) => page.id === progress.current_page_id
+                )
+
+                if (pageIndex !== -1) {
+                  console.log(
+                    `Resuming at section ${sectionIndex}, page ${pageIndex}`
+                  )
+                  setCurrentSection(sectionIndex)
+                  setCurrentPage(pageIndex)
+                  return
+                }
+              }
+            }
+
+            // If we don't have current section/page or they're invalid,
+            // use completed sections to determine the farthest point
+            if (
+              progress.completed_sections &&
+              progress.completed_sections.length > 0
+            ) {
+              // Get the last completed section
+              const completedSectionIds = progress.completed_sections
+
+              // Find the index of the last completed section
+              let lastCompletedSectionIndex = -1
+              for (let i = sections.length - 1; i >= 0; i--) {
+                if (completedSectionIds.includes(sections[i].id)) {
+                  lastCompletedSectionIndex = i
+                  break
+                }
+              }
+
+              if (lastCompletedSectionIndex !== -1) {
+                // If we found a completed section, start at the next section
+                if (lastCompletedSectionIndex < sections.length - 1) {
+                  console.log(
+                    `Last completed section index: ${lastCompletedSectionIndex}, starting next section`
+                  )
+                  setCurrentSection(lastCompletedSectionIndex + 1)
+                  setCurrentPage(0)
+                } else {
+                  // If the last section is completed, stay on the last page of the last section
+                  console.log(`All sections completed, staying on last section`)
+                  setCurrentSection(sections.length - 1)
+                  setCurrentPage(sections[sections.length - 1].pages.length - 1)
+                }
+                return
+              }
+            }
+          }
+
+          // Default to the beginning if we couldn't determine progress
+          setCurrentSection(0)
+          setCurrentPage(0)
+        } catch (error) {
+          console.error("Error determining user progress:", error)
+          // Default to the beginning on error
+          setCurrentSection(0)
+          setCurrentPage(0)
+        }
+      }
+
+      getUserProgress()
     }
-  }, [lesson, sections, location.search])
+  }, [lesson, sections, location.search, lessonId])
 
   useEffect(() => {
     // Scroll to top when component mounts
@@ -379,6 +490,7 @@ const LessonView = () => {
             currentPage={currentPage}
             setCurrentSection={setCurrentSection}
             setCurrentPage={setCurrentPage}
+            lessonId={lessonId || ""}
           />
 
           {/* Main Content */}
