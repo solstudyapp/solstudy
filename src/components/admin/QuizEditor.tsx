@@ -266,6 +266,15 @@ export const QuizEditor = ({ quiz, onSave, onCancel }: QuizEditorProps) => {
     })
   }
 
+  const handleToggleChange = (checked: boolean) => {
+    setEditedQuiz((prev) => ({
+      ...prev,
+      isFinalTest: checked,
+      // Clear section selection if it's a final test
+      sectionId: checked ? "default" : prev.sectionId,
+    }))
+  }
+
   const handleSaveQuiz = () => {
     onSave(editedQuiz)
   }
@@ -336,7 +345,8 @@ export const QuizEditor = ({ quiz, onSave, onCancel }: QuizEditorProps) => {
               disabled={
                 !editedQuiz.lessonId ||
                 editedQuiz.lessonId === "default" ||
-                availableSections.length === 0
+                availableSections.length === 0 ||
+                editedQuiz.isFinalTest // Disable section dropdown if isFinalTest is true
               }
             >
               <SelectTrigger className="bg-white/10 border-white/20 text-white">
@@ -352,18 +362,20 @@ export const QuizEditor = ({ quiz, onSave, onCancel }: QuizEditorProps) => {
               </SelectContent>
             </Select>
           )}
+          {editedQuiz.isFinalTest && (
+            <p className="text-xs text-yellow-400 mt-1">
+              Section selection is disabled for final tests
+            </p>
+          )}
         </div>
-        {/* 
         <div className="flex items-center space-x-2 pt-7 col-span-2 md:col-span-1">
           <Switch
             id="isFinalTest"
-            checked={!!editedQuiz.isFinalTest}
-            onCheckedChange={(checked) =>
-              handleInputChange("isFinalTest", checked)
-            }
+            checked={editedQuiz.isFinalTest || false}
+            onCheckedChange={handleToggleChange}
           />
           <Label htmlFor="isFinalTest">Final Test</Label>
-        </div> */}
+        </div>
       </div>
 
       <div className="pt-4 border-t border-white/10">

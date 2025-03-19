@@ -5,7 +5,6 @@ import { lessonService } from "@/services/lessonService"
 import QuizHeader from "@/components/quiz/QuizHeader"
 import QuizQuestion from "@/components/quiz/QuizQuestion"
 import QuizResults from "@/components/quiz/QuizResults"
-import FeedbackDialog from "@/components/quiz/FeedbackDialog"
 import { Loader2 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { fetchLessonById } from "@/services/lessons"
@@ -102,7 +101,6 @@ const QuizPage = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [userAnswers, setUserAnswers] = useState<number[]>([])
   const [showResults, setShowResults] = useState(false)
-  const [showFeedback, setShowFeedback] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [lesson, setLesson] = useState<LessonType | null>(null)
   const [sections, setSections] = useState<Section[]>([])
@@ -217,7 +215,6 @@ const QuizPage = () => {
       setCurrentQuestion(0)
       setUserAnswers([])
       setShowResults(false)
-      setShowFeedback(false)
     }
   }, [quiz?.id])
 
@@ -229,19 +226,50 @@ const QuizPage = () => {
         return
       }
 
-      const allSectionsCompleted = sections.every((section) =>
-        lessonService.isSectionCompleted(lessonId || "", section.id)
-      )
+      const checkSectionQuizzes = async () => {
+        try {
+          // First check if there are any section quizzes for this lesson
+          const { data: sectionQuizzes, error: quizError } = await supabase
+            .from("quizzes")
+            .select("id")
+            .eq("lesson_id", lessonId)
+            .eq("is_final_test", false)
+            .not("section_id", "is", null)
 
-      if (!allSectionsCompleted) {
-        toast({
-          title: "Complete all sections first",
-          description:
-            "You need to complete all section quizzes before taking the final test.",
-          variant: "destructive",
-        })
-        navigate(`/lesson/${lessonId}`)
+          if (quizError) {
+            console.error("Error checking for section quizzes:", quizError)
+            return // Allow the user to take the final test if we can't check
+          }
+
+          // If there are no section quizzes, allow taking the final test
+          if (!sectionQuizzes || sectionQuizzes.length === 0) {
+            console.log(
+              "No section quizzes found for this lesson, proceeding to final test"
+            )
+            return
+          }
+
+          // If there are section quizzes, check if they're all completed
+          const allSectionsCompleted = sections.every((section) =>
+            lessonService.isSectionCompleted(lessonId || "", section.id)
+          )
+
+          if (!allSectionsCompleted) {
+            toast({
+              title: "Complete all sections first",
+              description:
+                "You need to complete all section quizzes before taking the final test.",
+              variant: "destructive",
+            })
+            navigate(`/lesson/${lessonId}`)
+          }
+        } catch (error) {
+          console.error("Error checking section quizzes:", error)
+          // On error, allow the user to take the test
+        }
       }
+
+      checkSectionQuizzes()
     }
   }, [isFinalTest, sections, lessonId, navigate, toast, isLoading, lesson])
 
@@ -334,7 +362,8 @@ const QuizPage = () => {
       if (isFinalTest) {
         lessonService.completeQuiz(quiz, score, earnedPoints)
         lessonService.completeFinalTest(lessonId || "")
-        setShowFeedback(true)
+        // Show rating modal directly instead of feedback
+        setShowRatingModal(true)
       } else {
         lessonService.completeQuiz(quiz, score, earnedPoints)
         lessonService.completeSection(lessonId || "", sectionId || "")
@@ -366,8 +395,8 @@ const QuizPage = () => {
         }
       }
 
-      // Show feedback dialog after the final test
-      setShowFeedback(true)
+      // Show rating modal directly
+      setShowRatingModal(true)
     } else {
       // For section quizzes, mark the section as completed locally
       lessonService.completeQuiz(quiz, score, earnedPoints)
@@ -436,13 +465,6 @@ const QuizPage = () => {
     }
   }
 
-  const handleFeedbackComplete = () => {
-    setShowFeedback(false)
-
-    // After the final test, show rating modal
-    setShowRatingModal(true)
-  }
-
   // Determine if user has answered the current question
   const hasAnswered = userAnswers[currentQuestion] !== undefined
 
@@ -474,13 +496,6 @@ const QuizPage = () => {
             totalQuestions={quiz.questions.length}
             onComplete={handleCompleteQuiz}
             quiz={quiz}
-          />
-        )}
-
-        {showFeedback && (
-          <FeedbackDialog
-            lessonId={lessonId || ""}
-            onComplete={handleFeedbackComplete}
           />
         )}
 

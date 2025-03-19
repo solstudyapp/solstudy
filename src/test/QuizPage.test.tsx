@@ -6,6 +6,8 @@ import QuizPage from "@/pages/QuizPage"
 import * as lessonService from "@/services/lessonService"
 import * as toast from "@/hooks/use-toast"
 import { supabase } from "@/lib/supabase"
+import { quizService } from "@/services/quizService"
+import { userProgressService } from "@/services/userProgressService"
 
 // Mock the components that are used in QuizPage
 vi.mock("@/components/quiz/QuizHeader", () => ({
@@ -33,17 +35,6 @@ vi.mock("@/components/quiz/QuizResults", () => ({
   ),
 }))
 
-vi.mock("@/components/quiz/FeedbackDialog", () => ({
-  default: ({ onComplete }) => (
-    <div data-testid="feedback-dialog">
-      Feedback Dialog
-      <button onClick={onComplete} data-testid="feedback-complete-button">
-        Submit Feedback
-      </button>
-    </div>
-  ),
-}))
-
 vi.mock("@/components/lesson/LessonRatingModal", () => ({
   LessonRatingModal: ({ isOpen, onClose }) =>
     isOpen ? (
@@ -65,6 +56,20 @@ vi.mock("@/services/lessonService", () => ({
     isFinalTestCompleted: vi.fn(() => false),
     isSectionCompleted: vi.fn(() => true),
     updateProgress: vi.fn(),
+  },
+}))
+
+// Mock the quiz service
+vi.mock("@/services/quizService", () => ({
+  quizService: {
+    hasCompletedQuiz: vi.fn().mockResolvedValue(false),
+  },
+}))
+
+// Mock the user progress service
+vi.mock("@/services/userProgressService", () => ({
+  userProgressService: {
+    completeQuiz: vi.fn().mockResolvedValue({ success: true, error: null }),
   },
 }))
 
@@ -127,68 +132,17 @@ describe("QuizPage", () => {
     vi.clearAllMocks()
   })
 
-  test("displays rating modal after completing final test and submitting feedback", async () => {
+  test("displays rating modal after completing final test", async () => {
     const user = userEvent.setup()
 
-    // Mock the loading state
-    vi.mock("@/pages/QuizPage", () => ({
-      default: () => {
-        const { useState } = require("react")
-        const [showResults, setShowResults] = useState(true)
-        const [showFeedback, setShowFeedback] = useState(false)
-        const [showRatingModal, setShowRatingModal] = useState(false)
+    // Mock implementation of quizService.hasCompletedQuiz
+    vi.spyOn(quizService, "hasCompletedQuiz").mockResolvedValue(false)
 
-        const handleComplete = () => {
-          setShowFeedback(true)
-        }
-
-        const handleFeedbackComplete = () => {
-          setShowFeedback(false)
-          setShowRatingModal(true)
-        }
-
-        const handleRatingClose = () => {
-          setShowRatingModal(false)
-        }
-
-        return (
-          <div>
-            {!showFeedback && !showRatingModal && (
-              <div data-testid="quiz-results">
-                Quiz Results
-                <button onClick={handleComplete} data-testid="complete-button">
-                  Complete
-                </button>
-              </div>
-            )}
-
-            {showFeedback && (
-              <div data-testid="feedback-dialog">
-                Feedback Dialog
-                <button
-                  onClick={handleFeedbackComplete}
-                  data-testid="feedback-complete-button"
-                >
-                  Submit Feedback
-                </button>
-              </div>
-            )}
-
-            {showRatingModal && (
-              <div data-testid="rating-modal">
-                Rating Modal
-                <button
-                  onClick={handleRatingClose}
-                  data-testid="close-rating-button"
-                >
-                  Close
-                </button>
-              </div>
-            )}
-          </div>
-        )
-      },
-    }))
+    // Mock implementation of userProgressService.completeQuiz
+    vi.spyOn(userProgressService, "completeQuiz").mockResolvedValue({
+      success: true,
+      error: null,
+    })
 
     // Render the mocked component
     render(
@@ -203,17 +157,7 @@ describe("QuizPage", () => {
     const completeButton = await screen.findByTestId("complete-button")
     await user.click(completeButton)
 
-    // Verify feedback dialog is shown
-    const feedbackDialog = await screen.findByTestId("feedback-dialog")
-    expect(feedbackDialog).toBeInTheDocument()
-
-    // Submit feedback
-    const feedbackCompleteButton = screen.getByTestId(
-      "feedback-complete-button"
-    )
-    await user.click(feedbackCompleteButton)
-
-    // Verify rating modal is shown
+    // Verify rating modal is shown directly
     const ratingModal = await screen.findByTestId("rating-modal")
     expect(ratingModal).toBeInTheDocument()
 

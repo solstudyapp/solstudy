@@ -405,31 +405,112 @@ const LessonView = () => {
           // Check if there's a final test
           const checkFinalTest = async () => {
             try {
-              const { data, error } = await supabase
-                .from("quizzes")
-                .select("id")
-                .eq("lesson_id", lessonId)
-                .eq("is_final_test", true)
+              // Get the current user
+              const {
+                data: { user },
+              } = await supabase.auth.getUser()
 
-              if (error) {
-                console.error("Error checking for final test:", error)
+              if (!user) {
+                console.error("No authenticated user found")
+                setShowRatingModal(true)
+                return
+              }
+
+              // Check if there is a final test for this lesson
+              const { data: finalTestData, error: finalTestError } =
+                await supabase
+                  .from("quizzes")
+                  .select("id")
+                  .eq("lesson_id", lessonId)
+                  .eq("is_final_test", true)
+
+              if (finalTestError) {
+                console.error("Error checking for final test:", finalTestError)
                 // Show rating modal instead of going directly to dashboard
                 setShowRatingModal(true)
                 return
               }
 
-              const hasFinalTest = data && data.length > 0
+              const hasFinalTest = finalTestData && finalTestData.length > 0
 
               if (hasFinalTest) {
-                // Navigate to the final test
-                navigate(`/quiz/${lesson.id}/final`)
+                // Check if there are any section quizzes that need to be completed first
+                const { data: sectionQuizzes, error: sectionQuizError } =
+                  await supabase
+                    .from("quizzes")
+                    .select("id")
+                    .eq("lesson_id", lessonId)
+                    .eq("is_final_test", false)
+                    .not("section_id", "is", null)
+
+                if (sectionQuizError) {
+                  console.error(
+                    "Error checking for section quizzes:",
+                    sectionQuizError
+                  )
+                  // If we can't check for section quizzes, proceed to final test
+                  navigate(`/quiz/${lesson.id}/final`)
+                  return
+                }
+
+                // If there are no section quizzes, proceed directly to final test
+                if (!sectionQuizzes || sectionQuizzes.length === 0) {
+                  navigate(`/quiz/${lesson.id}/final`)
+                  return
+                }
+
+                // If the lesson has section quizzes, check if all sections are completed
+                const { data: userProgress, error: progressError } =
+                  await supabase
+                    .from("user_progress")
+                    .select("completed_sections")
+                    .eq("user_id", user.id)
+                    .eq("lesson_id", lessonId)
+                    .single()
+
+                if (progressError && progressError.code !== "PGRST116") {
+                  console.error("Error checking user progress:", progressError)
+                  // If we can't check progress, proceed to final test
+                  navigate(`/quiz/${lesson.id}/final`)
+                  return
+                }
+
+                const completedSections = userProgress?.completed_sections || []
+                const allSectionsCompleted = sections.every((section) =>
+                  completedSections.includes(section.id)
+                )
+
+                if (allSectionsCompleted) {
+                  // Navigate to the final test if all sections are completed
+                  navigate(`/quiz/${lesson.id}/final`)
+                } else {
+                  // Show a message that sections need to be completed first
+                  toast({
+                    title: "Complete all sections first",
+                    description:
+                      "You need to complete all sections before taking the final test.",
+                    variant: "destructive",
+                  })
+
+                  // Find the first incomplete section
+                  const firstIncompleteSection = sections.findIndex(
+                    (section) => !completedSections.includes(section.id)
+                  )
+
+                  if (firstIncompleteSection !== -1) {
+                    // Navigate to the first page of the incomplete section
+                    navigate(
+                      `/lesson/${lessonId}?section=${firstIncompleteSection}&page=0`
+                    )
+                  }
+                }
               } else {
                 // If there's no final test, show the rating modal
                 setShowRatingModal(true)
               }
             } catch (error) {
               console.error("Error in checkFinalTest:", error)
-              // Show rating modal
+              // Show rating modal on error
               setShowRatingModal(true)
             }
           }

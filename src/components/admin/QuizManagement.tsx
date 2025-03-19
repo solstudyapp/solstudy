@@ -58,6 +58,7 @@ interface DBQuiz {
   section_id: number | null
   created_at: string
   updated_at: string
+  is_final_test: boolean | null
   // Join data
   lesson?: { title: string } | null
   section?: { title: string } | null
@@ -70,6 +71,7 @@ interface EditorQuiz {
   lessonId: string
   sectionId: string
   rewardPoints: number
+  isFinalTest?: boolean
   questions: {
     id: string
     text: string
@@ -127,15 +129,16 @@ const QuizManagement = () => {
 
   const handleCreateQuiz = () => {
     const newQuiz: EditorQuiz = {
-      id: `quiz-${Date.now()}`,
+      id: "",
       title: "New Quiz",
       lessonId: "default",
       sectionId: "default",
-      rewardPoints: 50,
+      rewardPoints: 10,
+      isFinalTest: false,
       questions: [
         {
-          id: `q1-${Date.now()}`,
-          text: "Sample question?",
+          id: `q-${Date.now()}`,
+          text: "What is the answer to this question?",
           options: ["Option A", "Option B", "Option C", "Option D"],
           correctOptionIndex: 0,
         },
@@ -155,6 +158,7 @@ const QuizManagement = () => {
       lessonId: dbQuiz.lesson_id || "default",
       sectionId: String(dbQuiz.section_id || "default"),
       rewardPoints: dbQuiz.points,
+      isFinalTest: dbQuiz.is_final_test || false,
       questions: dbQuiz.questions.map((q) => ({
         id: q.id,
         text: q.question,
@@ -205,6 +209,7 @@ const QuizManagement = () => {
             ? null
             : parseInt(editorQuiz.sectionId),
         points: editorQuiz.rewardPoints,
+        is_final_test: editorQuiz.isFinalTest || false,
         questions: editorQuiz.questions.map((q) => ({
           id: q.id,
           question: q.text,
@@ -303,6 +308,7 @@ const QuizManagement = () => {
                   <TableHead>Section</TableHead>
                   <TableHead>Questions</TableHead>
                   <TableHead>Points</TableHead>
+                  <TableHead>Type</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -320,6 +326,17 @@ const QuizManagement = () => {
                       <Badge className="bg-blue-500/30 text-blue-50">
                         {quiz.points} pts
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {quiz.is_final_test ? (
+                        <Badge className="bg-purple-500/30 text-purple-50">
+                          Final Test
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-green-500/30 text-green-50">
+                          Section Quiz
+                        </Badge>
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
