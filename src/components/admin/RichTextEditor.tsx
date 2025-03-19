@@ -450,13 +450,6 @@ export const RichTextEditor = ({
       }),
     ],
     content: initialContent,
-    onUpdate: ({ editor }) => {
-      const html = editor.getHTML()
-      if (html !== htmlContent) {
-        setHtmlContent(html)
-        onChange(html)
-      }
-    },
     autofocus: true,
     editorProps: {
       attributes: {
