@@ -353,7 +353,7 @@ export const QuizEditor = ({ quiz, onSave, onCancel }: QuizEditorProps) => {
             </Select>
           )}
         </div>
-
+        {/* 
         <div className="flex items-center space-x-2 pt-7 col-span-2 md:col-span-1">
           <Switch
             id="isFinalTest"
@@ -363,7 +363,7 @@ export const QuizEditor = ({ quiz, onSave, onCancel }: QuizEditorProps) => {
             }
           />
           <Label htmlFor="isFinalTest">Final Test</Label>
-        </div>
+        </div> */}
       </div>
 
       <div className="pt-4 border-t border-white/10">
