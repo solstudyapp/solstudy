@@ -82,20 +82,16 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
           </Badge>
         </div>
 
-        {lesson.is_sponsored && (
-          <div className="mt-4 pt-3 border-t border-white/10">
-            <div className="text-xs text-white/60 mb-1">
-              This Course is Brought to You By:
-            </div>
-            <div className="h-8 bg-black/20 rounded flex items-center justify-center p-1">
-              <img
-                src={lesson.sponsorLogo}
-                alt="CoinGecko Logo"
-                className="h-6 max-w-[100px] object-contain"
-              />
-            </div>
+        <div className="mt-4 pt-3 border-t border-white/10">
+          <div className="text-xs text-white/60 mb-1">
+            This lesson is sponsored by{" "}
+            {lesson.sponsorName ? lesson.sponsorName : "a sponsor"}. Want to
+            sponsor a lesson?{" "}
+            <a href="mailto:admin@solstudy.com" className="text-blue-500">
+              Click here!
+            </a>
           </div>
-        )}
+        </div>
       </CardContent>
 
       <CardFooter className="p-0 mt-auto">

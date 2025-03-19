@@ -20,6 +20,7 @@ export function dbToFrontendLesson(lesson: DbLessonData): LessonType {
     sponsorLogo: lesson.sponsor?.logo_url || "",
     points: lesson.points || 0,
     bonusLesson: lesson.bonusLesson || false,
+    sponsorName: lesson.sponsor?.name || "",
   };
 }
 

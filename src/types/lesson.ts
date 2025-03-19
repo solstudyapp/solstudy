@@ -28,6 +28,7 @@ export type LessonType = {
   is_sponsored: boolean;
   sponsorId?: number | null;
   sponsorLogo: string;
+  sponsorName: string;
   points: number;
   bonusLesson?: boolean;
   progress?: number;
