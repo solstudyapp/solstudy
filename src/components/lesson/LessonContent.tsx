@@ -54,7 +54,7 @@ const LessonContent = ({
         </p>
       </div>
 
-      <div className="prose prose-invert max-w-none pb-4">
+      <div className="prose prose-invert lesson-content max-w-none pb-4">
         {parse(currentPageData.content)}
       </div>
 

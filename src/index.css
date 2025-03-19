@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -91,5 +90,97 @@
   
   .admin-table-header {
     @apply bg-black/20;
+  }
+}
+
+/* Rich text editor table styles */
+.ProseMirror table {
+  border-collapse: collapse;
+  margin: 1rem 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.ProseMirror table th {
+  background-color: rgba(255, 255, 255, 0.1);
+  font-weight: bold;
+  text-align: left;
+  padding: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.ProseMirror table td {
+  padding: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  vertical-align: top;
+}
+
+.ProseMirror .selectedCell {
+  background-color: rgba(20, 241, 149, 0.2);
+}
+
+/* Add styles for table resize handle */
+.ProseMirror .tableWrapper {
+  position: relative;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.ProseMirror .column-resize-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background-color: #14F195;
+  cursor: col-resize;
+  z-index: 20;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.ProseMirror .tableWrapper:hover .column-resize-handle {
+  opacity: 0.3;
+}
+
+.ProseMirror .column-resize-handle:hover,
+.ProseMirror .column-resize-handle.dragging {
+  opacity: 1;
+  background-color: #14F195;
+}
+
+/* Lesson content table styles */
+.lesson-content table {
+  border-collapse: collapse;
+  margin: 1rem 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.lesson-content table th {
+  background-color: rgba(255, 255, 255, 0.1);
+  font-weight: bold;
+  text-align: left;
+  padding: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.lesson-content table td {
+  padding: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  vertical-align: top;
+}
+
+/* Add these styles to make tables responsive */
+
+/* Make tables responsive on mobile */
+@media (max-width: 640px) {
+  .lesson-content table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .ProseMirror .tableWrapper {
+    overflow-x: auto;
   }
 }

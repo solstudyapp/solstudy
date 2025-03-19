@@ -26,6 +26,11 @@ import {
   Heading2,
   Upload,
   X,
+  Table as TableIcon,
+  SquareMenu,
+  SquarePlus,
+  SquareMinus,
+  Trash2,
 } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import { useEditor, EditorContent, Editor } from "@tiptap/react"
@@ -34,6 +39,10 @@ import TiptapLink from "@tiptap/extension-link"
 import TiptapImage from "@tiptap/extension-image"
 import UnderlineExtension from "@tiptap/extension-underline"
 import TextAlign from "@tiptap/extension-text-align"
+import Table from "@tiptap/extension-table"
+import TableRow from "@tiptap/extension-table-row"
+import TableCell from "@tiptap/extension-table-cell"
+import TableHeader from "@tiptap/extension-table-header"
 import { imageService } from "@/services/imageService"
 
 // Toolbar Button Component
@@ -49,25 +58,211 @@ const ToolbarButton = ({
   icon,
   title,
   isActive = false,
-}: ToolbarButtonProps) => (
-  <Button
-    type="button"
-    variant="ghost"
-    size="icon"
-    className={`h-8 w-8 ${
-      isActive
-        ? "bg-white/20 text-white"
-        : "text-white/70 hover:text-white hover:bg-white/10"
-    }`}
-    onClick={(e) => {
-      e.preventDefault()
-      onClick()
-    }}
-    title={title}
-  >
-    {icon}
-  </Button>
-)
+}: ToolbarButtonProps) => {
+  return (
+    <Button
+      type="button"
+      size="icon"
+      variant="ghost"
+      className={`h-7 w-7 rounded-md p-0 text-white/70 hover:bg-white/10 hover:text-white ${
+        isActive ? "bg-white/10 text-white" : ""
+      }`}
+      onClick={onClick}
+      title={title}
+    >
+      {icon}
+    </Button>
+  )
+}
+
+// Table Button Dropdown Component
+interface TableDropdownProps {
+  editor: Editor
+}
+
+const TableDropdown = ({ editor }: TableDropdownProps) => {
+  const [showDropdown, setShowDropdown] = useState(false)
+  const [rows, setRows] = useState(3)
+  const [cols, setCols] = useState(3)
+
+  const insertTable = () => {
+    editor
+      .chain()
+      .focus()
+      .insertTable({ rows, cols, withHeaderRow: true })
+      .run()
+
+    setShowDropdown(false)
+  }
+
+  const addColumnBefore = () => {
+    editor.chain().focus().addColumnBefore().run()
+  }
+
+  const addColumnAfter = () => {
+    editor.chain().focus().addColumnAfter().run()
+  }
+
+  const deleteColumn = () => {
+    editor.chain().focus().deleteColumn().run()
+  }
+
+  const addRowBefore = () => {
+    editor.chain().focus().addRowBefore().run()
+  }
+
+  const addRowAfter = () => {
+    editor.chain().focus().addRowAfter().run()
+  }
+
+  const deleteRow = () => {
+    editor.chain().focus().deleteRow().run()
+  }
+
+  const deleteTable = () => {
+    editor.chain().focus().deleteTable().run()
+  }
+
+  const toggleHeaderColumn = () => {
+    editor.chain().focus().toggleHeaderColumn().run()
+  }
+
+  const toggleHeaderRow = () => {
+    editor.chain().focus().toggleHeaderRow().run()
+  }
+
+  const toggleHeaderCell = () => {
+    editor.chain().focus().toggleHeaderCell().run()
+  }
+
+  const isInTable = editor.isActive("table")
+
+  return (
+    <div className="relative">
+      <ToolbarButton
+        onClick={() => setShowDropdown(!showDropdown)}
+        icon={<TableIcon size={14} />}
+        title="Table"
+        isActive={isInTable}
+      />
+
+      {showDropdown && (
+        <div className="absolute z-10 mt-1 bg-[#1E222B] border border-white/10 rounded-md shadow-lg py-1 w-48">
+          {!isInTable ? (
+            <div className="p-2">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs text-white/70">Rows:</label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={rows}
+                  onChange={(e) => setRows(parseInt(e.target.value) || 2)}
+                  className="w-16 h-6 bg-black/20 border-white/10 text-white text-xs"
+                />
+              </div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs text-white/70">Columns:</label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={cols}
+                  onChange={(e) => setCols(parseInt(e.target.value) || 2)}
+                  className="w-16 h-6 bg-black/20 border-white/10 text-white text-xs"
+                />
+              </div>
+              <Button
+                size="sm"
+                className="w-full mt-1 bg-white/10 hover:bg-white/20 text-white text-xs"
+                onClick={insertTable}
+              >
+                Insert Table
+              </Button>
+            </div>
+          ) : (
+            <div>
+              <div className="px-1">
+                <p className="px-2 py-1 text-xs text-white/50">Columns</p>
+                <button
+                  onClick={addColumnBefore}
+                  className="flex items-center w-full px-2 py-1 text-xs text-white/80 hover:bg-white/10"
+                >
+                  <SquarePlus size={12} className="mr-2" /> Add Column Before
+                </button>
+                <button
+                  onClick={addColumnAfter}
+                  className="flex items-center w-full px-2 py-1 text-xs text-white/80 hover:bg-white/10"
+                >
+                  <SquarePlus size={12} className="mr-2" /> Add Column After
+                </button>
+                <button
+                  onClick={deleteColumn}
+                  className="flex items-center w-full px-2 py-1 text-xs text-white/80 hover:bg-white/10"
+                >
+                  <SquareMinus size={12} className="mr-2" /> Delete Column
+                </button>
+              </div>
+
+              <div className="border-t border-white/10 mt-1 pt-1 px-1">
+                <p className="px-2 py-1 text-xs text-white/50">Rows</p>
+                <button
+                  onClick={addRowBefore}
+                  className="flex items-center w-full px-2 py-1 text-xs text-white/80 hover:bg-white/10"
+                >
+                  <SquarePlus size={12} className="mr-2" /> Add Row Before
+                </button>
+                <button
+                  onClick={addRowAfter}
+                  className="flex items-center w-full px-2 py-1 text-xs text-white/80 hover:bg-white/10"
+                >
+                  <SquarePlus size={12} className="mr-2" /> Add Row After
+                </button>
+                <button
+                  onClick={deleteRow}
+                  className="flex items-center w-full px-2 py-1 text-xs text-white/80 hover:bg-white/10"
+                >
+                  <SquareMinus size={12} className="mr-2" /> Delete Row
+                </button>
+              </div>
+
+              <div className="border-t border-white/10 mt-1 pt-1 px-1">
+                <p className="px-2 py-1 text-xs text-white/50">Headers</p>
+                <button
+                  onClick={toggleHeaderRow}
+                  className="flex items-center w-full px-2 py-1 text-xs text-white/80 hover:bg-white/10"
+                >
+                  <SquareMenu size={12} className="mr-2" /> Toggle Header Row
+                </button>
+                <button
+                  onClick={toggleHeaderColumn}
+                  className="flex items-center w-full px-2 py-1 text-xs text-white/80 hover:bg-white/10"
+                >
+                  <SquareMenu size={12} className="mr-2" /> Toggle Header Column
+                </button>
+                <button
+                  onClick={toggleHeaderCell}
+                  className="flex items-center w-full px-2 py-1 text-xs text-white/80 hover:bg-white/10"
+                >
+                  <SquareMenu size={12} className="mr-2" /> Toggle Header Cell
+                </button>
+              </div>
+
+              <div className="border-t border-white/10 mt-1 pt-1 px-1">
+                <button
+                  onClick={deleteTable}
+                  className="flex items-center w-full px-2 py-1 text-xs text-red-500 hover:bg-white/10"
+                >
+                  <Trash2 size={12} className="mr-2" /> Delete Table
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
 
 // Editor Toolbar Component
 interface EditorToolbarProps {
@@ -172,6 +367,9 @@ const EditorToolbar = ({
         isActive={editor.isActive("codeBlock")}
       />
 
+      {/* Table dropdown */}
+      <TableDropdown editor={editor} />
+
       <div className="h-6 w-px bg-white/10 mx-1"></div>
 
       {/* Headings */}
@@ -227,6 +425,27 @@ export const RichTextEditor = ({
       TiptapImage.configure({
         HTMLAttributes: {
           class: "max-w-full",
+        },
+      }),
+      Table.configure({
+        resizable: true,
+        HTMLAttributes: {
+          class: "border-collapse table-auto w-full",
+        },
+      }),
+      TableRow.configure({
+        HTMLAttributes: {
+          class: "border-b border-white/20",
+        },
+      }),
+      TableHeader.configure({
+        HTMLAttributes: {
+          class: "border-b border-white/20 bg-white/10 font-bold text-left p-2",
+        },
+      }),
+      TableCell.configure({
+        HTMLAttributes: {
+          class: "border border-white/20 p-2",
         },
       }),
     ],
@@ -426,7 +645,6 @@ export const RichTextEditor = ({
         </TabsContent>
 
         <TabsContent value="html" className="mt-0">
-          test
           <textarea
             className="w-full min-h-[356px] p-4 bg-black/10 text-white font-mono text-sm focus:outline-none border-0"
             value={htmlContent}
