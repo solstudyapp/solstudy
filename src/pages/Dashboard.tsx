@@ -78,6 +78,7 @@ const generateMockPointsData = () => {
       }),
       coursePoints: Math.floor(Math.random() * 50) + 10,
       referralPoints: Math.floor(Math.random() * 30),
+      quizPoints: Math.floor(Math.random() * 40) + 5,
     })
   }
 
@@ -294,6 +295,15 @@ const Dashboard = () => {
                           dataKey="referralPoints"
                           name="Referral Points"
                           stroke="#9945FF"
+                          strokeWidth={2}
+                          dot={{ r: 3 }}
+                          activeDot={{ r: 5 }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="quizPoints"
+                          name="Quiz Points"
+                          stroke="#FF4500"
                           strokeWidth={2}
                           dot={{ r: 3 }}
                           activeDot={{ r: 5 }}

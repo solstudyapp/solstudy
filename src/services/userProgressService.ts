@@ -24,6 +24,7 @@ export interface PointsHistoryData {
   date: string;
   coursePoints: number;
   referralPoints: number;
+  quizPoints: number;
 }
 
 export interface ReferralHistoryData {
@@ -666,14 +667,14 @@ export const userProgressService = {
       startDate.setDate(endDate.getDate() - 29); // 30 days including today
       
       // Create a map of dates to points
-      const pointsMap = new Map<string, { coursePoints: number, referralPoints: number }>();
+      const pointsMap = new Map<string, { coursePoints: number, referralPoints: number, quizPoints: number }>();
       
       // Initialize all dates in the range with zero points
       for (let i = 0; i <= 29; i++) {
         const date = new Date(startDate);
         date.setDate(startDate.getDate() + i);
         const dateStr = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-        pointsMap.set(dateStr, { coursePoints: 0, referralPoints: 0 });
+        pointsMap.set(dateStr, { coursePoints: 0, referralPoints: 0, quizPoints: 0 });
       }
       
       // 1. Get course points from user_progress table
@@ -693,7 +694,7 @@ export const userProgressService = {
           const dateStr = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
           const points = progress.points_earned || 0;
           
-          const existing = pointsMap.get(dateStr) || { coursePoints: 0, referralPoints: 0 };
+          const existing = pointsMap.get(dateStr) || { coursePoints: 0, referralPoints: 0, quizPoints: 0 };
           pointsMap.set(dateStr, {
             ...existing,
             coursePoints: existing.coursePoints + points
@@ -731,7 +732,7 @@ export const userProgressService = {
             const dateStr = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
             const points = referral.points_earned || 0;
             
-            const existing = pointsMap.get(dateStr) || { coursePoints: 0, referralPoints: 0 };
+            const existing = pointsMap.get(dateStr) || { coursePoints: 0, referralPoints: 0, quizPoints: 0 };
             pointsMap.set(dateStr, {
               ...existing,
               referralPoints: existing.referralPoints + points
@@ -740,12 +741,38 @@ export const userProgressService = {
         }
       }
       
+      // 3. Get quiz points from user_quizzes table
+      const { data: quizPoints, error: quizError } = await supabase
+        .from("user_quizzes")
+        .select("points_earned, completed_at")
+        .eq("user_id", user.id)
+        .gte("completed_at", startDate.toISOString())
+        .lte("completed_at", endDate.toISOString())
+        .order("completed_at", { ascending: true });
+      
+      if (quizError) {
+        console.error("Error fetching quiz points:", quizError);
+      } else if (quizPoints && quizPoints.length > 0) {
+        quizPoints.forEach((quiz: { points_earned: number; completed_at: string }) => {
+          const date = new Date(quiz.completed_at);
+          const dateStr = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+          const points = quiz.points_earned || 0;
+          
+          const existing = pointsMap.get(dateStr) || { coursePoints: 0, referralPoints: 0, quizPoints: 0 };
+          pointsMap.set(dateStr, {
+            ...existing,
+            quizPoints: existing.quizPoints + points
+          });
+        });
+      }
+      
       // Convert map to array and sort by date
       const result: PointsHistoryData[] = Array.from(pointsMap.entries())
         .map(([date, points]) => ({
           date,
           coursePoints: points.coursePoints,
-          referralPoints: points.referralPoints
+          referralPoints: points.referralPoints,
+          quizPoints: points.quizPoints
         }))
         .sort((a, b) => {
           // Convert "Jan 1" format to Date for sorting

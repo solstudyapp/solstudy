@@ -451,6 +451,12 @@ export const RichTextEditor = ({
     ],
     content: initialContent,
     autofocus: true,
+    onUpdate: ({ editor }) => {
+      const html = editor.getHTML()
+      if (html !== htmlContent) {
+        onChange(html)
+      }
+    },
     editorProps: {
       attributes: {
         class: "focus:outline-none",
@@ -515,7 +521,7 @@ export const RichTextEditor = ({
     setLinkUrl("")
     setShowLinkDialog(true)
   }
-
+  
   const insertLink = () => {
     if (!editor || !linkUrl) return
 
@@ -599,7 +605,7 @@ export const RichTextEditor = ({
       setUploading(false)
     }
   }
-
+  
   const handleHtmlChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setHtmlContent(e.target.value)
     onChange(e.target.value)
@@ -610,7 +616,7 @@ export const RichTextEditor = ({
       <div className="min-h-[300px] bg-black/30 p-4">Loading editor...</div>
     )
   }
-
+  
   return (
     <div className="w-full bg-black/30">
       <Tabs

@@ -327,7 +327,21 @@ export const LessonEditor = ({
   }
 
   const handleSaveLesson = async () => {
+    // Save current page content before submitting
+    saveCurrentPageContent()
+
     try {
+      // Validate required fields
+      if (!editedLesson.title) {
+        toast({
+          title: "Error",
+          description: "Lesson title is required",
+          variant: "destructive",
+        })
+        setActiveTab("details")
+        return
+      }
+
       console.log("LessonEditor - handleSaveLesson - sections:", sections)
       console.log(
         "LessonEditor - handleSaveLesson - editedLesson:",
@@ -436,6 +450,9 @@ export const LessonEditor = ({
   }
 
   const addPage = (sectionIndex: number) => {
+    // Use the saveCurrentPageContent function
+    saveCurrentPageContent()
+
     setSections((prev) => {
       const updated = [...prev]
       updated[sectionIndex].pages.push({
@@ -509,6 +526,25 @@ export const LessonEditor = ({
     setCurrentPageIndex(newIndex)
   }
 
+  // Function to save the current page content before switching
+  const saveCurrentPageContent = () => {
+    if (
+      sections.length > 0 &&
+      sections[currentSectionIndex]?.pages[currentPageIndex]
+    ) {
+      // Get the current content from the editor if available
+      const currentEditor = document.querySelector(".ProseMirror")
+      if (currentEditor && currentEditor.innerHTML) {
+        updatePage(
+          currentSectionIndex,
+          currentPageIndex,
+          "content",
+          currentEditor.innerHTML
+        )
+      }
+    }
+  }
+
   const renderSectionsList = () => {
     return (
       <div className="space-y-4">
@@ -534,6 +570,7 @@ export const LessonEditor = ({
                   : "hover:bg-white/5"
               }`}
               onClick={() => {
+                saveCurrentPageContent()
                 setCurrentSectionIndex(index)
                 setCurrentPageIndex(0)
               }}
@@ -618,7 +655,10 @@ export const LessonEditor = ({
               className={`flex items-center justify-between p-2 rounded ${
                 currentPageIndex === index ? "bg-white/10" : "hover:bg-white/5"
               }`}
-              onClick={() => setCurrentPageIndex(index)}
+              onClick={() => {
+                saveCurrentPageContent()
+                setCurrentPageIndex(index)
+              }}
             >
               <div className="flex items-center gap-2">
                 <Edit size={16} />
