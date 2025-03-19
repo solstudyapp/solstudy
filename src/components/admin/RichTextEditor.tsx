@@ -10,20 +10,20 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog"
-import {
-  Bold,
-  Italic,
+import { 
+  Bold, 
+  Italic, 
   Underline as UnderlineIcon,
-  List,
-  ListOrdered,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
+  List, 
+  ListOrdered, 
+  AlignLeft, 
+  AlignCenter, 
+  AlignRight, 
   Link as LinkIcon,
   Image as ImageIcon,
-  Code,
-  Heading1,
-  Heading2,
+  Code, 
+  Heading1, 
+  Heading2, 
   Upload,
   X,
   Table as TableIcon,
@@ -510,7 +510,7 @@ export const RichTextEditor = ({
     setLinkUrl("")
     setShowLinkDialog(true)
   }
-
+  
   const insertLink = () => {
     if (!editor || !linkUrl) return
 
@@ -523,18 +523,18 @@ export const RichTextEditor = ({
           `<a href="${linkUrl}" target="_blank" rel="noopener noreferrer">${linkText}</a>`
         )
         .run()
-    } else {
+        } else {
       // Apply link to selection
       editor.chain().focus().setLink({ href: linkUrl, target: "_blank" }).run()
-    }
-
+      }
+      
     setShowLinkDialog(false)
-    toast({
-      title: "Link inserted",
-      description: "The link has been added to your content",
+      toast({
+        title: "Link inserted",
+        description: "The link has been added to your content",
     })
-  }
-
+    }
+    
   // Image dialog handlers
   const openImageDialog = () => {
     setImageUrl("")
@@ -560,7 +560,7 @@ export const RichTextEditor = ({
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-
+    
     // Validate file type
     if (!file.type.startsWith("image/")) {
       toast({
@@ -578,7 +578,7 @@ export const RichTextEditor = ({
 
       // Set the image URL
       setImageUrl(imageUrl)
-
+      
       toast({
         title: "Image uploaded",
         description: "Image has been uploaded successfully to Supabase storage",
@@ -594,7 +594,7 @@ export const RichTextEditor = ({
       setUploading(false)
     }
   }
-
+  
   const handleHtmlChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setHtmlContent(e.target.value)
     onChange(e.target.value)
@@ -605,7 +605,7 @@ export const RichTextEditor = ({
       <div className="min-h-[300px] bg-black/30 p-4">Loading editor...</div>
     )
   }
-
+  
   return (
     <div className="w-full bg-black/30">
       <Tabs
@@ -614,21 +614,21 @@ export const RichTextEditor = ({
       >
         <div className="flex justify-between border-b border-white/10 px-2 bg-black/20">
           <TabsList className="bg-transparent">
-            <TabsTrigger
-              value="visual"
+            <TabsTrigger 
+              value="visual" 
               className="data-[state=active]:bg-white/10 text-sm data-[state=inactive]:text-white/70"
             >
               Visual
             </TabsTrigger>
-            <TabsTrigger
-              value="html"
+            <TabsTrigger 
+              value="html" 
               className="data-[state=active]:bg-white/10 text-sm data-[state=inactive]:text-white/70"
             >
               HTML
             </TabsTrigger>
           </TabsList>
         </div>
-
+        
         <TabsContent value="visual" className="mt-0">
           <EditorToolbar
             editor={editor}
@@ -643,7 +643,7 @@ export const RichTextEditor = ({
             />
           </div>
         </TabsContent>
-
+        
         <TabsContent value="html" className="mt-0">
           <textarea
             className="w-full min-h-[356px] p-4 bg-black/10 text-white font-mono text-sm focus:outline-none border-0"
@@ -652,7 +652,7 @@ export const RichTextEditor = ({
           />
         </TabsContent>
       </Tabs>
-
+      
       {/* Link Dialog */}
       <Dialog open={showLinkDialog} onOpenChange={setShowLinkDialog}>
         <DialogContent className="bg-[#1A1F2C] text-white border-white/10">
@@ -708,7 +708,7 @@ export const RichTextEditor = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
+      
       {/* Image Dialog */}
       <Dialog open={showImageDialog} onOpenChange={setShowImageDialog}>
         <DialogContent className="bg-[#1A1F2C] text-white border-white/10">
@@ -747,13 +747,13 @@ export const RichTextEditor = ({
               className="hidden"
               onChange={handleFileUpload}
             />
-
+            
             <div className="flex items-center">
               <div className="w-full border-t border-white/10"></div>
               <span className="mx-2 text-white/60 text-sm">OR</span>
               <div className="w-full border-t border-white/10"></div>
             </div>
-
+            
             <div className="space-y-2">
               <label className="text-sm font-medium">Image URL</label>
               <Input
@@ -763,13 +763,13 @@ export const RichTextEditor = ({
                 className="bg-white/10 border-white/20 text-white"
               />
             </div>
-
+            
             {imageUrl && (
               <div className="mt-4 border border-white/20 rounded p-2 bg-white/5">
-                <img
-                  src={imageUrl}
-                  alt="Preview"
-                  className="max-h-40 max-w-full mx-auto object-contain"
+                <img 
+                  src={imageUrl} 
+                  alt="Preview" 
+                  className="max-h-40 max-w-full mx-auto object-contain" 
                   onError={() => {
                     toast({
                       title: "Error loading image",

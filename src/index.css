@@ -93,6 +93,43 @@
   }
 }
 
+/* Rich text editor list styles */
+.ProseMirror ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.ProseMirror ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.ProseMirror li {
+  margin-bottom: 0.25rem;
+}
+
+.ProseMirror li p {
+  margin: 0;
+}
+
+/* Ensure lists in lesson content also show correctly */
+.lesson-content ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.lesson-content ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.lesson-content li {
+  margin-bottom: 0.25rem;
+}
 /* Rich text editor table styles */
 .ProseMirror table {
   border-collapse: collapse;
@@ -170,8 +207,6 @@
   vertical-align: top;
 }
 
-/* Add these styles to make tables responsive */
-
 /* Make tables responsive on mobile */
 @media (max-width: 640px) {
   .lesson-content table {
@@ -179,7 +214,7 @@
     overflow-x: auto;
     white-space: nowrap;
   }
-
+  
   .ProseMirror .tableWrapper {
     overflow-x: auto;
   }
