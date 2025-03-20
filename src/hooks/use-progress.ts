@@ -36,6 +36,22 @@ export function useProgress() {
   }
 
   /**
+   * Check if a page is completed
+   */
+  const isPageCompleted = async (
+    lessonId: string,
+    sectionId: string,
+    pageId: string
+  ): Promise<boolean> => {
+    try {
+      return await userProgressService.isPageCompleted(lessonId, sectionId, pageId)
+    } catch (error) {
+      console.error("Error checking page completion:", error)
+      return false
+    }
+  }
+
+  /**
    * Mark a section as completed
    */
   const completeSection = async (
@@ -120,5 +136,6 @@ export function useProgress() {
     completeSection,
     completeQuiz,
     completeLesson,
+    isPageCompleted,
   }
 }

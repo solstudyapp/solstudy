@@ -4,6 +4,8 @@ import {
   FileQuestion,
   Loader2,
   CheckCircle,
+  Clock,
+  Info,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useNavigate } from "react-router-dom"
@@ -11,6 +13,12 @@ import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase"
 import { useProgress } from "@/hooks/use-progress"
 import { useToast } from "@/hooks/use-toast"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 interface LessonNavigationProps {
   lessonId: string
@@ -35,12 +43,17 @@ const LessonNavigation = ({
 }: LessonNavigationProps) => {
   const navigate = useNavigate()
   const { toast } = useToast()
-  const { isUpdating, completeSection, completeLesson } = useProgress()
+  const { isUpdating, completeSection, completeLesson, isPageCompleted } =
+    useProgress()
   const [hasQuiz, setHasQuiz] = useState<boolean>(false)
   const [hasFinalTest, setHasFinalTest] = useState<boolean>(false)
   const [isCheckingQuiz, setIsCheckingQuiz] = useState<boolean>(false)
   const [quizId, setQuizId] = useState<string | null>(null)
   const [quizCompleted, setQuizCompleted] = useState<boolean>(false)
+  const [timeRemaining, setTimeRemaining] = useState<number>(60)
+  const [isPageComplete, setIsPageComplete] = useState<boolean>(false)
+  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [pageId, setPageId] = useState<string>("")
 
   // Check if a quiz exists for this section
   useEffect(() => {
@@ -146,6 +159,89 @@ const LessonNavigation = ({
     checkQuizExists()
   }, [lessonId, sectionId, isLastPageOfSection, isLastPage])
 
+  // Get the current page ID
+  useEffect(() => {
+    const getCurrentPageId = async () => {
+      try {
+        // Get the current user
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
+
+        if (!user) {
+          console.error("No authenticated user found")
+          return
+        }
+
+        // Get the current page ID from the user progress
+        const { data, error } = await supabase
+          .from("user_progress")
+          .select("current_page_id")
+          .eq("user_id", user.id)
+          .eq("lesson_id", lessonId)
+          .single()
+
+        if (error && error.code !== "PGRST116") {
+          console.error("Error fetching current page ID:", error)
+          return
+        }
+
+        if (data && data.current_page_id) {
+          setPageId(data.current_page_id)
+
+          // Check if the page is completed
+          if (data.current_page_id) {
+            checkPageCompletion(data.current_page_id)
+          }
+        }
+      } catch (error) {
+        console.error("Error getting current page ID:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    getCurrentPageId()
+  }, [lessonId, sectionId, currentSection])
+
+  // Check if the current page is completed
+  const checkPageCompletion = async (pageId: string) => {
+    try {
+      const completed = await isPageCompleted(lessonId, sectionId, pageId)
+      setIsPageComplete(completed)
+
+      // If page is already completed, no need for timer
+      if (completed) {
+        setTimeRemaining(0)
+      }
+    } catch (error) {
+      console.error("Error checking page completion:", error)
+      setIsPageComplete(false)
+    }
+  }
+
+  // Timer logic - start countdown when a new page is loaded
+  useEffect(() => {
+    // Reset timer for new pages that aren't completed
+    if (!isLastPageOfSection && !isPageComplete) {
+      setTimeRemaining(60)
+
+      // Start countdown
+      const timer = setInterval(() => {
+        setTimeRemaining((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer)
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+
+      // Clear timer on unmount
+      return () => clearInterval(timer)
+    }
+  }, [currentSection, sectionId, pageId, isPageComplete, isLastPageOfSection])
+
   // Check if the user has completed the quiz
   const checkQuizCompletion = async (quizIdToCheck: string) => {
     try {
@@ -223,44 +319,71 @@ const LessonNavigation = ({
     navigate(`/quiz/${lessonId}/${sectionId}`)
   }
 
-  return (
-    <div className="flex justify-between pt-4 border-t border-white/10">
-      <Button
-        variant="outline"
-        onClick={navigatePrev}
-        disabled={isFirstPage || isUpdating}
-        className={`border-white/20 text-white hover:bg-white/10 hover:text-white ${
-          isFirstPage ? "invisible" : ""
-        }`}
-      >
-        <ChevronLeft className="mr-2 h-4 w-4" />
-        Previous Page
-      </Button>
+  // Format time remaining as MM:SS
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, "0")}`
+  }
 
-      {isLastPageOfSection ? (
-        hasQuiz ? (
-          quizCompleted ? (
-            // If quiz is completed, show a success button
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex justify-between pt-4 border-t border-white/10">
+        <Button
+          variant="outline"
+          onClick={navigatePrev}
+          disabled={isFirstPage || isUpdating}
+          className={`border-white/20 text-white hover:bg-white/10 hover:text-white ${
+            isFirstPage ? "invisible" : ""
+          }`}
+        >
+          <ChevronLeft className="mr-2 h-4 w-4" />
+          Previous Page
+        </Button>
+
+        {isLastPageOfSection ? (
+          hasQuiz ? (
+            quizCompleted ? (
+              // If quiz is completed, show a success button
+              <Button
+                className="bg-green-600/70 hover:bg-green-600/90 text-white border-0"
+                onClick={() => {
+                  toast({
+                    title: "Quiz already completed",
+                    description: "You can continue to the next section.",
+                  })
+                  if (!isLastPage) {
+                    handleNextSection()
+                  }
+                }}
+              >
+                <CheckCircle className="mr-2 h-4 w-4" />
+                Quiz Completed
+              </Button>
+            ) : (
+              // If quiz is not completed, show the take quiz button
+              <Button
+                className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0"
+                onClick={handleTakeQuiz}
+                disabled={isCheckingQuiz || isUpdating}
+              >
+                {isCheckingQuiz || isUpdating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {isCheckingQuiz ? "Checking..." : "Saving progress..."}
+                  </>
+                ) : (
+                  <>
+                    Take Section Quiz
+                    <FileQuestion className="ml-2 h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            )
+          ) : isLastPage && hasFinalTest ? (
             <Button
-              className="bg-green-600/70 hover:bg-green-600/90 text-white border-0"
-              onClick={() => {
-                toast({
-                  title: "Quiz already completed",
-                  description: "You can continue to the next section.",
-                })
-                if (!isLastPage) {
-                  handleNextSection()
-                }
-              }}
-            >
-              <CheckCircle className="mr-2 h-4 w-4" />
-              Quiz Completed
-            </Button>
-          ) : (
-            // If quiz is not completed, show the take quiz button
-            <Button
+              onClick={handleNextSection}
               className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0"
-              onClick={handleTakeQuiz}
               disabled={isCheckingQuiz || isUpdating}
             >
               {isCheckingQuiz || isUpdating ? (
@@ -270,68 +393,75 @@ const LessonNavigation = ({
                 </>
               ) : (
                 <>
-                  Take Section Quiz
+                  Take Final Test
                   <FileQuestion className="ml-2 h-4 w-4" />
                 </>
               )}
             </Button>
-          )
-        ) : isLastPage && hasFinalTest ? (
-          <Button
-            onClick={handleNextSection}
-            className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0"
-            disabled={isCheckingQuiz || isUpdating}
-          >
-            {isCheckingQuiz || isUpdating ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {isCheckingQuiz ? "Checking..." : "Saving progress..."}
-              </>
-            ) : (
-              <>
-                Take Final Test
-                <FileQuestion className="ml-2 h-4 w-4" />
-              </>
-            )}
-          </Button>
-        ) : (
-          <Button
-            onClick={handleNextSection}
-            className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0"
-            disabled={isUpdating}
-          >
-            {isUpdating ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving progress...
-              </>
-            ) : (
-              <>
-                {isLastPage ? "Finish Lesson" : "Next Section"}
-                <ChevronRight className="ml-2 h-4 w-4" />
-              </>
-            )}
-          </Button>
-        )
-      ) : (
-        <Button
-          onClick={navigateNext}
-          className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0"
-          disabled={isUpdating}
-        >
-          {isUpdating ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Saving progress...
-            </>
           ) : (
-            <>
-              Next Page
-              <ChevronRight className="ml-2 h-4 w-4" />
-            </>
-          )}
-        </Button>
-      )}
+            <Button
+              onClick={handleNextSection}
+              className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0"
+              disabled={isUpdating}
+            >
+              {isUpdating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving progress...
+                </>
+              ) : (
+                <>
+                  {isLastPage ? "Finish Lesson" : "Next Section"}
+                  <ChevronRight className="ml-2 h-4 w-4" />
+                </>
+              )}
+            </Button>
+          )
+        ) : (
+          // Regular Next Page button with timer
+          <div className="flex items-center gap-2">
+            {!isPageComplete && timeRemaining > 0 && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="cursor-help">
+                      <Info className="h-4 w-4 text-white/70" />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">
+                      Please spend at least 60 seconds on each new page before
+                      proceeding.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+            <Button
+              onClick={navigateNext}
+              className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0"
+              disabled={isUpdating || (!isPageComplete && timeRemaining > 0)}
+            >
+              {isUpdating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving progress...
+                </>
+              ) : !isPageComplete && timeRemaining > 0 ? (
+                <>
+                  <Clock className="mr-2 h-4 w-4" />
+                  Wait {formatTime(timeRemaining)}
+                </>
+              ) : (
+                <>
+                  Next Page
+                  <ChevronRight className="ml-2 h-4 w-4" />
+                </>
+              )}
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

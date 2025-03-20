@@ -422,12 +422,29 @@ const QuizPage = () => {
   }
 
   // Function to handle section quiz completion without feedback
-  const handleSectionQuizComplete = () => {
+  const handleSectionQuizComplete = async () => {
     // For section quizzes, determine if there's a next section
     const isLastSection = currentSectionIndex >= sections.length - 1
 
     if (isLastSection) {
-      // If this was the last section quiz, navigate to the final test
+      // If this was the last section quiz, auto-complete the lesson and show rating
+      try {
+        // Mark the lesson as completed in the database
+        await userProgressService.completeLesson(lessonId || "")
+        toast({
+          title: "Lesson completed!",
+          description: "You've completed all sections in this lesson.",
+        })
+
+        // Show the rating modal directly
+        setShowRatingModal(true)
+        return
+      } catch (error) {
+        console.error("Error completing lesson:", error)
+        // If error, still try to navigate to final test as fallback
+      }
+
+      // Navigate to the final test if auto-completion fails
       toast({
         title: "All sections completed!",
         description: "You can now take the final test for this lesson.",

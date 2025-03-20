@@ -545,7 +545,7 @@ export const RichTextEditor = ({
       description: "The link has been added to your content",
     })
   }
-
+    
   // Image dialog handlers
   const openImageDialog = () => {
     setImageUrl("")
