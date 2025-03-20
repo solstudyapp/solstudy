@@ -30,10 +30,11 @@ const LessonSidebar = ({
 }: LessonSidebarProps) => {
   const [completedSections, setCompletedSections] = useState<string[]>([])
   const [completedQuizzes, setCompletedQuizzes] = useState<string[]>([])
+  const [completedPages, setCompletedPages] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
 
-  // Fetch completed sections and quizzes from user_progress table
+  // Fetch completed sections, quizzes, and pages from user_progress table
   useEffect(() => {
     const fetchUserProgress = async () => {
       try {
@@ -49,7 +50,7 @@ const LessonSidebar = ({
 
         const { data, error } = await supabase
           .from("user_progress")
-          .select("completed_sections, completed_quizzes")
+          .select("completed_sections, completed_quizzes, completed_pages")
           .eq("user_id", user.id)
           .eq("lesson_id", lessonId)
           .single()
@@ -65,8 +66,10 @@ const LessonSidebar = ({
         if (data) {
           setCompletedSections(data.completed_sections || [])
           setCompletedQuizzes(data.completed_quizzes || [])
+          setCompletedPages(data.completed_pages || [])
           console.log("Completed sections:", data.completed_sections)
           console.log("Completed quizzes:", data.completed_quizzes)
+          console.log("Completed pages:", data.completed_pages)
         }
       } catch (error) {
         console.error("Error in fetchUserProgress:", error)
@@ -88,10 +91,11 @@ const LessonSidebar = ({
       title: page.title,
       sectionTitle: section.title,
       id: page.id,
-      // Determine if this page is accessible based on progress
+      // Determine if this page is accessible based on progress or if it's completed
       isAccessible:
         sectionIndex < currentSection ||
-        (sectionIndex === currentSection && pageIndex <= currentPage),
+        (sectionIndex === currentSection && pageIndex <= currentPage) ||
+        completedPages.includes(String(page.id)),
     }))
   )
 
@@ -102,7 +106,11 @@ const LessonSidebar = ({
 
     if (
       sectionIndex < currentSection ||
-      (sectionIndex === currentSection && pageIndex <= currentPage)
+      (sectionIndex === currentSection && pageIndex <= currentPage) ||
+      (sections[sectionIndex]?.pages[pageIndex] &&
+        completedPages.includes(
+          String(sections[sectionIndex].pages[pageIndex].id)
+        ))
     ) {
       setCurrentSection(sectionIndex)
       setCurrentPage(pageIndex)
@@ -112,6 +120,11 @@ const LessonSidebar = ({
   // Determine if a section is completed based on the data from user_progress
   const isSectionCompleted = (sectionId: string) => {
     return completedSections.includes(sectionId)
+  }
+
+  // Check if a page is completed
+  const isPageCompleted = (pageId: string) => {
+    return completedPages.includes(String(pageId))
   }
 
   // Function to navigate to the quiz page
@@ -139,6 +152,7 @@ const LessonSidebar = ({
                 className={!page.isAccessible ? "opacity-50" : ""}
               >
                 {page.sectionTitle} - {page.title}
+                {isPageCompleted(String(page.id)) && " ✓"}
               </SelectItem>
             ))}
           </SelectContent>
@@ -175,11 +189,14 @@ const LessonSidebar = ({
                     // 1. Its section is completed
                     // 2. It's in a previous section
                     // 3. It's in the current section and before or at the current page
+                    // 4. The page ID is in the completedPages array
+                    const pageIsCompleted = isPageCompleted(String(page.id - 1))
                     const isPageAccessible =
                       completed ||
                       sectionIndex < currentSection ||
                       (sectionIndex === currentSection &&
-                        pageIndex <= currentPage)
+                        pageIndex <= currentPage) ||
+                      pageIsCompleted
 
                     return (
                       <button
@@ -188,6 +205,8 @@ const LessonSidebar = ({
                           sectionIndex === currentSection &&
                           pageIndex === currentPage
                             ? "bg-white/20 text-white"
+                            : pageIsCompleted
+                            ? "text-[#14F195] hover:bg-white/10"
                             : isPageAccessible
                             ? "text-white/70 hover:text-white hover:bg-white/10"
                             : "text-white/50 cursor-not-allowed"
@@ -201,7 +220,9 @@ const LessonSidebar = ({
                         }}
                         disabled={!isPageAccessible}
                       >
-                        {completed && sectionIndex < currentSection ? (
+                        {pageIsCompleted ? (
+                          <Check className="h-3 w-3 text-[#14F195]" />
+                        ) : completed && sectionIndex < currentSection ? (
                           <Check className="h-3 w-3 text-[#14F195]" />
                         ) : null}
                         <span>{page.title}</span>
