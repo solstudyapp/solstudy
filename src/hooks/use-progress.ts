@@ -7,7 +7,7 @@ export function useProgress() {
   const { toast } = useToast()
 
   /**
-   * Mark a page as completed
+   * Mark a page as viewed (for navigation tracking)
    */
   const completePage = async (
     lessonId: string,
@@ -29,6 +29,30 @@ export function useProgress() {
         description: "Failed to save your progress. Please try again.",
         variant: "destructive",
       })
+      return false
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  /**
+   * Mark a page as completed (e.g., after spending enough time on it)
+   */
+  const markPageCompleted = async (
+    lessonId: string,
+    sectionId: string,
+    pageId: string
+  ): Promise<boolean> => {
+    try {
+      setIsUpdating(true)
+      const result = await userProgressService.markPageCompleted(
+        lessonId,
+        sectionId,
+        pageId
+      )
+      return result.success
+    } catch (error) {
+      console.error("Error marking page as completed:", error)
       return false
     } finally {
       setIsUpdating(false)
@@ -133,6 +157,7 @@ export function useProgress() {
   return {
     isUpdating,
     completePage,
+    markPageCompleted,
     completeSection,
     completeQuiz,
     completeLesson,

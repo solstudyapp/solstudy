@@ -789,10 +789,22 @@ export const userProgressService = {
   },
   
   /**
-   * Check if a page is completed
+   * Check if the user has completed a specific page
    */
-  isPageCompleted: async (lessonId: string, sectionId: string, pageId: string): Promise<boolean> => {
+  isPageCompleted: async (
+    lessonId: string,
+    sectionId: string,
+    pageId: string | number
+  ): Promise<boolean> => {
     try {
+      // Ensure pageId is a string for consistency
+      const pageIdStr = String(pageId);
+      
+      console.log("=== CHECKING PAGE COMPLETION ===");
+      console.log(`LessonID: ${lessonId}`);
+      console.log(`SectionID: ${sectionId}`);
+      console.log(`PageID: ${pageIdStr}`);
+      
       // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -801,28 +813,206 @@ export const userProgressService = {
         return false;
       }
       
-      // Check if this page is completed
+      console.log(`Checking page completion for user: ${user.id}`);
+
+      // Get the user progress record directly
       const { data, error } = await supabase
         .from("user_progress")
-        .select("completed")
+        .select("completed_pages")
         .eq("user_id", user.id)
         .eq("lesson_id", lessonId)
-        .eq("section_id", sectionId)
-        .eq("page_id", pageId)
         .single();
       
       if (error) {
-        if (error.code === 'PGRST116') { // No rows returned
-          return false;
-        }
         console.error("Error checking page completion:", error);
         return false;
       }
       
-      return data?.completed || false;
+      console.log("Retrieved user progress data:", data);
+      
+      // Check if the page is in the completed_pages array
+      if (data && data.completed_pages) {
+        // Ensure completed_pages is an array
+        const completedPages = Array.isArray(data.completed_pages) 
+          ? data.completed_pages 
+          : [];
+        
+        // Make sure all IDs are strings for comparison
+        const normalizedCompletedPages = completedPages.map(id => String(id));
+        
+        const isCompleted = normalizedCompletedPages.includes(pageIdStr);
+        console.log(`Page ${pageIdStr} completion check result: ${isCompleted}`);
+        console.log(`All completed pages: ${JSON.stringify(normalizedCompletedPages)}`);
+        return isCompleted;
+      }
+      
+      console.log("No completed_pages array found");
+      return false;
     } catch (error) {
       console.error("Error in isPageCompleted:", error);
       return false;
+    }
+  },
+
+  /**
+   * Mark a page as completed for the user
+   */
+  markPageCompleted: async (
+    lessonId: string,
+    sectionId: string,
+    pageId: string | number
+  ): Promise<{ success: boolean; error?: string }> => {
+    try {
+      // Ensure pageId is a string for consistency
+      const pageIdStr = String(pageId);
+      
+      console.log("=== MARKING PAGE AS COMPLETED ===");
+      console.log(`LessonID: ${lessonId}`);
+      console.log(`SectionID: ${sectionId}`);
+      console.log(`PageID: ${pageIdStr}`);
+      
+      // Get the current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        console.error("No authenticated user found");
+        return { success: false, error: "No authenticated user found" };
+      }
+      
+      console.log(`User ID: ${user.id}`);
+
+      // First check if the page is already completed
+      const isAlreadyCompleted = await userProgressService.isPageCompleted(
+        lessonId,
+        sectionId,
+        pageIdStr
+      );
+      
+      if (isAlreadyCompleted) {
+        console.log(`Page ${pageIdStr} is already marked as completed, nothing to do`);
+        return { success: true };
+      }
+
+      // First check if the user already has progress for this lesson
+      const { data: existingProgress, error: checkError } = await supabase
+        .from("user_progress")
+        .select("id, completed_pages")
+        .eq("user_id", user.id)
+        .eq("lesson_id", lessonId)
+        .single();
+
+      if (checkError && checkError.code !== "PGRST116") {
+        // Some other error occurred
+        console.error("Error checking existing progress:", checkError);
+        return { success: false, error: checkError.message };
+      }
+
+      if (existingProgress) {
+        console.log(`Found existing progress record: ${existingProgress.id}`);
+        // User has existing progress, update the completed_pages array
+        let completedPages = existingProgress.completed_pages || [];
+        
+        // Make sure we have an array even if the database value is malformed
+        if (!Array.isArray(completedPages)) {
+          console.log("completed_pages is not an array, creating new array");
+          completedPages = [];
+        }
+        
+        // Make sure all IDs are strings for comparison
+        const normalizedCompletedPages = completedPages.map(id => String(id));
+        
+        // Only add the page ID if it's not already in the array
+        if (!normalizedCompletedPages.includes(pageIdStr)) {
+          console.log(`Adding page ${pageIdStr} to completed_pages array`);
+          normalizedCompletedPages.push(pageIdStr);
+        } else {
+          console.log(`Page ${pageIdStr} already in completed_pages array`);
+        }
+
+        // Update the progress record
+        console.log(`Updating completed_pages: ${JSON.stringify(normalizedCompletedPages)}`);
+        const { error: updateError } = await supabase
+          .from("user_progress")
+          .update({
+            completed_pages: normalizedCompletedPages,
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", existingProgress.id);
+
+        if (updateError) {
+          console.error("Error updating completed pages:", updateError);
+          return { success: false, error: updateError.message };
+        }
+        
+        console.log("Successfully updated completed pages");
+      } else {
+        console.log("No existing progress record, creating new one");
+        // No existing progress, create a new progress record
+        const { error: insertError } = await supabase
+          .from("user_progress")
+          .insert({
+            user_id: user.id,
+            lesson_id: lessonId,
+            current_section_id: sectionId,
+            current_page_id: pageIdStr,
+            completed_pages: [pageIdStr],
+            is_completed: false,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+
+        if (insertError) {
+          console.error("Error creating progress record:", insertError);
+          return { success: false, error: insertError.message };
+        }
+        
+        console.log("Successfully created new progress record with completed page");
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error("Error in markPageCompleted:", error);
+      return { success: false, error: "An unexpected error occurred" };
+    }
+  },
+
+  /**
+   * Get all completed pages for a lesson
+   */
+  getCompletedPages: async (
+    lessonId: string
+  ): Promise<string[]> => {
+    try {
+      // Get the current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        console.error("No authenticated user found");
+        return [];
+      }
+
+      // Get the completed pages from user_progress
+      const { data, error } = await supabase
+        .from("user_progress")
+        .select("completed_pages")
+        .eq("user_id", user.id)
+        .eq("lesson_id", lessonId)
+        .single();
+      
+      if (error) {
+        console.error("Error getting completed pages:", error);
+        return [];
+      }
+      
+      // Return the completed pages array, or an empty array if none exists
+      if (data && data.completed_pages && Array.isArray(data.completed_pages)) {
+        return data.completed_pages;
+      }
+      
+      return [];
+    } catch (error) {
+      console.error("Error in getCompletedPages:", error);
+      return [];
     }
   },
 

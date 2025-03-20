@@ -171,6 +171,7 @@ const LessonView = () => {
                 const pageIndex = sections[sectionIndex].pages.findIndex(
                   (page) => page.id === progress.current_page_id
                 )
+                console.log("progress", progress)
 
                 if (pageIndex !== -1) {
                   console.log(

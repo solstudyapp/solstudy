@@ -67,6 +67,7 @@ const LessonContent = ({
         isFirstPage={isFirstPage}
         isLastPage={isLastPage}
         isLastPageOfSection={isLastPageOfSection}
+        currentPage={currentPage}
       />
     </div>
   )
