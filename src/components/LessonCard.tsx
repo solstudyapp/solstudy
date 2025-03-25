@@ -85,7 +85,7 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
         <div className="mt-4 pt-3 border-t border-white/10">
           <div className="text-xs text-white/60 mb-1">
             This lesson is sponsored by{" "}
-            {lesson.sponsorName ? lesson.sponsorName : "a sponsor"}. Want to
+            {lesson.sponsorName ? lesson.sponsorName : "your name and logo here"}. Want to
             sponsor a lesson?{" "}
             <a href="mailto:admin@solstudy.com" className="text-blue-500">
               Click here!
