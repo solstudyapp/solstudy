@@ -35,7 +35,7 @@ const Footer = () => {
         />
       ),
       url: "https://x.com/solstudyapp",
-      label: "X",
+      label: "",
     },
   ]
 
