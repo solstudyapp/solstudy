@@ -26,17 +26,6 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
   } = usePrerequisites()
 
   const handleStartLesson = () => {
-    // Check prerequisites for intermediate and advanced courses
-    if (lesson.difficulty !== "beginner") {
-      const hasPrerequisites = checkPrerequisites(lesson.difficulty)
-
-      if (!hasPrerequisites) {
-        // Show the modal instead of navigating
-        setShowPrerequisiteModal(true)
-        return
-      }
-    }
-
     // If prerequisites are met or it's a beginner course, navigate to lesson
     window.scrollTo(0, 0)
     navigate(`/lesson/${lesson.id}`)
@@ -107,8 +96,10 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
           <div className="mt-4 pt-3 border-t border-white/10">
             <div className="text-xs text-white/60 mb-1">
               This lesson is sponsored by{" "}
-              {lesson.sponsorName ? lesson.sponsorName : "your name and logo here"}. Want to
-              sponsor a lesson?{" "}
+              {lesson.sponsorName
+                ? lesson.sponsorName
+                : "your name and logo here"}
+              . Want to sponsor a lesson?{" "}
               <a href="mailto:admin@solstudy.com" className="text-blue-500">
                 Click here!
               </a>
@@ -138,16 +129,6 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
           </Button>
         </CardFooter>
       </Card>
-
-      {/* Prerequisite Modal */}
-      <PrerequisiteModal
-        isOpen={showPrerequisiteModal}
-        onClose={() => setShowPrerequisiteModal(false)}
-        difficulty={lesson.difficulty}
-        beginnerCompleted={beginnerCompleted}
-        intermediateCompleted={intermediateCompleted}
-        availableCourses={availableCourses}
-      />
     </>
   )
 }
