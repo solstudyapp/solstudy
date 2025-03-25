@@ -84,8 +84,8 @@ const Index = () => {
               Learn about crypto from fundamentals to advanced trading
               strategies. With our course feedback component you play an
               important role helping evolve the material for future users. Earn
-              rewards for completing courses and referring others to do so.
-              Rewards will be converted to tokens upon SocialFiLy TGE. We are
+              SOFLY rewards points for completing courses and referring others to do so.
+              Rewards points will be converted to tokens upon SocialFiLy TGE. We are
               part of the growing SocialFiLy ecosystem and look forward to
               having you in our community.
             </p>
