@@ -141,7 +141,7 @@ const About = () => {
                   Solana Development
                 </h3>
                 <p className="text-white/80">
-                  Build decentralized applications on Solana with our
+                  Learn the fundametal theory to build decentralized applications on Solana with our
                   comprehensive development courses.
                 </p>
               </div>
@@ -157,8 +157,8 @@ const About = () => {
                   NFT Creation
                 </h3>
                 <p className="text-white/80">
-                  Learn to create, mint, and sell your own NFT collections with
-                  our interactive workshops.
+                  Future courses will teach you to create, mint, and sell your own NFT collections with
+                  our comprehensive course material.
                 </p>
               </div>
             </div>
@@ -252,7 +252,7 @@ const About = () => {
               <p className="text-white/90 text-lg mb-6">
                 SolStudy is proud to be part of the growing SocialFiLy
                 ecosystem. By completing courses and referring others, you can
-                earn rewards that will be converted to tokens upon SocialFiLy
+                earn SOFLY rewards points that will be converted to tokens upon SocialFiLy
                 TGE (Token Generation Event).
               </p>
               <p className="text-white/90 text-lg mb-6">
