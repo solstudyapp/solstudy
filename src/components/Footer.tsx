@@ -34,7 +34,7 @@ const Footer = () => {
           className="w-6 h-6 invert" // Invert to make it white
         />
       ),
-      url: "https://x.com/solstudy1",
+      url: "https://x.com/solstudyapp",
       label: "X",
     },
   ]
