@@ -58,11 +58,11 @@ const LessonNavigation = ({
   const [isCheckingQuiz, setIsCheckingQuiz] = useState<boolean>(false)
   const [quizId, setQuizId] = useState<string | null>(null)
   const [quizCompleted, setQuizCompleted] = useState<boolean>(false)
-  const [timeRemaining, setTimeRemaining] = useState<number>(60)
+  const [timeRemaining, setTimeRemaining] = useState<number>(30)
   const [isPageComplete, setIsPageComplete] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [pageId, setPageId] = useState<string>("")
-  const [pageTimer, setPageTimer] = useState(60)
+  const [pageTimer, setPageTimer] = useState(30)
   const [isTimerActive, setIsTimerActive] = useState(false)
 
   // Check if a quiz exists for this section
@@ -222,7 +222,7 @@ const LessonNavigation = ({
           const isCompleted = data.completed_pages.includes(pageIdToUse)
           console.log(`Page ${pageIdToUse} completion from db: ${isCompleted}`)
           setIsPageComplete(isCompleted)
-          setTimeRemaining(isCompleted ? 0 : 60)
+          setTimeRemaining(isCompleted ? 0 : 30)
         } else {
           // Check via service if no completed_pages data
           checkPageCompletion(pageIdToUse)
@@ -269,7 +269,7 @@ const LessonNavigation = ({
       } else {
         // Reset timer for uncompleted pages
         console.log("Page not completed, resetting timer")
-        setTimeRemaining(60)
+        setTimeRemaining(30)
       }
     } catch (error) {
       console.error("Error checking page completion:", error)
@@ -401,8 +401,8 @@ const LessonNavigation = ({
 
   // Format time remaining as MM:SS
   const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
+    const mins = Math.floor(seconds / 30)
+    const secs = seconds % 30
     return `${mins}:${secs.toString().padStart(2, "0")}`
   }
 
@@ -421,10 +421,10 @@ const LessonNavigation = ({
         console.log(`Completion check result for page ${pageId}: ${completed}`)
         setIsPageComplete(completed)
 
-        // If page is not completed, start the timer at 60 seconds
+        // If page is not completed, start the timer at 30 seconds
         if (!completed) {
-          console.log(`Page ${pageId} not completed, setting timer to 60`)
-          setTimeRemaining(60)
+          console.log(`Page ${pageId} not completed, setting timer to 30`)
+          setTimeRemaining(30)
         } else {
           console.log(`Page ${pageId} already completed, setting timer to 0`)
           setTimeRemaining(0)
@@ -610,7 +610,7 @@ const LessonNavigation = ({
                   </TooltipTrigger>
                   <TooltipContent>
                     <p className="max-w-xs">
-                      Please spend at least 60 seconds on each new page before
+                      Please spend at least 30 seconds on each new page before
                       proceeding. <strong>Page ID: {pageId}</strong>
                     </p>
                   </TooltipContent>
