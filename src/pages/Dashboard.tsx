@@ -317,9 +317,9 @@ const Dashboard = () => {
 
             <Card className="glass-card text-white mb-8">
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <BookOpen className="mr-2 h-5 w-5 text-[#14F195]" />
-                  Courses In Progress
+                <CardTitle className="flex items-center text-lg sm:text-xl">
+                  <BookOpen className="mr-2 h-5 w-5 text-[#14F195] flex-shrink-0" />
+                  <span className="flex-wrap">Courses In Progress</span>
                 </CardTitle>
                 <CardDescription className="text-white/70">
                   Continue where you left off
@@ -333,26 +333,28 @@ const Dashboard = () => {
                         key={lesson.id || lesson.lessonId}
                         className="bg-white/10 rounded-lg p-4"
                       >
-                        <div className="flex items-center gap-4 mb-2">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                           <div
-                            className={`p-3 rounded-lg bg-${
+                            className={`p-3 rounded-lg mb-3 sm:mb-0 ${
                               lesson.difficulty === "beginner"
-                                ? "green"
+                                ? "bg-green-500/30 text-white"
                                 : lesson.difficulty === "intermediate"
-                                ? "blue"
-                                : "orange"
-                            }-500/30 text-white`}
+                                ? "bg-blue-500/30 text-white"
+                                : "bg-orange-500/30 text-white"
+                            }`}
                           >
                             {getLessonIcon(lesson.id || lesson.lessonId)}
                           </div>
-                          <div className="flex-1">
-                            <h3 className="font-medium">{lesson.title}</h3>
-                            <div className="flex justify-between items-center mt-1">
-                              <span className="text-sm text-white/70">
+                          <div className="flex-1 w-full">
+                            <h3 className="font-medium text-lg">
+                              {lesson.title}
+                            </h3>
+                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-1">
+                              <span className="text-sm text-white/70 mb-1 sm:mb-0">
                                 {lesson.progress}% Complete
                               </span>
                               {lesson.lastActivity && (
-                                <span className="text-xs text-white/50">
+                                <span className="text-xs text-white/50 mt-1 sm:mt-0">
                                   Last activity:{" "}
                                   {new Date(
                                     lesson.lastActivity
@@ -365,7 +367,11 @@ const Dashboard = () => {
                               className="h-2 mt-2 mb-3 bg-white/20"
                             />
                           </div>
-                          <Button variant="gradient" asChild>
+                          <Button
+                            variant="gradient"
+                            className="w-full sm:w-auto mt-2 sm:mt-0"
+                            asChild
+                          >
                             <Link
                               to={`/lesson/${lesson.id || lesson.lessonId}`}
                             >
@@ -391,10 +397,13 @@ const Dashboard = () => {
 
             <Card className="glass-card text-white mb-8">
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Award className="mr-2 h-5 w-5 text-[#14F195]" />
-                  Completed Courses
+                <CardTitle className="flex items-center text-lg sm:text-xl">
+                  <Award className="mr-2 h-5 w-5 text-[#14F195] flex-shrink-0" />
+                  <span className="flex-wrap">Completed Courses</span>
                 </CardTitle>
+                <CardDescription className="text-white/70">
+                  Your learning achievements
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 {completedLessons.length > 0 ? (
@@ -402,41 +411,45 @@ const Dashboard = () => {
                     {completedLessons.map((lesson: any) => (
                       <div
                         key={lesson.id || lesson.lessonId}
-                        className="bg-white/10 rounded-lg p-4 flex items-center"
+                        className="bg-white/10 rounded-lg p-4"
                       >
-                        <div
-                          className={`p-3 rounded-lg bg-${
-                            lesson.difficulty === "beginner"
-                              ? "green"
-                              : lesson.difficulty === "intermediate"
-                              ? "blue"
-                              : "orange"
-                          }-500/30 text-white mr-4`}
-                        >
-                          {getLessonIcon(lesson.id || lesson.lessonId)}
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-medium">{lesson.title}</h3>
-                          <p className="text-sm text-white/70">
-                            Completed on {lesson.completedDate}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-[#14F195] font-medium">
-                            +{lesson.earnedPoints} pts
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="mt-2 border-white/20 text-white hover:bg-white/10"
-                            asChild
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                          <div
+                            className={`p-3 rounded-lg mb-3 sm:mb-0 ${
+                              lesson.difficulty === "beginner"
+                                ? "bg-green-500/30 text-white"
+                                : lesson.difficulty === "intermediate"
+                                ? "bg-blue-500/30 text-white"
+                                : "bg-orange-500/30 text-white"
+                            }`}
                           >
-                            <Link
-                              to={`/lesson/${lesson.id || lesson.lessonId}`}
+                            {getLessonIcon(lesson.id || lesson.lessonId)}
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-medium text-lg">
+                              {lesson.title}
+                            </h3>
+                            <p className="text-sm text-white/70">
+                              Completed on {lesson.completedDate}
+                            </p>
+                          </div>
+                          <div className="text-right mt-3 sm:mt-0 w-full sm:w-auto">
+                            <div className="text-[#14F195] font-medium">
+                              +{lesson.earnedPoints} pts
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="mt-2 border-white/20 text-white hover:bg-white/10 w-full sm:w-auto"
+                              asChild
                             >
-                              Review Course
-                            </Link>
-                          </Button>
+                              <Link
+                                to={`/lesson/${lesson.id || lesson.lessonId}`}
+                              >
+                                Review Course
+                              </Link>
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     ))}

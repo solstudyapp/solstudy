@@ -26,6 +26,18 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
   } = usePrerequisites()
 
   const handleStartLesson = () => {
+    // Check prerequisites for intermediate and advanced courses
+    // if (lesson.difficulty !== "beginner") {
+    //   const hasPrerequisites = checkPrerequisites(lesson.difficulty)
+
+    //   if (!hasPrerequisites) {
+    //     // Show the modal instead of navigating
+    //     // Modal is currently hidden
+    //     // setShowPrerequisiteModal(true)
+    //     // return
+    //   }
+    // }
+
     // If prerequisites are met or it's a beginner course, navigate to lesson
     window.scrollTo(0, 0)
     navigate(`/lesson/${lesson.id}`)
@@ -69,7 +81,9 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
         </CardHeader>
 
         <CardContent className="pt-4 flex-grow flex flex-col">
-          <p className="text-white/80 mb-4">{lesson.description}</p>
+          <p className="text-white/80 mb-4 line-clamp-3">
+            {lesson.description}
+          </p>
 
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-1">
@@ -129,6 +143,17 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
           </Button>
         </CardFooter>
       </Card>
+
+      {/* Prerequisite Modal - currently hidden
+      <PrerequisiteModal
+        isOpen={showPrerequisiteModal}
+        onClose={() => setShowPrerequisiteModal(false)}
+        difficulty={lesson.difficulty}
+        beginnerCompleted={beginnerCompleted}
+        intermediateCompleted={intermediateCompleted}
+        availableCourses={availableCourses}
+      />
+      */}
     </>
   )
 }
