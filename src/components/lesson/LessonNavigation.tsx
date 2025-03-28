@@ -170,6 +170,18 @@ const LessonNavigation = ({
   useEffect(() => {
     // Use currentPage directly as the page ID from the database
     const pageIdToUse = String(currentPage)
+
+    // Set the pageId immediately to avoid delays
+    setPageId(pageIdToUse)
+
+    // Reset timer for every new page without checking completion first
+    setTimeRemaining(30)
+    setIsPageComplete(false)
+    setIsTimerActive(true)
+    console.log(
+      `Page changed to ${pageIdToUse}, section ${currentSection}, resetting timer to 30 seconds`
+    )
+
     const getCurrentPageId = async () => {
       try {
         // Get the current user
@@ -178,12 +190,8 @@ const LessonNavigation = ({
         } = await supabase.auth.getUser()
 
         if (!user) {
-          console.error("No authenticated user found")
           return
         }
-
-        // Set the page ID directly from currentPage
-        setPageId(pageIdToUse)
 
         // Check if the page is completed
         const { data, error } = await supabase
@@ -194,7 +202,6 @@ const LessonNavigation = ({
           .single()
 
         if (error && error.code !== "PGRST116") {
-          console.error("Error fetching completion status:", error)
           return
         }
 
@@ -204,77 +211,54 @@ const LessonNavigation = ({
           data.completed_pages &&
           Array.isArray(data.completed_pages)
         ) {
-          // Log the completed pages for debugging
-
           const isCompleted = data.completed_pages.includes(pageIdToUse)
+          console.log(`Page ${pageIdToUse} completion status: ${isCompleted}`)
 
-          setIsPageComplete(isCompleted)
-          setTimeRemaining(isCompleted ? 0 : 30)
+          // Always force timer to run for 30 seconds
+          // We'll only set isPageComplete after 30 seconds
         } else {
           // Check via service if no completed_pages data
-          checkPageCompletion(pageIdToUse)
+          // But don't update isPageComplete yet
+          const completed = await isPageCompleted(
+            lessonId,
+            String(currentSection),
+            pageIdToUse
+          )
+          console.log(`Page completion via service: ${completed}`)
         }
       } catch (error) {
-        console.error("Error getting current page ID:", error)
+        // Silent fail
       } finally {
         setIsLoading(false)
       }
     }
 
     getCurrentPageId()
-  }, [lessonId, sectionId, currentSection, currentPage])
-
-  // Check if the current page is completed
-  const checkPageCompletion = async (pageIdToCheck: string) => {
-    try {
-      // Use currentSection instead of sectionId to ensure we're checking the right section
-      const sectionIdToUse = String(currentSection)
-
-      // Log debugging info
-
-      // Use currentPage as the actual page ID to check
-      const pageIdToUse = String(currentPage)
-
-      const completed = await isPageCompleted(
-        lessonId,
-        sectionIdToUse,
-        pageIdToUse
-      )
-
-      setIsPageComplete(completed)
-
-      // If page is already completed, no need for timer
-      if (completed) {
-        setTimeRemaining(0)
-      } else {
-        // Reset timer for uncompleted pages
-
-        setTimeRemaining(30)
-      }
-    } catch (error) {
-      console.error("Error checking page completion:", error)
-      setIsPageComplete(false)
-    }
-  }
+  }, [lessonId, currentPage, currentSection])
 
   // Timer effect - use this one exclusively for timing
   useEffect(() => {
-    console.log(
-      `Timer effect triggered. pageId: ${pageId}, isLastPageOfSection: ${isLastPageOfSection}, isPageComplete: ${isPageComplete}, timeRemaining: ${timeRemaining}`
-    )
-
     // Skip timer if no pageId is set yet
     if (!pageId) {
       return
     }
 
-    // Only start timer if page is not completed and not the last page of section
-    if (!isLastPageOfSection && !isPageComplete && timeRemaining > 0) {
+    // Always run the timer for 30 seconds on every page, regardless of completion status
+    console.log(
+      `Starting timer for page ${pageId}, section ${currentSection} with ${timeRemaining} seconds remaining`
+    )
+    setIsTimerActive(true)
+
+    // Start timer for all pages in all sections
+    if (timeRemaining > 0) {
+      console.log(
+        `Starting timer countdown for page ${pageId}, section ${currentSection}`
+      )
+
       // Start countdown
       const timer = setInterval(() => {
         setTimeRemaining((prev) => {
           const newTime = prev - 1
-
           if (newTime <= 0) {
             clearInterval(timer)
             console.log(
@@ -289,14 +273,11 @@ const LessonNavigation = ({
 
       // Clear timer on unmount
       return () => {
+        console.log(`Clearing timer for page ${pageId}`)
         clearInterval(timer)
       }
-    } else {
-      console.log(
-        `No timer needed. isLastPageOfSection: ${isLastPageOfSection}, isPageComplete: ${isPageComplete}, timeRemaining: ${timeRemaining}`
-      )
     }
-  }, [pageId, isPageComplete, isLastPageOfSection, timeRemaining])
+  }, [pageId, timeRemaining, currentSection, lessonId])
 
   // Check if the user has completed the quiz
   const checkQuizCompletion = async (quizIdToCheck: string) => {
@@ -381,39 +362,9 @@ const LessonNavigation = ({
     return `${mins}:${secs.toString().padStart(2, "0")}`
   }
 
-  // Check if page is already completed when component mounts or page changes
-  useEffect(() => {
-    const checkCompletion = async () => {
-      if (lessonId && pageId) {
-        const sectionIdToUse = String(currentSection)
-        const completed = await isPageCompleted(
-          lessonId,
-          sectionIdToUse,
-          pageId
-        )
-
-        setIsPageComplete(completed)
-
-        // If page is not completed, start the timer at 30 seconds
-        if (!completed) {
-          setTimeRemaining(30)
-        } else {
-          setTimeRemaining(0)
-        }
-      }
-    }
-
-    checkCompletion()
-  }, [lessonId, currentSection, pageId])
-
   // Function to mark page as completed
   const markPageAsCompleted = async () => {
     if (!lessonId || !pageId) {
-      console.error("Cannot mark page as completed: Missing required IDs", {
-        lessonId,
-        sectionId: currentSection,
-        pageId,
-      })
       return
     }
 
@@ -421,11 +372,13 @@ const LessonNavigation = ({
       return
     }
 
-    // Log the current page and page ID to understand the relationship
-
     try {
       // Use currentSection instead of sectionId for consistency
       const sectionIdToUse = String(currentSection)
+
+      console.log(
+        `Marking page ${currentPage} in section ${sectionIdToUse} as completed`
+      )
 
       // Make sure the page ID is a string
       const success = await markPageCompleted(
@@ -437,15 +390,15 @@ const LessonNavigation = ({
       if (success) {
         setIsPageComplete(true)
         setTimeRemaining(0) // Reset timer once marked as completed
+        setIsTimerActive(false) // Explicitly turn off timer
+
         toast({
           title: "Page completed",
           description: "You can now proceed to the next page.",
         })
-      } else {
-        console.error("Failed to mark page as completed")
       }
     } catch (error) {
-      console.error("Error marking page as completed:", error)
+      // Silent fail
     }
   }
 
@@ -502,65 +455,171 @@ const LessonNavigation = ({
                 Quiz Completed
               </Button>
             ) : (
-              // If quiz is not completed, show the take quiz button
+              // If quiz is not completed, show the timer first, then take quiz button
+              <div className="flex items-center gap-2">
+                {/* Timer display tooltip for last page */}
+                {!isPageComplete && timeRemaining > 0 && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="cursor-help">
+                          <Info className="h-4 w-4 text-white/70" />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-xs">
+                          Please spend at least 30 seconds on each new page
+                          before proceeding.{" "}
+                          <strong>
+                            Page: {currentPage}, Section: {currentSection}
+                          </strong>
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+
+                <Button
+                  className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0"
+                  onClick={
+                    !isPageComplete && timeRemaining > 0
+                      ? undefined
+                      : handleTakeQuiz
+                  }
+                  disabled={
+                    isCheckingQuiz ||
+                    isUpdating ||
+                    (!isPageComplete && timeRemaining > 0)
+                  }
+                >
+                  {isCheckingQuiz || isUpdating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {isCheckingQuiz ? "Checking..." : "Saving progress..."}
+                    </>
+                  ) : !isPageComplete && timeRemaining > 0 ? (
+                    <>
+                      <Clock className="mr-2 h-4 w-4" />
+                      Wait {timeRemaining}s
+                    </>
+                  ) : (
+                    <>
+                      Take Section Quiz
+                      <FileQuestion className="ml-2 h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </div>
+            )
+          ) : isLastPage && hasFinalTest ? (
+            // Final test button with timer
+            <div className="flex items-center gap-2">
+              {/* Timer display tooltip for last page */}
+              {!isPageComplete && timeRemaining > 0 && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="cursor-help">
+                        <Info className="h-4 w-4 text-white/70" />
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-xs">
+                        Please spend at least 30 seconds on each new page before
+                        proceeding.{" "}
+                        <strong>
+                          Page: {currentPage}, Section: {currentSection}
+                        </strong>
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+
               <Button
+                onClick={
+                  !isPageComplete && timeRemaining > 0
+                    ? undefined
+                    : handleNextSection
+                }
                 className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0"
-                onClick={handleTakeQuiz}
-                disabled={isCheckingQuiz || isUpdating}
+                disabled={
+                  isCheckingQuiz ||
+                  isUpdating ||
+                  (!isPageComplete && timeRemaining > 0)
+                }
               >
                 {isCheckingQuiz || isUpdating ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     {isCheckingQuiz ? "Checking..." : "Saving progress..."}
                   </>
+                ) : !isPageComplete && timeRemaining > 0 ? (
+                  <>
+                    <Clock className="mr-2 h-4 w-4" />
+                    Wait {timeRemaining}s
+                  </>
                 ) : (
                   <>
-                    Take Section Quiz
+                    Take Final Test
                     <FileQuestion className="ml-2 h-4 w-4" />
                   </>
                 )}
               </Button>
-            )
-          ) : isLastPage && hasFinalTest ? (
-            <Button
-              onClick={handleNextSection}
-              className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0"
-              disabled={isCheckingQuiz || isUpdating}
-            >
-              {isCheckingQuiz || isUpdating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {isCheckingQuiz ? "Checking..." : "Saving progress..."}
-                </>
-              ) : (
-                <>
-                  Take Final Test
-                  <FileQuestion className="ml-2 h-4 w-4" />
-                </>
-              )}
-            </Button>
+            </div>
           ) : (
-            <Button
-              onClick={handleNext}
-              className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0"
-              disabled={isUpdating}
-            >
-              {isUpdating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving progress...
-                </>
-              ) : (
-                <>
-                  {isLastPage ? "Finish Lesson" : "Next Section"}
-                  <ChevronRight className="ml-2 h-4 w-4" />
-                </>
+            // Next Section button with timer
+            <div className="flex items-center gap-2">
+              {/* Timer display tooltip for last page */}
+              {!isPageComplete && timeRemaining > 0 && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="cursor-help">
+                        <Info className="h-4 w-4 text-white/70" />
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-xs">
+                        Please spend at least 30 seconds on each new page before
+                        proceeding.{" "}
+                        <strong>
+                          Page: {currentPage}, Section: {currentSection}
+                        </strong>
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               )}
-            </Button>
+
+              <Button
+                onClick={handleNext}
+                className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0"
+                disabled={isUpdating || (!isPageComplete && timeRemaining > 0)}
+              >
+                {isUpdating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving progress...
+                  </>
+                ) : !isPageComplete && timeRemaining > 0 ? (
+                  <>
+                    <Clock className="mr-2 h-4 w-4" />
+                    Wait {timeRemaining}s
+                  </>
+                ) : (
+                  <>
+                    {isLastPage ? "Finish Lesson" : "Next Section"}
+                    <ChevronRight className="ml-2 h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            </div>
           )
         ) : (
           // Regular Next Page button with timer
           <div className="flex items-center gap-2">
+            {/* Timer display tooltip */}
             {!isPageComplete && timeRemaining > 0 && (
               <TooltipProvider>
                 <Tooltip>
@@ -572,12 +631,17 @@ const LessonNavigation = ({
                   <TooltipContent>
                     <p className="max-w-xs">
                       Please spend at least 30 seconds on each new page before
-                      proceeding. <strong>Page ID: {pageId}</strong>
+                      proceeding.{" "}
+                      <strong>
+                        Page: {currentPage}, Section: {currentSection}
+                      </strong>
                     </p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             )}
+
+            {/* Next button with timer */}
             <Button
               onClick={handleNext}
               className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0"
@@ -591,11 +655,15 @@ const LessonNavigation = ({
               ) : !isPageComplete && timeRemaining > 0 ? (
                 <>
                   <Clock className="mr-2 h-4 w-4" />
-                  Wait {formatTime(timeRemaining)}
+                  Wait {timeRemaining}s
                 </>
               ) : (
                 <>
-                  Next Page
+                  {isLastPage
+                    ? "Finish Lesson"
+                    : isLastPageOfSection
+                    ? "Next Section"
+                    : "Next Page"}
                   <ChevronRight className="ml-2 h-4 w-4" />
                 </>
               )}
