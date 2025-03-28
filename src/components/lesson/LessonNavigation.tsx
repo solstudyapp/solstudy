@@ -32,6 +32,8 @@ interface LessonNavigationProps {
   currentPage: number
 }
 
+const PAGE_TIMER_DURATION = 30
+
 const LessonNavigation = ({
   lessonId,
   currentSection,
@@ -57,11 +59,11 @@ const LessonNavigation = ({
   const [isCheckingQuiz, setIsCheckingQuiz] = useState<boolean>(false)
   const [quizId, setQuizId] = useState<string | null>(null)
   const [quizCompleted, setQuizCompleted] = useState<boolean>(false)
-  const [timeRemaining, setTimeRemaining] = useState<number>(30)
+  const [timeRemaining, setTimeRemaining] =
+    useState<number>(PAGE_TIMER_DURATION)
   const [isPageComplete, setIsPageComplete] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [pageId, setPageId] = useState<string>("")
-  const [pageTimer, setPageTimer] = useState(30)
   const [isTimerActive, setIsTimerActive] = useState(false)
 
   // Check if a quiz exists for this section
@@ -175,11 +177,11 @@ const LessonNavigation = ({
     setPageId(pageIdToUse)
 
     // Reset timer for every new page without checking completion first
-    setTimeRemaining(30)
+    setTimeRemaining(PAGE_TIMER_DURATION)
     setIsPageComplete(false)
     setIsTimerActive(true)
     console.log(
-      `Page changed to ${pageIdToUse}, section ${currentSection}, resetting timer to 30 seconds`
+      `Page changed to ${pageIdToUse}, section ${currentSection}, resetting timer to ${PAGE_TIMER_DURATION} seconds`
     )
 
     const getCurrentPageId = async () => {
@@ -355,13 +357,6 @@ const LessonNavigation = ({
     navigate(`/quiz/${lessonId}/${sectionId}`)
   }
 
-  // Format time remaining as MM:SS
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 30)
-    const secs = seconds % 30
-    return `${mins}:${secs.toString().padStart(2, "0")}`
-  }
-
   // Function to mark page as completed
   const markPageAsCompleted = async () => {
     if (!lessonId || !pageId) {
@@ -468,8 +463,8 @@ const LessonNavigation = ({
                       </TooltipTrigger>
                       <TooltipContent>
                         <p className="max-w-xs">
-                          Please spend at least 30 seconds on each new page
-                          before proceeding.{" "}
+                          Please spend at least {PAGE_TIMER_DURATION} seconds on
+                          each new page before proceeding.{" "}
                           <strong>
                             Page: {currentPage}, Section: {currentSection}
                           </strong>
@@ -525,8 +520,8 @@ const LessonNavigation = ({
                     </TooltipTrigger>
                     <TooltipContent>
                       <p className="max-w-xs">
-                        Please spend at least 30 seconds on each new page before
-                        proceeding.{" "}
+                        Please spend at least {PAGE_TIMER_DURATION} seconds on
+                        each new page before proceeding.{" "}
                         <strong>
                           Page: {currentPage}, Section: {currentSection}
                         </strong>
@@ -581,8 +576,8 @@ const LessonNavigation = ({
                     </TooltipTrigger>
                     <TooltipContent>
                       <p className="max-w-xs">
-                        Please spend at least 30 seconds on each new page before
-                        proceeding.{" "}
+                        Please spend at least {PAGE_TIMER_DURATION} seconds on
+                        each new page before proceeding.{" "}
                         <strong>
                           Page: {currentPage}, Section: {currentSection}
                         </strong>
@@ -630,8 +625,8 @@ const LessonNavigation = ({
                   </TooltipTrigger>
                   <TooltipContent>
                     <p className="max-w-xs">
-                      Please spend at least 30 seconds on each new page before
-                      proceeding.{" "}
+                      Please spend at least {PAGE_TIMER_DURATION} seconds on
+                      each new page before proceeding.{" "}
                       <strong>
                         Page: {currentPage}, Section: {currentSection}
                       </strong>
