@@ -43,8 +43,6 @@ const LessonView = () => {
         setLoading(true)
         setError(null)
 
-        console.log("Fetching lesson with ID:", lessonId)
-
         // Fetch lesson data
         const lessonData = await fetchLessonById(lessonId)
         if (!lessonData) {
@@ -54,7 +52,6 @@ const LessonView = () => {
           return
         }
 
-        console.log("Lesson data fetched successfully:", lessonData)
         setLesson(lessonData)
 
         // Fetch sections data
@@ -66,11 +63,6 @@ const LessonView = () => {
           return
         }
 
-        console.log(
-          "Sections data fetched successfully:",
-          sectionsData.length,
-          "sections"
-        )
         setSections(sectionsData)
       } catch (error) {
         console.error("Error loading lesson data:", error)
@@ -119,8 +111,6 @@ const LessonView = () => {
       // If no valid URL params, try to find the last page the user was on
       const getUserProgress = async () => {
         try {
-          console.log("Fetching user progress for lesson:", lessonId)
-
           // Get the user progress for this lesson
           const {
             data: { user },
@@ -145,7 +135,7 @@ const LessonView = () => {
           if (error) {
             if (error.code === "PGRST116") {
               // No progress record found, start from beginning
-              console.log("No progress record found, starting from beginning")
+
               setCurrentSection(0)
               setCurrentPage(0)
             } else {
@@ -157,8 +147,6 @@ const LessonView = () => {
           }
 
           if (progress) {
-            console.log("Found user progress:", progress)
-
             // If there's a current section and page ID, use them
             if (progress.current_section_id && progress.current_page_id) {
               // Find the section index
@@ -171,12 +159,8 @@ const LessonView = () => {
                 const pageIndex = sections[sectionIndex].pages.findIndex(
                   (page) => page.id === progress.current_page_id
                 )
-                console.log("progress", progress)
 
                 if (pageIndex !== -1) {
-                  console.log(
-                    `Resuming at section ${sectionIndex}, page ${pageIndex}`
-                  )
                   setCurrentSection(sectionIndex)
                   setCurrentPage(pageIndex)
                   return
@@ -205,14 +189,11 @@ const LessonView = () => {
               if (lastCompletedSectionIndex !== -1) {
                 // If we found a completed section, start at the next section
                 if (lastCompletedSectionIndex < sections.length - 1) {
-                  console.log(
-                    `Last completed section index: ${lastCompletedSectionIndex}, starting next section`
-                  )
                   setCurrentSection(lastCompletedSectionIndex + 1)
                   setCurrentPage(0)
                 } else {
                   // If the last section is completed, stay on the last page of the last section
-                  console.log(`All sections completed, staying on last section`)
+
                   setCurrentSection(sections.length - 1)
                   setCurrentPage(sections[sections.length - 1].pages.length - 1)
                 }
@@ -261,7 +242,7 @@ const LessonView = () => {
 
   // Update saved progress when section or page changes
   useEffect(() => {
-    console.log("Updating progress")
+    
     if (isFirstRender.current) {
       isFirstRender.current = false
       return
@@ -277,9 +258,6 @@ const LessonView = () => {
           currentSectionData.pages[currentPage].id
         ).then((success) => {
           if (success) {
-            console.log(
-              `Progress updated for ${lesson.id}: Section ${currentSectionData.id}, Page ${currentSectionData.pages[currentPage].id}`
-            )
           } else {
             console.error("Failed to update progress")
           }
@@ -377,10 +355,6 @@ const LessonView = () => {
       // Mark the current section as completed using userProgressService
       completeSection(lesson.id, currentSectionData.id).then((success) => {
         if (success) {
-          console.log(
-            `Section ${currentSectionData.id} completed for lesson ${lesson.id}`
-          )
-
           // Move to the next section
           setCurrentSection(currentSection + 1)
           setCurrentPage(0)
@@ -399,10 +373,6 @@ const LessonView = () => {
       // Mark the section as completed using userProgressService
       completeSection(lesson.id, currentSectionData.id).then((success) => {
         if (success) {
-          console.log(
-            `Section ${currentSectionData.id} completed for lesson ${lesson.id}`
-          )
-
           // Check if there's a final test
           const checkFinalTest = async () => {
             try {

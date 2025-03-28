@@ -4,7 +4,7 @@ import { LessonType, Section, Page, DbLessonData, DbSection, DbPage } from "@/ty
  * Convert database lesson data to frontend lesson type
  */
 export function dbToFrontendLesson(lesson: DbLessonData): LessonType {
-  console.log("lesson 123", lesson);
+  
   return {
     id: typeof lesson.id === 'string' ? lesson.id : lesson.id.toString(),
     title: lesson.title,

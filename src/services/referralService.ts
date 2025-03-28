@@ -137,7 +137,6 @@ export async function getUserReferralCodes(userId: string): Promise<ReferralResp
  */
 export async function getReferralCodeByCode(code: string): Promise<ReferralResponse> {
   try {
-    console.log('Getting referral code by code:', code);
     const { data, error } = await supabase
       .from('referral_codes')
       .select('*')
@@ -145,8 +144,6 @@ export async function getReferralCodeByCode(code: string): Promise<ReferralRespo
       .eq('is_active', true)
       .single();
 
-    console.log('Referral code data:', data);
-    console.log('Error:', error);
     
     if (error) {
       return {

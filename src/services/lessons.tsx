@@ -59,7 +59,6 @@ export async function fetchLessons(): Promise<LessonType[]> {
   try {
     const data = (await db.fetchAllLessons()) as unknown as DbLessonData[]
 
-    console.log("data 456", data)
     // Transform the data to match the LessonType
     return data.map(dbToFrontendLesson)
   } catch (error) {
@@ -75,8 +74,6 @@ export async function fetchLessonById(
   lessonId: string
 ): Promise<LessonType | null> {
   try {
-    console.log("fetchLessonById called with lessonId:", lessonId)
-
     // For UUID-based IDs, we can pass the ID directly
     // For older numeric IDs, we'll try to parse them
     let parsedId = lessonId
@@ -86,13 +83,9 @@ export async function fetchLessonById(
       parsedId = Number(lessonId).toString()
     }
 
-    console.log("fetchLessonById - using ID:", parsedId)
-
     const lesson = (await db.fetchLessonById(
       parsedId
     )) as unknown as DbLessonData
-
-    console.log("fetchLessonById - raw lesson data:", lesson)
 
     if (!lesson) {
       console.error("Lesson not found for ID:", parsedId)
@@ -100,7 +93,6 @@ export async function fetchLessonById(
     }
 
     const frontendLesson = dbToFrontendLesson(lesson)
-    console.log("fetchLessonById - converted lesson:", frontendLesson)
 
     return frontendLesson
   } catch (error) {
@@ -124,8 +116,6 @@ export async function saveLesson(
     const isUpdate = lesson.id && !lesson.id.startsWith("new-") && isUuid
 
     if (isUpdate) {
-      console.log("saveLesson - Updating lesson:", lesson.id)
-
       // If it's a UUID, use it directly; otherwise convert string ID to number
       const lessonId = lesson.id
 
@@ -141,7 +131,6 @@ export async function saveLesson(
       }
     } else {
       // It's a create operation
-      console.log("saveLesson - Creating new lesson")
 
       // Create a database lesson object
       const dbLesson = frontendToDbLesson(lesson)

@@ -118,24 +118,15 @@ export const LessonEditor = ({
 
   useEffect(() => {
     const loadSections = async () => {
-      console.log("LessonEditor - loadSections called for lesson:", lesson.id)
+      
 
       if (lesson.id && lesson.id !== "lesson-new") {
         try {
-          console.log("LessonEditor - Fetching sections for lesson:", lesson.id)
           const loadedSections = await fetchSections(lesson.id)
-          console.log("LessonEditor - Loaded sections:", loadedSections)
 
           if (loadedSections && loadedSections.length > 0) {
-            console.log(
-              "LessonEditor - Setting loaded sections:",
-              loadedSections.length
-            )
             setSections(loadedSections)
           } else {
-            console.log(
-              "LessonEditor - No sections found, setting default sections"
-            )
             const defaultSections: Section[] = [
               {
                 id: `section-${Date.now()}`,
@@ -181,7 +172,7 @@ export const LessonEditor = ({
         }
       } else {
         // For new lessons, set default sections
-        console.log("LessonEditor - New lesson, setting default sections")
+
         const defaultSections: Section[] = [
           {
             id: `section-${Date.now()}`,
@@ -217,7 +208,6 @@ export const LessonEditor = ({
 
         if (error) throw error
 
-        console.log("LessonEditor - fetched quizzes:", data)
         setQuizzes(data || [])
       } catch (error) {
         console.error("Error fetching quizzes:", error)
@@ -237,7 +227,6 @@ export const LessonEditor = ({
 
         if (error) throw error
 
-        console.log("LessonEditor - fetched sponsors:", data)
         setSponsors(data || [])
       } catch (error) {
         console.error("Error fetching sponsors:", error)
@@ -342,30 +331,16 @@ export const LessonEditor = ({
         return
       }
 
-      console.log("LessonEditor - handleSaveLesson - sections:", sections)
-      console.log(
-        "LessonEditor - handleSaveLesson - editedLesson:",
-        editedLesson
-      )
-
       // For new lessons, we need to save the lesson first to get a valid ID
       if (
         editedLesson.id === "lesson-new" ||
         editedLesson.id.startsWith("new-lesson-")
       ) {
-        console.log(
-          "LessonEditor - Saving new lesson with sections:",
-          sections.length
-        )
         // Pass the sections along with the edited lesson to the parent's onSave
         onSave(editedLesson, sections)
       } else {
         // For existing lessons with valid IDs, save sections first
         const parsedLessonId = safelyParseId(editedLesson.id)
-        console.log(
-          "LessonEditor - Saving existing lesson with ID:",
-          parsedLessonId
-        )
 
         // Ensure the lesson ID is valid
         if (parsedLessonId === null) {
@@ -373,7 +348,6 @@ export const LessonEditor = ({
         }
 
         const result = await saveSections(parsedLessonId, sections)
-        console.log("LessonEditor - saveSections result:", result)
 
         if (!result.success) {
           throw new Error(result.error || "Failed to save sections")

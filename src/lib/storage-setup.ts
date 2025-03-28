@@ -29,9 +29,9 @@ export async function ensureImagesBucketExists() {
         return false
       }
       
-      console.log('Created images bucket in Supabase storage')
+      
     } else {
-      console.log('Images bucket already exists in Supabase storage')
+      
     }
     
     return true

@@ -243,9 +243,6 @@ const QuizPage = () => {
 
           // If there are no section quizzes, allow taking the final test
           if (!sectionQuizzes || sectionQuizzes.length === 0) {
-            console.log(
-              "No section quizzes found for this lesson, proceeding to final test"
-            )
             return
           }
 
@@ -350,14 +347,8 @@ const QuizPage = () => {
     const totalQuestions = quiz?.questions?.length || 1
     const percentScore = (score / totalQuestions) * 100
 
-    console.log(
-      `Quiz completed with score: ${score}/${totalQuestions} (${percentScore}%), earned points: ${earnedPoints}`
-    )
-
     // First check if the quiz is already completed
     if (quiz && (await quizService.hasCompletedQuiz(quiz.id))) {
-      console.log(`Quiz ${quiz.id} already completed, skipping DB update`)
-
       // Still mark local progress for UI feedback
       if (isFinalTest) {
         lessonService.completeQuiz(quiz, score, earnedPoints)

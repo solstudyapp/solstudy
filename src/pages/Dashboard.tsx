@@ -161,7 +161,6 @@ const Dashboard = () => {
 
         // Fetch referral history
         const referralHistory = await userProgressService.getReferralHistory()
-        console.log("Referral history:", referralHistory)
 
         // Update the referrals state with the data from API
         if (referralHistory && referralHistory.length > 0) {

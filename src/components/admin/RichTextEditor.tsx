@@ -488,7 +488,6 @@ export const RichTextEditor = ({
       if (editor && !editor.isDestroyed) {
         const content = editor.getHTML()
         onChange(content)
-        console.log("Auto-saved content on navigation")
       }
     }
   }, [editor, onChange])

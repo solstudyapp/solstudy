@@ -97,8 +97,6 @@ export const userProgressService = {
         return [];
       }
       
-      console.log("Found courses in progress:", progressData.length, progressData);
-      
       // Process each lesson in progress
       const userProgressData: UserProgressData[] = [];
       
@@ -223,8 +221,6 @@ export const userProgressService = {
         return [];
       }
       
-      console.log("Found completed courses:", progressData.length, progressData);
-      
       // Convert to CompletedLessonData format
       return progressData.map(entry => {
         // Get the lesson data
@@ -263,7 +259,6 @@ export const userProgressService = {
     pageId: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      console.log(`Updating progress for lesson ${lessonId}, section ${sectionId}, page ${pageId}`);
       
       // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
@@ -340,7 +335,6 @@ export const userProgressService = {
     sectionId: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      console.log(`Completing section ${sectionId} for lesson ${lessonId}`);
       
       // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
@@ -429,7 +423,6 @@ export const userProgressService = {
     earnedPoints: number
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      console.log(`Completing quiz ${quizId} for lesson ${lessonId} with score ${score} and earned points ${earnedPoints}`);
       
       // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
@@ -454,7 +447,6 @@ export const userProgressService = {
       
       // If the user has already completed this quiz, return early
       if (existingCompletion) {
-        console.log(`User has already completed quiz ${quizId} on ${existingCompletion.completed_at} and earned ${existingCompletion.points_earned} points`);
         return { success: true, error: "Quiz already completed" };
       }
       
@@ -474,8 +466,7 @@ export const userProgressService = {
         console.error("Error recording quiz completion:", insertError);
         return { success: false, error: insertError.message };
       }
-      
-      console.log(`Recorded quiz completion for user ${user.id}, quiz ${quizId}, earned ${earnedPoints} points`);
+
       
       // Also update the user_progress table to mark this quiz as completed
       // This is helpful for tracking overall lesson progress
@@ -532,7 +523,6 @@ export const userProgressService = {
     lessonId: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      console.log(`Marking lesson ${lessonId} as completed`);
       
       // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
@@ -800,10 +790,6 @@ export const userProgressService = {
       // Ensure pageId is a string for consistency
       const pageIdStr = String(pageId);
       
-      console.log("=== CHECKING PAGE COMPLETION ===");
-      console.log(`LessonID: ${lessonId}`);
-      console.log(`SectionID: ${sectionId}`);
-      console.log(`PageID: ${pageIdStr}`);
       
       // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
@@ -812,8 +798,6 @@ export const userProgressService = {
         console.error("No authenticated user found");
         return false;
       }
-      
-      console.log(`Checking page completion for user: ${user.id}`);
 
       // Get the user progress record directly
       const { data, error } = await supabase
@@ -828,7 +812,6 @@ export const userProgressService = {
         return false;
       }
       
-      console.log("Retrieved user progress data:", data);
       
       // Check if the page is in the completed_pages array
       if (data && data.completed_pages) {
@@ -841,12 +824,9 @@ export const userProgressService = {
         const normalizedCompletedPages = completedPages.map(id => String(id));
         
         const isCompleted = normalizedCompletedPages.includes(pageIdStr);
-        console.log(`Page ${pageIdStr} completion check result: ${isCompleted}`);
-        console.log(`All completed pages: ${JSON.stringify(normalizedCompletedPages)}`);
         return isCompleted;
       }
       
-      console.log("No completed_pages array found");
       return false;
     } catch (error) {
       console.error("Error in isPageCompleted:", error);
@@ -866,11 +846,6 @@ export const userProgressService = {
       // Ensure pageId is a string for consistency
       const pageIdStr = String(pageId);
       
-      console.log("=== MARKING PAGE AS COMPLETED ===");
-      console.log(`LessonID: ${lessonId}`);
-      console.log(`SectionID: ${sectionId}`);
-      console.log(`PageID: ${pageIdStr}`);
-      
       // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -878,8 +853,6 @@ export const userProgressService = {
         console.error("No authenticated user found");
         return { success: false, error: "No authenticated user found" };
       }
-      
-      console.log(`User ID: ${user.id}`);
 
       // First check if the page is already completed
       const isAlreadyCompleted = await userProgressService.isPageCompleted(
@@ -889,7 +862,6 @@ export const userProgressService = {
       );
       
       if (isAlreadyCompleted) {
-        console.log(`Page ${pageIdStr} is already marked as completed, nothing to do`);
         return { success: true };
       }
 
@@ -908,13 +880,11 @@ export const userProgressService = {
       }
 
       if (existingProgress) {
-        console.log(`Found existing progress record: ${existingProgress.id}`);
         // User has existing progress, update the completed_pages array
         let completedPages = existingProgress.completed_pages || [];
         
         // Make sure we have an array even if the database value is malformed
         if (!Array.isArray(completedPages)) {
-          console.log("completed_pages is not an array, creating new array");
           completedPages = [];
         }
         
@@ -923,14 +893,11 @@ export const userProgressService = {
         
         // Only add the page ID if it's not already in the array
         if (!normalizedCompletedPages.includes(pageIdStr)) {
-          console.log(`Adding page ${pageIdStr} to completed_pages array`);
           normalizedCompletedPages.push(pageIdStr);
         } else {
-          console.log(`Page ${pageIdStr} already in completed_pages array`);
         }
 
         // Update the progress record
-        console.log(`Updating completed_pages: ${JSON.stringify(normalizedCompletedPages)}`);
         const { error: updateError } = await supabase
           .from("user_progress")
           .update({
@@ -944,9 +911,7 @@ export const userProgressService = {
           return { success: false, error: updateError.message };
         }
         
-        console.log("Successfully updated completed pages");
       } else {
-        console.log("No existing progress record, creating new one");
         // No existing progress, create a new progress record
         const { error: insertError } = await supabase
           .from("user_progress")
@@ -965,8 +930,7 @@ export const userProgressService = {
           console.error("Error creating progress record:", insertError);
           return { success: false, error: insertError.message };
         }
-        
-        console.log("Successfully created new progress record with completed page");
+      
       }
 
       return { success: true };
@@ -1064,7 +1028,6 @@ export const userProgressService = {
         .in("referral_code_id", referralCodeIds)
         .order("created_at", { ascending: false });
 
-      console.log("Referral history:", data);
       if (error) {
         console.error("Error fetching referral history:", error);
         return [];

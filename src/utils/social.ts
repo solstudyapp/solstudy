@@ -9,7 +9,7 @@ export const shareOnFacebook = (options: ShareOptions = {}) => {
   // Use the dynamic signup URL if available, otherwise use the provided URL
   const shareUrl = options.url || (window as any).solstudySignupUrl || window.location.href;
   const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
-  console.log("Sharing URL:", url);
+  ;
   window.open(url, "_blank", "width=626,height=436,scrollbars=yes");
 };
 

@@ -49,7 +49,6 @@ export const lessonService = {
     progress.currentPageId = pageId;
     
     userProgressStore[key] = progress;
-    console.log(`Progress updated for ${lessonId}: Section ${sectionId}, Page ${pageId}`);
   },
   
   // Mark a section as completed
@@ -59,7 +58,6 @@ export const lessonService = {
     
     if (!progress.completedSections.includes(sectionId)) {
       progress.completedSections.push(sectionId);
-      console.log(`Section ${sectionId} completed for lesson ${lessonId}`);
     }
     
     userProgressStore[key] = progress;
@@ -86,7 +84,6 @@ export const lessonService = {
       // Update user total points
       userPointsStore[CURRENT_USER_ID] = (userPointsStore[CURRENT_USER_ID] || 0) + pointsToAdd;
       
-      console.log(`Quiz ${quiz.id} completed with score ${score}/${quiz.questions.length} and earned ${pointsToAdd} points`);
     }
     
     userProgressStore[key] = progress;
@@ -99,13 +96,11 @@ export const lessonService = {
     
     progress.testCompleted = true;
     userProgressStore[key] = progress;
-    console.log(`Final test completed for lesson ${lessonId}`);
   },
   
   // Save user feedback for a lesson
   saveFeedback: (lessonId: string, rating: number): void => {
     userFeedbackStore[`${CURRENT_USER_ID}-${lessonId}`] = rating;
-    console.log(`Feedback saved for lesson ${lessonId}: rating ${rating}`);
   },
   
   // Get total points for user

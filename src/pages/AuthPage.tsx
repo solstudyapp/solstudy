@@ -92,7 +92,7 @@ const AuthPage = ({ defaultTab = "signin" }: AuthPageProps) => {
 
     if (isSignUp) {
       // Pass the referral info if available
-      console.log("Referrer info:", referrerInfo)
+
       const success = await handleSignUp(email, password, referrerInfo)
       if (success) {
         navigate("/email-confirmation")

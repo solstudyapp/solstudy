@@ -67,9 +67,6 @@ const LessonSidebar = ({
           setCompletedSections(data.completed_sections || [])
           setCompletedQuizzes(data.completed_quizzes || [])
           setCompletedPages(data.completed_pages || [])
-          console.log("Completed sections:", data.completed_sections)
-          console.log("Completed quizzes:", data.completed_quizzes)
-          console.log("Completed pages:", data.completed_pages)
         }
       } catch (error) {
         console.error("Error in fetchUserProgress:", error)

@@ -182,7 +182,6 @@ const LessonManagement = () => {
     setIsLoading(true)
     try {
       const result = await saveLessonToSupabase(updatedLesson)
-      console.log("LessonManagement - saveLessonToSupabase result:", result)
 
       if (result.success) {
         // If this was a new lesson and we have sections to save

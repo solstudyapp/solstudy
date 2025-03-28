@@ -43,7 +43,6 @@ const LessonNavigation = ({
   isLastPageOfSection,
   currentPage,
 }: LessonNavigationProps) => {
-  console.log("234234", currentPage)
   const navigate = useNavigate()
   const { toast } = useToast()
   const {
@@ -110,8 +109,6 @@ const LessonNavigation = ({
             .eq("lesson_id", lessonId)
             .is("section_id", null)
             .eq("is_final_test", false)
-
-          console.log("Checking for default section quiz")
         } else {
           // For specific section, find quiz with matching lesson_id and section_id
           const sectionIdNum = parseInt(sectionId)
@@ -173,14 +170,6 @@ const LessonNavigation = ({
   useEffect(() => {
     // Use currentPage directly as the page ID from the database
     const pageIdToUse = String(currentPage)
-    console.log("=======================================")
-    console.log(
-      `CURRENT PAGE: Section=${currentSection}, Page ID in UI=${currentPage}`
-    )
-    console.log(`Using page ID ${pageIdToUse} to check completion status`)
-    console.log(`Current section ID from props: ${sectionId}`)
-    console.log("=======================================")
-
     const getCurrentPageId = async () => {
       try {
         // Get the current user
@@ -195,7 +184,6 @@ const LessonNavigation = ({
 
         // Set the page ID directly from currentPage
         setPageId(pageIdToUse)
-        console.log("Setting page ID:", pageIdToUse)
 
         // Check if the page is completed
         const { data, error } = await supabase
@@ -217,10 +205,9 @@ const LessonNavigation = ({
           Array.isArray(data.completed_pages)
         ) {
           // Log the completed pages for debugging
-          console.log("Completed pages from DB:", data.completed_pages)
 
           const isCompleted = data.completed_pages.includes(pageIdToUse)
-          console.log(`Page ${pageIdToUse} completion from db: ${isCompleted}`)
+
           setIsPageComplete(isCompleted)
           setTimeRemaining(isCompleted ? 0 : 30)
         } else {
@@ -242,25 +229,18 @@ const LessonNavigation = ({
     try {
       // Use currentSection instead of sectionId to ensure we're checking the right section
       const sectionIdToUse = String(currentSection)
-      console.log(`Using section ${sectionIdToUse} for page completion check`)
 
       // Log debugging info
-      console.log("Checking page completion with:")
-      console.log(`pageIdToCheck: ${pageIdToCheck}`)
-      console.log(`currentPage from props: ${currentPage}`)
 
       // Use currentPage as the actual page ID to check
       const pageIdToUse = String(currentPage)
 
-      console.log(
-        `Checking if page ${pageIdToUse} is completed for lesson ${lessonId}, section ${sectionIdToUse}`
-      )
       const completed = await isPageCompleted(
         lessonId,
         sectionIdToUse,
         pageIdToUse
       )
-      console.log(`Page completion result: ${completed}`)
+
       setIsPageComplete(completed)
 
       // If page is already completed, no need for timer
@@ -268,7 +248,7 @@ const LessonNavigation = ({
         setTimeRemaining(0)
       } else {
         // Reset timer for uncompleted pages
-        console.log("Page not completed, resetting timer")
+
         setTimeRemaining(30)
       }
     } catch (error) {
@@ -285,19 +265,16 @@ const LessonNavigation = ({
 
     // Skip timer if no pageId is set yet
     if (!pageId) {
-      console.log("No pageId set, skipping timer initialization")
       return
     }
 
     // Only start timer if page is not completed and not the last page of section
     if (!isLastPageOfSection && !isPageComplete && timeRemaining > 0) {
-      console.log(`Starting timer countdown for page ${pageId}`)
-
       // Start countdown
       const timer = setInterval(() => {
         setTimeRemaining((prev) => {
           const newTime = prev - 1
-          console.log(`Timer tick: ${newTime} seconds remaining`)
+
           if (newTime <= 0) {
             clearInterval(timer)
             console.log(
@@ -312,7 +289,6 @@ const LessonNavigation = ({
 
       // Clear timer on unmount
       return () => {
-        console.log(`Clearing timer for page ${pageId}`)
         clearInterval(timer)
       }
     } else {
@@ -351,7 +327,6 @@ const LessonNavigation = ({
 
       // If we found a record, the quiz is completed
       setQuizCompleted(!!data)
-      console.log(`Quiz ${quizIdToCheck} completed: ${!!data}`)
     } catch (error) {
       console.error("Error in checkQuizCompletion:", error)
       setQuizCompleted(false)
@@ -409,24 +384,20 @@ const LessonNavigation = ({
   // Check if page is already completed when component mounts or page changes
   useEffect(() => {
     const checkCompletion = async () => {
-      console.log("test", lessonId, currentSection, pageId)
       if (lessonId && pageId) {
-        console.log(`Checking completion status of page ${pageId}`)
         const sectionIdToUse = String(currentSection)
         const completed = await isPageCompleted(
           lessonId,
           sectionIdToUse,
           pageId
         )
-        console.log(`Completion check result for page ${pageId}: ${completed}`)
+
         setIsPageComplete(completed)
 
         // If page is not completed, start the timer at 30 seconds
         if (!completed) {
-          console.log(`Page ${pageId} not completed, setting timer to 30`)
           setTimeRemaining(30)
         } else {
-          console.log(`Page ${pageId} already completed, setting timer to 0`)
           setTimeRemaining(0)
         }
       }
@@ -447,19 +418,10 @@ const LessonNavigation = ({
     }
 
     if (isPageComplete) {
-      console.log("Page already marked as completed, skipping")
       return
     }
 
     // Log the current page and page ID to understand the relationship
-    console.log("=====================================")
-    console.log("MARKING PAGE AS COMPLETED")
-    console.log(`LessonID: ${lessonId}`)
-    console.log(`SectionID (from props): ${currentSection}`)
-    console.log(`PageID (from state): ${pageId}`)
-    console.log(`Current Page (from props): ${currentPage}`)
-    console.log(`Current pageId should match page ID in database`)
-    console.log("=====================================")
 
     try {
       // Use currentSection instead of sectionId for consistency
@@ -471,7 +433,6 @@ const LessonNavigation = ({
         sectionIdToUse,
         String(currentPage) // Use currentPage directly as the ID
       )
-      console.log(`Page marking result: ${JSON.stringify(success)}`)
 
       if (success) {
         setIsPageComplete(true)

@@ -16,10 +16,9 @@ const Footer = () => {
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     // Handle form submission logic here
-    console.log("Submitted email:", email);
-    setEmail("");
+    setEmail("")
   };
 
   const socialLinks = [

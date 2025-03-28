@@ -86,7 +86,6 @@ const UserManagement = () => {
   const pageSize = 5
 
   useEffect(() => {
-    console.log("fetching users")
     fetchUsers()
   }, [])
 

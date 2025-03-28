@@ -23,7 +23,7 @@ export async function fetchAllLessons(): Promise<LessonType[]> {
 }
 
 export async function fetchLessonById(id: string | number): Promise<LessonType | null> {
-  console.log('DB fetchLessonById called with ID:', id, 'Type:', typeof id);
+  
   
   const { data, error } = await supabase
     .from('lessons')
@@ -42,7 +42,7 @@ export async function fetchLessonById(id: string | number): Promise<LessonType |
     return null;
   }
 
-  console.log('DB fetchLessonById result:', data);
+  
   return data || null;
 }
 
@@ -108,7 +108,6 @@ export async function deleteLesson(id: string | number): Promise<{ success: bool
 
 // Section operations
 export async function fetchSectionsByLessonId(lessonId: string | number): Promise<Section[]> {
-  console.log('DB fetchSectionsByLessonId called with lessonId:', lessonId, 'Type:', typeof lessonId);
   
   // Ensure lessonId is treated as a string (UUID)
   const id = typeof lessonId === 'number' ? lessonId.toString() : lessonId;
@@ -130,7 +129,6 @@ export async function fetchSectionsByLessonId(lessonId: string | number): Promis
     return [];
   }
 
-  console.log('DB fetchSectionsByLessonId result:', data?.length || 0, 'sections found');
   return data || [];
 }
 
