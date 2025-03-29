@@ -87,17 +87,74 @@ export const PagesList = ({
       return
     }
 
+    console.log(
+      `[movePage] Start: Moving page from index ${pageIndex} ${direction}`
+    )
+
+    // Save the current page content before moving
+    console.log("[movePage] Saving current page content...")
+    saveCurrentPageContent()
+
     const newIndex = direction === "up" ? pageIndex - 1 : pageIndex + 1
+    console.log(`[movePage] Target index: ${newIndex}`)
+
+    // Get page IDs to track the pages
+    const movingPageId = sections[sectionIndex].pages[pageIndex].id
+    const targetPageId = sections[sectionIndex].pages[newIndex].id
+
+    console.log(
+      `[movePage] Moving page ID: ${movingPageId} to position ${newIndex}`
+    )
+    console.log(
+      `[movePage] Target page ID: ${targetPageId} will move to position ${pageIndex}`
+    )
 
     setSections((prev) => {
-      const updated = [...prev]
-      const pages = [...updated[sectionIndex].pages]
-      ;[pages[pageIndex], pages[newIndex]] = [pages[newIndex], pages[pageIndex]]
-      updated[sectionIndex].pages = pages
+      // Deep clone the entire sections array
+      const updated = JSON.parse(JSON.stringify(prev))
+
+      // Log content before swap
+      console.log(
+        `[movePage] BEFORE swap - Page ${pageIndex} (ID: ${updated[sectionIndex].pages[pageIndex].id}): "${updated[sectionIndex].pages[pageIndex].title}"`
+      )
+      console.log(
+        `[movePage] BEFORE swap - Page ${newIndex} (ID: ${updated[sectionIndex].pages[newIndex].id}): "${updated[sectionIndex].pages[newIndex].title}"`
+      )
+
+      // Store the pages we're swapping by making deep copies
+      const movingPage = JSON.parse(
+        JSON.stringify(updated[sectionIndex].pages[pageIndex])
+      )
+      const targetPage = JSON.parse(
+        JSON.stringify(updated[sectionIndex].pages[newIndex])
+      )
+
+      // Important: Update the position property for database consistency with unique constraint
+      // This matches the position with the array index to maintain consistency
+      movingPage.position = newIndex
+      targetPage.position = pageIndex
+
+      // Make the swap with copied objects to ensure deep cloning
+      updated[sectionIndex].pages[newIndex] = movingPage
+      updated[sectionIndex].pages[pageIndex] = targetPage
+
+      // Log content after swap
+      console.log(
+        `[movePage] AFTER swap - Page ${pageIndex} (ID: ${updated[sectionIndex].pages[pageIndex].id}, position: ${targetPage.position}): "${updated[sectionIndex].pages[pageIndex].title}"`
+      )
+      console.log(
+        `[movePage] AFTER swap - Page ${newIndex} (ID: ${updated[sectionIndex].pages[newIndex].id}, position: ${movingPage.position}): "${updated[sectionIndex].pages[newIndex].title}"`
+      )
+
       return updated
     })
 
-    setCurrentPageIndex(newIndex)
+    // Add a small delay before updating current page index to ensure editor unmounts/remounts
+    setTimeout(() => {
+      // Update the current page index to follow the moved page
+      setCurrentPageIndex(newIndex)
+      console.log(`[movePage] Updated current page index to ${newIndex}`)
+    }, 10)
   }
 
   return (

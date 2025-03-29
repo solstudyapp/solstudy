@@ -202,6 +202,10 @@ async function savePages(
   pages: Page[]
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    console.log(
+      `[savePages] Saving ${pages.length} pages for section ID: ${sectionId}`
+    )
+
     // First, get existing pages to determine what to add, update, or delete
     const existingPages = (await db.fetchPagesBySectionId(
       sectionId
@@ -229,18 +233,44 @@ async function savePages(
 
     // Delete pages that are no longer present
     if (pagesToDelete.length > 0) {
+      console.log(
+        `[savePages] Deleting ${pagesToDelete.length} pages that are no longer present`
+      )
       for (const pageId of pagesToDelete) {
         await db.deletePage(pageId)
       }
     }
 
-    // Add or update pages
+    // To handle the unique constraint (section_id, position),
+    // we'll use a two-phase approach:
+
+    // Phase 1: Update all pages with temporary positions to avoid conflicts
+    for (let i = 0; i < pages.length; i++) {
+      const page = pages[i]
+      if (!isTemporaryId(page.id)) {
+        const numericId = Number(page.id)
+        // Use negative positions temporarily to avoid conflicts with the unique constraint
+        // This works because our real positions are always non-negative
+        const tempPosition = -(i + 1000) // Ensure it's negative and unique
+
+        await db.updatePage(numericId, {
+          position: tempPosition,
+        })
+      }
+    }
+
+    // Phase 2: Now update all pages with their final positions
     for (let i = 0; i < pages.length; i++) {
       const page = pages[i]
       const isNewPage = isTemporaryId(page.id)
 
-      // Prepare page data
+      // Ensure position is set explicitly based on array index
       const pageData = frontendToDbPage(page, sectionId, i)
+      console.log(
+        `[savePages] ${isNewPage ? "Creating" : "Updating"} page "${
+          page.title
+        }" at position ${i}`
+      )
 
       if (isNewPage) {
         // Insert new page
@@ -255,7 +285,6 @@ async function savePages(
       } else {
         // Update existing page
         const numericId = Number(page.id)
-
         const result = await db.updatePage(numericId, pageData)
 
         if (!result.success) {
@@ -267,6 +296,9 @@ async function savePages(
       }
     }
 
+    console.log(
+      `[savePages] Successfully saved all pages for section ID: ${sectionId}`
+    )
     return { success: true }
   } catch (error) {
     console.error("Error in savePages:", error)

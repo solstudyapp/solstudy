@@ -329,28 +329,114 @@ export const LessonEditor = ({
 
   // Function to save the current page content before switching
   const saveCurrentPageContent = () => {
-    if (
-      sections.length > 0 &&
-      sections[currentSectionIndex]?.pages[currentPageIndex]
-    ) {
-      // Get the current content from the editor if available
-      const currentEditor = document.querySelector(".ProseMirror")
-      if (currentEditor && currentEditor.innerHTML) {
-        const newContent = currentEditor.innerHTML
-        const currentContent =
-          sections[currentSectionIndex].pages[currentPageIndex].content
+    console.log(
+      "[saveCurrentPageContent] START - Attempting to save current page"
+    )
+    console.log(
+      `[saveCurrentPageContent] Current section index: ${currentSectionIndex}, current page index: ${currentPageIndex}`
+    )
 
-        // Only update if content has changed
-        if (newContent !== currentContent) {
-          setSections((prev) => {
-            const updated = [...prev]
-            updated[currentSectionIndex].pages[currentPageIndex].content =
-              newContent
-            return updated
-          })
-        }
-      }
+    if (
+      sections.length === 0 ||
+      !sections[currentSectionIndex] ||
+      !sections[currentSectionIndex].pages ||
+      !sections[currentSectionIndex].pages[currentPageIndex]
+    ) {
+      console.log(
+        "[saveCurrentPageContent] ERROR - Invalid section or page indexes, aborting save"
+      )
+      return // Don't attempt to save if there's no valid page
     }
+
+    // Get the current content from the editor if available
+    const currentEditor = document.querySelector(".ProseMirror")
+    if (!currentEditor) {
+      console.log(
+        "[saveCurrentPageContent] ERROR - Editor not found, aborting save"
+      )
+      return // Exit if editor not found
+    }
+
+    const newContent = currentEditor.innerHTML
+    const currentPage = sections[currentSectionIndex].pages[currentPageIndex]
+    const currentContent = currentPage.content
+    const currentPageId = currentPage.id
+    const currentPageTitle = currentPage.title
+
+    console.log(
+      `[saveCurrentPageContent] Page "${currentPageTitle}" - ID: ${currentPageId}`
+    )
+    console.log(
+      `[saveCurrentPageContent] Current stored content starts with: "${currentContent.substring(
+        0,
+        50
+      )}..."`
+    )
+    console.log(
+      `[saveCurrentPageContent] New editor content starts with: "${newContent.substring(
+        0,
+        50
+      )}..."`
+    )
+
+    // Only update if content has actually changed
+    if (newContent && newContent !== currentContent) {
+      console.log("[saveCurrentPageContent] Content has changed, updating...")
+
+      setSections((prev) => {
+        // Create deep copies to avoid reference issues
+        const updated = JSON.parse(JSON.stringify(prev))
+
+        // Search all sections for the target page by ID (don't rely on indexes)
+        let targetPageFound = false
+
+        for (let s = 0; s < updated.length; s++) {
+          const pageIdx = updated[s].pages.findIndex(
+            (p) => p.id === currentPageId
+          )
+
+          if (pageIdx !== -1) {
+            // Found the page by ID in this section
+            console.log(
+              `[saveCurrentPageContent] Found page with ID ${currentPageId} in section ${s}, at index ${pageIdx}`
+            )
+            console.log(
+              `[saveCurrentPageContent] BEFORE - content starts with: "${updated[
+                s
+              ].pages[pageIdx].content.substring(0, 50)}..."`
+            )
+
+            // Update the page content
+            updated[s].pages[pageIdx].content = newContent
+
+            console.log(
+              `[saveCurrentPageContent] AFTER - content updated to start with: "${updated[
+                s
+              ].pages[pageIdx].content.substring(0, 50)}..."`
+            )
+            targetPageFound = true
+            break
+          }
+        }
+
+        if (!targetPageFound) {
+          console.log(
+            `[saveCurrentPageContent] ERROR - Page with ID ${currentPageId} not found in any section`
+          )
+          return prev // Return unchanged state
+        }
+
+        return updated
+      })
+
+      console.log("[saveCurrentPageContent] Update completed")
+    } else {
+      console.log(
+        "[saveCurrentPageContent] No content change detected, skipping update"
+      )
+    }
+
+    console.log("[saveCurrentPageContent] END")
   }
 
   return (

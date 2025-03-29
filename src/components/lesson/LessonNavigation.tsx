@@ -71,16 +71,13 @@ const LessonNavigation = ({
     const checkQuizExists = async () => {
       if (!isLastPageOfSection) return
 
-      console.log(
-        `Checking if quiz exists for lesson ${lessonId}, section ${sectionId}, isLastPage=${isLastPage}`
-      )
+      
       setIsCheckingQuiz(true)
 
       try {
         // Always check for a final test if this is the last page
         // This ensures we detect the final test even when there's a section quiz
         if (isLastPage) {
-          console.log(`Last page detected, checking for final test`)
           const finalTestQuery = supabase
             .from("quizzes")
             .select("id")
@@ -96,13 +93,6 @@ const LessonNavigation = ({
           } else {
             const hasFinalTestResult = finalTestData && finalTestData.length > 0
             setHasFinalTest(hasFinalTestResult)
-            console.log(
-              `Final test ${
-                hasFinalTestResult ? "found" : "not found"
-              } for lesson ${lessonId}. ID: ${
-                hasFinalTestResult ? finalTestData[0].id : "none"
-              }`
-            )
           }
         }
 
@@ -126,10 +116,6 @@ const LessonNavigation = ({
           }
 
           query = query.eq("lesson_id", lessonId).eq("section_id", sectionIdNum)
-
-          console.log(
-            `Checking for section quiz with section_id=${sectionIdNum}`
-          )
         }
 
         const { data, error } = await query
@@ -140,11 +126,7 @@ const LessonNavigation = ({
           setQuizId(null)
         } else {
           const quizExists = data && data.length > 0
-          console.log(
-            `Quiz ${
-              quizExists ? "found" : "not found"
-            } for section ${sectionId}`
-          )
+
           setHasQuiz(quizExists)
 
           // If quiz exists, save the quiz ID and check if it's completed
@@ -183,9 +165,6 @@ const LessonNavigation = ({
     setTimeRemaining(PAGE_TIMER_DURATION)
     setIsPageComplete(false)
     setIsTimerActive(true)
-    console.log(
-      `Page changed to ${pageIdToUse}, section ${currentSection}, resetting timer to ${PAGE_TIMER_DURATION} seconds`
-    )
 
     const getCurrentPageId = async () => {
       try {
@@ -217,7 +196,6 @@ const LessonNavigation = ({
           Array.isArray(data.completed_pages)
         ) {
           const isCompleted = data.completed_pages.includes(pageIdToUse)
-          console.log(`Page ${pageIdToUse} completion status: ${isCompleted}`)
 
           // Always force timer to run for 30 seconds
           // We'll only set isPageComplete after 30 seconds
@@ -229,7 +207,6 @@ const LessonNavigation = ({
             String(currentSection),
             pageIdToUse
           )
-          console.log(`Page completion via service: ${completed}`)
         }
       } catch (error) {
         // Silent fail
@@ -249,26 +226,18 @@ const LessonNavigation = ({
     }
 
     // Always run the timer for 30 seconds on every page, regardless of completion status
-    console.log(
-      `Starting timer for page ${pageId}, section ${currentSection} with ${timeRemaining} seconds remaining`
-    )
+
     setIsTimerActive(true)
 
     // Start timer for all pages in all sections
     if (timeRemaining > 0) {
-      console.log(
-        `Starting timer countdown for page ${pageId}, section ${currentSection}`
-      )
-
       // Start countdown
       const timer = setInterval(() => {
         setTimeRemaining((prev) => {
           const newTime = prev - 1
           if (newTime <= 0) {
             clearInterval(timer)
-            console.log(
-              `Timer reached zero for page ${pageId}, marking as completed`
-            )
+
             markPageAsCompleted()
             return 0
           }
@@ -278,7 +247,6 @@ const LessonNavigation = ({
 
       // Clear timer on unmount
       return () => {
-        console.log(`Clearing timer for page ${pageId}`)
         clearInterval(timer)
       }
     }
@@ -367,7 +335,6 @@ const LessonNavigation = ({
       // First mark current section as completed
       await completeSection(lessonId, sectionId)
 
-      console.log(`Navigating to final test for lesson ${lessonId}`)
       // Navigate to the final test
       navigate(`/quiz/${lessonId}/final`)
     } catch (error) {
@@ -388,10 +355,6 @@ const LessonNavigation = ({
     try {
       // Use currentSection instead of sectionId for consistency
       const sectionIdToUse = String(currentSection)
-
-      console.log(
-        `Marking page ${currentPage} in section ${sectionIdToUse} as completed`
-      )
 
       // Make sure the page ID is a string
       const success = await markPageCompleted(
@@ -419,9 +382,6 @@ const LessonNavigation = ({
     if (lessonId) {
       // Use currentSection instead of sectionId for consistency
       const sectionIdToUse = String(currentSection)
-      console.log(
-        `handleNext called for lesson ${lessonId}, page ${currentPage}`
-      )
 
       if (isPageComplete || timeRemaining <= 0) {
         // Mark this page as completed before navigating

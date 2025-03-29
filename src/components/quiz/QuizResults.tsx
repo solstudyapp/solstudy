@@ -21,9 +21,6 @@ const QuizResults = ({
   isLastSection = false,
 }: QuizResultsProps) => {
   // Log props to debug issues
-  console.log(
-    `QuizResults props: isFinalTest=${quiz?.isFinalTest}, isLastSection=${isLastSection}, hasFinalTest=${hasFinalTest}`
-  )
 
   // Use quiz.questions.length if available, otherwise use totalQuestions
   const questionCount = quiz?.questions?.length || totalQuestions
@@ -50,16 +47,8 @@ const QuizResults = ({
 
   // Handle button click with appropriate action
   const handleButtonClick = () => {
-    console.log(`Button clicked: ${buttonText}`)
-    console.log(
-      `Quiz details: isFinalTest=${isFinalTest}, isLastSection=${isLastSection}, hasFinalTest=${hasFinalTest}`
-    )
-
     // If this is for taking the final test after a section quiz, log extra information
     if (isLastSection && hasFinalTest) {
-      console.log(
-        "Preparing for final test navigation - completing this section quiz first"
-      )
     }
 
     // Call the parent component's completion handler with the earned points

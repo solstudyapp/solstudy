@@ -155,12 +155,9 @@ const QuizPage = () => {
 
             if (!finalTestError && finalTestData && finalTestData.length > 0) {
               setHasFinalTest(true)
-              console.log(
-                `Final test available for this lesson: "${finalTestData[0].title}" (ID: ${finalTestData[0].id})`
-              )
             } else {
               setHasFinalTest(false)
-              console.log(`No final test found for lesson ${lessonId}`)
+
               if (finalTestError) {
                 console.error("Error checking for final test:", finalTestError)
               }
@@ -253,7 +250,6 @@ const QuizPage = () => {
       // Function to forcefully mark all sections as completed
       const forceCompleteAllSections = async () => {
         try {
-          console.log(`Force completing all sections for lesson ${lessonId}`)
           for (const section of sections) {
             await userProgressService.completeSection(
               lessonId || "",
@@ -261,9 +257,8 @@ const QuizPage = () => {
             )
             // Also update local cache
             lessonService.completeSection(lessonId || "", section.id)
-            console.log(`Force marked section ${section.id} as completed`)
           }
-          console.log("All sections are now marked as completed")
+
           return true
         } catch (error) {
           console.error("Error force completing sections:", error)
@@ -273,7 +268,6 @@ const QuizPage = () => {
 
       // Skip checking for already completed final tests
       if (lessonService.isFinalTestCompleted(lessonId || "")) {
-        console.log("Final test already completed, skipping section checks")
         return
       }
 
@@ -282,9 +276,6 @@ const QuizPage = () => {
       const fromSectionQuiz = urlParams.get("from_section_quiz") === "true"
 
       if (fromSectionQuiz) {
-        console.log(
-          "Coming directly from section quiz, bypassing section completion checks"
-        )
         // Force mark all sections as completed
         forceCompleteAllSections()
         return
@@ -292,10 +283,6 @@ const QuizPage = () => {
 
       const checkSectionQuizzes = async () => {
         try {
-          console.log(
-            `Running section quiz check for final test, lessonId=${lessonId}`
-          )
-
           // First check if there are any section quizzes for this lesson
           const { data: sectionQuizzes, error: quizError } = await supabase
             .from("quizzes")
@@ -311,17 +298,8 @@ const QuizPage = () => {
 
           // If there are no section quizzes, allow taking the final test
           if (!sectionQuizzes || sectionQuizzes.length === 0) {
-            console.log("No section quizzes found, allowing final test")
             return
           }
-
-          console.log(`Found ${sectionQuizzes.length} section quizzes`)
-          console.log(
-            "Section quiz IDs:",
-            sectionQuizzes
-              .map((q) => `${q.id} (section ${q.section_id})`)
-              .join(", ")
-          )
 
           // Get the user's completed sections directly from database
           const {
@@ -347,46 +325,28 @@ const QuizPage = () => {
           }
 
           const completedSections = userProgress?.completed_sections || []
-          console.log("User's completed sections:", completedSections)
 
           // Check which sections need quizzes
           const sectionsWithQuizzes = new Set(
             sectionQuizzes.map((q) => String(q.section_id))
           )
-          console.log("Sections with quizzes:", Array.from(sectionsWithQuizzes))
 
           // If there are section quizzes, check if they're all completed
           const allSectionsCompleted = sections.every((section) => {
             // Only check sections that have quizzes
             if (sectionsWithQuizzes.has(String(section.id))) {
               const isCompleted = completedSections.includes(section.id)
-              console.log(
-                `Section ${section.id} has a quiz and is ${
-                  isCompleted ? "completed" : "not completed"
-                }`
-              )
               return isCompleted
             }
-            console.log(
-              `Section ${section.id} has no quiz, considered completed`
-            )
+
             return true // Sections without quizzes are considered completed
           })
 
-          console.log(`All sections completed: ${allSectionsCompleted}`)
-
           if (!allSectionsCompleted) {
-            console.log(
-              "Some sections are not completed. Attempting to force complete them first..."
-            )
-
             // Try to force complete all sections
             const forcedSuccess = await forceCompleteAllSections()
 
             if (forcedSuccess) {
-              console.log(
-                "Successfully force completed all sections, allowing final test"
-              )
             } else {
               // If force completion fails, show error and redirect
               toast({
@@ -398,9 +358,6 @@ const QuizPage = () => {
               navigate(`/lesson/${lessonId}`)
             }
           } else {
-            console.log(
-              "All required section quizzes are completed, final test allowed"
-            )
           }
         } catch (error) {
           console.error("Error checking section quizzes:", error)
@@ -490,15 +447,9 @@ const QuizPage = () => {
     const percentScore = (score / totalQuestions) * 100
 
     // Log which quiz is being completed
-    console.log(
-      `Completing quiz: ${quiz?.title}, isFinalTest=${isFinalTest}, score=${score}/${totalQuestions}`
-    )
 
     // First check if the quiz is already completed
     if (quiz && (await quizService.hasCompletedQuiz(quiz.id))) {
-      console.log(
-        `Quiz ${quiz.id} already completed, updating local state only`
-      )
       // Still mark local progress for UI feedback
       if (isFinalTest) {
         lessonService.completeQuiz(quiz, score, earnedPoints)
@@ -540,9 +491,6 @@ const QuizPage = () => {
       setShowRatingModal(true)
     } else {
       // For section quizzes, mark the section as completed locally and in database
-      console.log(
-        `Completing section quiz: ${sectionId} for lesson ${lessonId}`
-      )
 
       // Update local state first
       lessonService.completeQuiz(quiz, score, earnedPoints)
@@ -556,9 +504,6 @@ const QuizPage = () => {
             quiz.id,
             percentScore,
             earnedPoints
-          )
-          console.log(
-            `Successfully saved quiz completion to database: ${quiz.id}`
           )
         } catch (error) {
           console.error("Error updating quiz completion in Supabase:", error)
@@ -574,22 +519,17 @@ const QuizPage = () => {
   const handleSectionQuizComplete = async () => {
     // For section quizzes, determine if there's a next section
     const isLastSection = currentSectionIndex >= sections.length - 1
-    console.log(
-      `handleSectionQuizComplete: isLastSection=${isLastSection}, hasFinalTest=${hasFinalTest}, lessonId=${lessonId}`
-    )
+    
 
     if (isLastSection) {
       // Check if a final test exists and redirect to it
       if (hasFinalTest) {
-        console.log(`Navigating to final test for lesson ${lessonId}`)
-
         try {
           // First, ensure the quiz is marked as completed in the database
           await userProgressService.completeSection(
             lessonId || "",
             sectionId || ""
           )
-          console.log(`Section ${sectionId} marked as completed successfully`)
 
           // Force a delay to ensure the database update is processed
           await new Promise((resolve) => setTimeout(resolve, 1000))
@@ -601,7 +541,6 @@ const QuizPage = () => {
               lessonId || "",
               section.id
             )
-            console.log(`Ensuring section ${section.id} is marked as completed`)
           }
 
           // Also update the local cache in lessonService

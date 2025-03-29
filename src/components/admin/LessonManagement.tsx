@@ -111,6 +111,7 @@ const LessonManagement = () => {
       is_sponsored: false,
       sponsorLogo: "",
       points: 100,
+      sponsorName: "",
     }
 
     setCurrentLesson(newLesson)
@@ -172,13 +173,6 @@ const LessonManagement = () => {
     updatedLesson: LessonType,
     sectionsToSave?: Section[]
   ) => {
-    console.log("LessonManagement - saveLesson called with:", {
-      updatedLesson,
-      sectionsToSave,
-      sectionsLength: sectionsToSave?.length || 0,
-      isNewLesson,
-    })
-
     setIsLoading(true)
     try {
       const result = await saveLessonToSupabase(updatedLesson)
@@ -193,24 +187,13 @@ const LessonManagement = () => {
         ) {
           // Get the newly created lesson ID
           const newLessonId = result.data[0]?.id
-          console.log(
-            "LessonManagement - New lesson created with ID:",
-            newLessonId
-          )
 
           if (newLessonId) {
             // Save the sections with the new lesson ID
-            console.log(
-              "LessonManagement - Saving sections for new lesson:",
-              sectionsToSave.length
-            )
+
             const sectionsResult = await saveSections(
               newLessonId,
               sectionsToSave
-            )
-            console.log(
-              "LessonManagement - saveSections result:",
-              sectionsResult
             )
           } else {
             console.error(

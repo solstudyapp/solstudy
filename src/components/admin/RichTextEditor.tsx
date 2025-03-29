@@ -451,10 +451,18 @@ export const RichTextEditor = ({
     ],
     content: initialContent,
     autofocus: true,
-    // Do not change code in onUpdate, which impacts an issue with using spacebar
     onUpdate: ({ editor }) => {
       const html = editor.getHTML()
-      if (html !== htmlContent) {
+      // Only update if content has actually changed and we're not already updating
+      if (html !== htmlContent && !isUpdatingRef.current) {
+        console.log(`[RichTextEditor] onUpdate triggered, content changed`)
+        console.log(
+          `[RichTextEditor] New content starts with: "${html.substring(
+            0,
+            50
+          )}..."`
+        )
+        setHtmlContent(html)
         onChange(html)
       }
     },
@@ -467,21 +475,45 @@ export const RichTextEditor = ({
 
   // Update editor content when initialContent changes, but only if it's different
   useEffect(() => {
-    if (editor && !editor.isDestroyed && initialContent !== editor.getHTML()) {
-      isUpdatingRef.current = true
-      const { from, to } = editor.state.selection
-      editor.commands.setContent(initialContent)
-      setHtmlContent(initialContent)
+    console.log(`[RichTextEditor] useEffect for initialContent triggered`)
+    console.log(
+      `[RichTextEditor] initialContent starts with: "${initialContent.substring(
+        0,
+        50
+      )}..."`
+    )
 
-      // Wait for the next tick to restore selection
-      setTimeout(() => {
-        try {
-          editor.commands.setTextSelection({ from, to })
-        } catch (e) {
-          editor.commands.focus()
-        }
-        isUpdatingRef.current = false
-      }, 0)
+    if (editor && !editor.isDestroyed) {
+      const editorContent = editor.getHTML()
+      console.log(
+        `[RichTextEditor] Current editor content starts with: "${editorContent.substring(
+          0,
+          50
+        )}..."`
+      )
+
+      if (initialContent !== editorContent) {
+        console.log(`[RichTextEditor] Content differs, updating editor...`)
+        isUpdatingRef.current = true
+        const { from, to } = editor.state.selection
+        editor.commands.setContent(initialContent)
+        setHtmlContent(initialContent)
+
+        // Wait for the next tick to restore selection
+        setTimeout(() => {
+          try {
+            editor.commands.setTextSelection({ from, to })
+          } catch (e) {
+            editor.commands.focus()
+          }
+          isUpdatingRef.current = false
+          console.log(`[RichTextEditor] Editor updated with new content`)
+        }, 0)
+      } else {
+        console.log(`[RichTextEditor] Content is the same, no update needed`)
+      }
+    } else {
+      console.log(`[RichTextEditor] Editor not available yet or destroyed`)
     }
   }, [editor, initialContent])
 

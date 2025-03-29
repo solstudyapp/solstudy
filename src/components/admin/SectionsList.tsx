@@ -45,11 +45,22 @@ export const SectionsList = ({
       return
     }
 
+    // Save the current page content before moving sections
+    saveCurrentPageContent()
+
     const newIndex = direction === "up" ? index - 1 : index + 1
 
     setSections((prev) => {
       const updated = [...prev]
-      ;[updated[index], updated[newIndex]] = [updated[newIndex], updated[index]]
+
+      // Create deep copies of the sections we're swapping to preserve all content
+      const sectionToMove = JSON.parse(JSON.stringify(updated[index]))
+      const otherSection = JSON.parse(JSON.stringify(updated[newIndex]))
+
+      // Swap the sections using our deep copies
+      updated[newIndex] = sectionToMove
+      updated[index] = otherSection
+
       return updated
     })
 
