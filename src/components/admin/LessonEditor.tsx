@@ -46,14 +46,18 @@ import { fetchSections, saveSections } from "@/services/sections"
 import { toast } from "@/hooks/use-toast"
 import { safelyParseId } from "@/lib/type-converters"
 import { supabase } from "@/lib/supabase"
-
+import { SectionEditor } from "./SectionEditor"
+import { BasicDetails } from "./BasicDetails"
+import { PageEditor } from "./PageEditor"
+import { SectionsList } from "./SectionsList"
+import { PagesList } from "./PagesList"
 interface LessonEditorProps {
   lesson: LessonType
   onSave: (lesson: LessonType, sections: Section[]) => void
   onCancel: () => void
 }
 
-interface DBQuiz {
+export interface DBQuiz {
   id: string
   title: string
   lesson_id: string | null
@@ -118,8 +122,6 @@ export const LessonEditor = ({
 
   useEffect(() => {
     const loadSections = async () => {
-      
-
       if (lesson.id && lesson.id !== "lesson-new") {
         try {
           const loadedSections = await fetchSections(lesson.id)
@@ -519,255 +521,6 @@ export const LessonEditor = ({
     }
   }
 
-  const renderSectionsList = () => {
-    return (
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-medium">Sections</h3>
-          <Button
-            size="sm"
-            variant="outline"
-            className="border-white/20 text-white hover:bg-white/10"
-            onClick={addSection}
-          >
-            <Plus size={16} className="mr-2" /> Add Section
-          </Button>
-        </div>
-
-        <div className="space-y-2 max-h-[200px] overflow-y-auto pr-2">
-          {sections.map((section, index) => (
-            <div
-              key={section.id}
-              className={`flex items-center justify-between p-2 rounded ${
-                currentSectionIndex === index
-                  ? "bg-white/10"
-                  : "hover:bg-white/5"
-              }`}
-              onClick={() => {
-                saveCurrentPageContent()
-                setCurrentSectionIndex(index)
-                setCurrentPageIndex(0)
-              }}
-            >
-              <div className="flex items-center gap-2">
-                <BookOpen size={16} />
-                <span>{section.title}</span>
-                <span className="text-xs text-white/50">
-                  ({section.pages.length} pages)
-                </span>
-              </div>
-              <div className="flex gap-1">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-7 w-7"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    moveSection(index, "up")
-                  }}
-                  disabled={index === 0}
-                >
-                  <ChevronUp size={14} />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-7 w-7"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    moveSection(index, "down")
-                  }}
-                  disabled={index === sections.length - 1}
-                >
-                  <ChevronDown size={14} />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-900/20"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    deleteSection(index)
-                  }}
-                  disabled={sections.length <= 1}
-                >
-                  <Trash size={14} />
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    )
-  }
-
-  const renderPagesList = () => {
-    if (sections.length === 0) return null
-
-    const currentSection = sections[currentSectionIndex]
-
-    return (
-      <div className="space-y-4 mt-6">
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-medium">
-            Pages in {currentSection.title}
-          </h3>
-          <Button
-            size="sm"
-            variant="outline"
-            className="border-white/20 text-white hover:bg-white/10"
-            onClick={() => addPage(currentSectionIndex)}
-          >
-            <Plus size={16} className="mr-2" /> Add Page
-          </Button>
-        </div>
-
-        <div className="space-y-2 max-h-[200px] overflow-y-auto pr-2">
-          {currentSection.pages.map((page, index) => (
-            <div
-              key={page.id}
-              className={`flex items-center justify-between p-2 rounded ${
-                currentPageIndex === index ? "bg-white/10" : "hover:bg-white/5"
-              }`}
-              onClick={() => {
-                saveCurrentPageContent()
-                setCurrentPageIndex(index)
-              }}
-            >
-              <div className="flex items-center gap-2">
-                <Edit size={16} />
-                <span>{page.title}</span>
-              </div>
-              <div className="flex gap-1">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-7 w-7"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    movePage(currentSectionIndex, index, "up")
-                  }}
-                  disabled={index === 0}
-                >
-                  <ChevronUp size={14} />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-7 w-7"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    movePage(currentSectionIndex, index, "down")
-                  }}
-                  disabled={index === currentSection.pages.length - 1}
-                >
-                  <ChevronDown size={14} />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-900/20"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    deletePage(currentSectionIndex, index)
-                  }}
-                  disabled={currentSection.pages.length <= 1}
-                >
-                  <Trash size={14} />
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    )
-  }
-
-  const renderPageEditor = () => {
-    if (
-      sections.length === 0 ||
-      !sections[currentSectionIndex]?.pages[currentPageIndex]
-    ) {
-      return <div className="text-white/50">No page selected</div>
-    }
-
-    const currentPage = sections[currentSectionIndex].pages[currentPageIndex]
-
-    return (
-      <div className="space-y-4">
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium">Page Title</label>
-          <Input
-            value={currentPage.title}
-            onChange={(e) =>
-              updatePage(
-                currentSectionIndex,
-                currentPageIndex,
-                "title",
-                e.target.value
-              )
-            }
-            className="bg-white/10 border-white/20 text-white"
-          />
-        </div>
-
-        <div className="flex flex-col gap-2 pt-4">
-          <label className="text-sm font-medium">Content</label>
-          <div className="border border-white/20 rounded-md overflow-hidden">
-            <RichTextEditor
-              initialContent={currentPage.content}
-              onChange={(content) =>
-                updatePage(
-                  currentSectionIndex,
-                  currentPageIndex,
-                  "content",
-                  content
-                )
-              }
-            />
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  const renderSectionEditor = () => {
-    if (sections.length === 0) return null
-
-    const currentSection = sections[currentSectionIndex]
-
-    // Find the associated quiz for this section
-    const associatedQuiz = quizzes.find(
-      (quiz) => quiz.id === currentSection.quizId
-    )
-
-    return (
-      <div className="space-y-4 mb-4">
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium">Section Title</label>
-          <Input
-            value={currentSection.title}
-            onChange={(e) =>
-              updateSection(currentSectionIndex, "title", e.target.value)
-            }
-            className="bg-white/10 border-white/20 text-white"
-          />
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium">End of Section Quiz</label>
-          <div className="flex items-center gap-2">
-            <Input
-              value={associatedQuiz ? associatedQuiz.title : "No Quiz Assigned"}
-              disabled
-              className="bg-white/5 border-white/10 text-white/70"
-            />
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-4">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -787,254 +540,63 @@ export const LessonEditor = ({
         </TabsList>
 
         <TabsContent value="details" className="pt-4 space-y-4">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium">Title</label>
-              <Input
-                value={editedLesson.title}
-                onChange={(e) => handleInputChange("title", e.target.value)}
-                className="bg-white/10 border-white/20 text-white"
-              />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium">Category</label>
-              {showNewCategoryInput ? (
-                <div className="flex gap-2">
-                  <Input
-                    value={newCategory}
-                    onChange={(e) => setNewCategory(e.target.value)}
-                    placeholder="New category name"
-                    className="bg-white/10 border-white/20 text-white"
-                  />
-                  <Button
-                    onClick={handleAddCategory}
-                    className="bg-[#14F195] text-[#1A1F2C] hover:bg-[#14F195]/90"
-                  >
-                    <Plus size={16} className="mr-2" />
-                    Add
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowNewCategoryInput(false)}
-                    className="border-white/20 text-white hover:bg-white/10"
-                  >
-                    <X size={16} />
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex gap-2">
-                  <Select
-                    value={editedLesson.category}
-                    onValueChange={(value) =>
-                      handleInputChange("category", value)
-                    }
-                  >
-                    <SelectTrigger className="bg-white/10 border-white/20 text-white">
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-black/80 backdrop-blur-md border-white/10 text-white">
-                      {categories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowNewCategoryInput(true)}
-                    className="border-white/20 text-white hover:bg-white/10"
-                  >
-                    <Plus size={16} />
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium">Difficulty</label>
-              <Select
-                value={editedLesson.difficulty}
-                onValueChange={(value) =>
-                  handleInputChange("difficulty", value)
-                }
-              >
-                <SelectTrigger className="bg-white/10 border-white/20 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-black/80 backdrop-blur-md border-white/10 text-white">
-                  <SelectItem value="beginner">Beginner</SelectItem>
-                  <SelectItem value="intermediate">Intermediate</SelectItem>
-                  <SelectItem value="advanced">Advanced</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium">Lesson Icon</label>
-              <Select value={selectedIconName} onValueChange={handleIconChange}>
-                <SelectTrigger className="bg-white/10 border-white/20 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-black/80 backdrop-blur-md border-white/10 text-white max-h-[300px]">
-                  {availableIcons.map((icon) => (
-                    <SelectItem
-                      key={icon.name}
-                      value={icon.name}
-                      className="flex items-center"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="flex-shrink-0">{icon.component}</span>
-                        <span>{icon.name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium">Rating</label>
-              <Input
-                type="number"
-                min="0"
-                max="5"
-                step="0.1"
-                value={editedLesson.rating}
-                onChange={(e) =>
-                  handleInputChange("rating", parseFloat(e.target.value))
-                }
-                className="bg-white/10 border-white/20 text-white"
-              />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium">Review Count</label>
-              <Input
-                type="number"
-                min="0"
-                value={editedLesson.reviewCount}
-                onChange={(e) =>
-                  handleInputChange("reviewCount", parseInt(e.target.value))
-                }
-                className="bg-white/10 border-white/20 text-white"
-              />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium">
-                <span className="flex items-center">
-                  <Award size={16} className="mr-2 text-[#14F195]" />
-                  Points Reward
-                </span>
-              </label>
-              <Input
-                type="number"
-                min="0"
-                value={editedLesson.points || 0}
-                onChange={(e) =>
-                  handleInputChange("points", parseInt(e.target.value))
-                }
-                placeholder="Points awarded for completion"
-                className="bg-white/10 border-white/20 text-white"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="sponsored"
-                  checked={!!editedLesson.is_sponsored}
-                  onCheckedChange={handleSponsoredChange}
-                />
-                <Label htmlFor="sponsored">Sponsored Lesson</Label>
-              </div>
-              {/* Hide bonus lesson for now
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="bonusLesson"
-                  checked={!!editedLesson.bonusLesson}
-                  onCheckedChange={(checked) =>
-                    handleInputChange("bonusLesson", checked)
-                  }
-                />
-                <Label htmlFor="bonusLesson">
-                  <span className="flex items-center">
-                    <Sparkles size={16} className="mr-2 text-[#14F195]" />
-                    Bonus Lesson of the Day
-                  </span>
-                </Label>
-              </div> */}
-
-              {editedLesson.is_sponsored && (
-                <div className="space-y-2">
-                  <Select
-                    value={sponsorId?.toString() || ""}
-                    onValueChange={handleSponsorChange}
-                  >
-                    <SelectTrigger className="bg-white/10 border-white/20 text-white">
-                      <SelectValue placeholder="Select a sponsor" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-black/80 backdrop-blur-md border-white/10 text-white">
-                      {sponsors.map((sponsor) => (
-                        <SelectItem
-                          key={sponsor.id}
-                          value={sponsor.id.toString()}
-                        >
-                          {sponsor.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  {/* Show the selected sponsor's logo if available */}
-                  {sponsorId && (
-                    <div className="p-4 bg-white/5 rounded-md mt-2">
-                      {sponsors.find((s) => s.id === sponsorId)?.logo_url ? (
-                        <img
-                          src={
-                            sponsors.find((s) => s.id === sponsorId)?.logo_url
-                          }
-                          alt="Sponsor Logo"
-                          className="h-12 object-contain mx-auto"
-                        />
-                      ) : (
-                        <div className="text-white/50 text-center">
-                          <AlertCircle
-                            size={16}
-                            className="inline-block mr-2"
-                          />
-                          No logo available for this sponsor
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium">Description</label>
-            <Textarea
-              value={editedLesson.description}
-              onChange={(e) => handleInputChange("description", e.target.value)}
-              className="bg-white/10 border-white/20 text-white min-h-[100px]"
-            />
-          </div>
+          <BasicDetails
+            editedLesson={editedLesson}
+            handleInputChange={handleInputChange}
+            showNewCategoryInput={showNewCategoryInput}
+            setNewCategory={setNewCategory}
+            handleAddCategory={handleAddCategory}
+            categories={categories}
+            availableIcons={availableIcons}
+            selectedIconName={selectedIconName}
+            handleIconChange={handleIconChange}
+            handleSponsoredChange={handleSponsoredChange}
+            handleSponsorChange={handleSponsorChange}
+            sponsors={sponsors}
+            sponsorId={sponsorId}
+            setShowNewCategoryInput={setShowNewCategoryInput}
+            newCategory={newCategory}
+          />
         </TabsContent>
 
         <TabsContent value="content" className="pt-4">
           <div className="flex flex-col md:flex-row gap-6">
             <div className="w-full md:w-1/3 space-y-4">
-              {renderSectionsList()}
-              {renderPagesList()}
+              <SectionsList
+                sections={sections}
+                currentSectionIndex={currentSectionIndex}
+                addSection={addSection}
+                moveSection={moveSection}
+                deleteSection={deleteSection}
+                saveCurrentPageContent={saveCurrentPageContent}
+                setCurrentSectionIndex={setCurrentSectionIndex}
+                setCurrentPageIndex={setCurrentPageIndex}
+              />
+              <PagesList
+                sections={sections}
+                currentSectionIndex={currentSectionIndex}
+                addPage={addPage}
+                movePage={movePage}
+                deletePage={deletePage}
+                saveCurrentPageContent={saveCurrentPageContent}
+                setCurrentPageIndex={setCurrentPageIndex}
+                currentPageIndex={currentPageIndex}
+              />
             </div>
 
             <div className="w-full md:w-2/3 space-y-4">
-              {renderSectionEditor()}
-              {renderPageEditor()}
+              <SectionEditor
+                sections={sections}
+                currentSectionIndex={currentSectionIndex}
+                updateSection={updateSection}
+                quizzes={quizzes}
+              />
+              <PageEditor
+                sections={sections}
+                currentSectionIndex={currentSectionIndex}
+                currentPageIndex={currentPageIndex}
+                updatePage={updatePage}
+              />
             </div>
           </div>
         </TabsContent>
