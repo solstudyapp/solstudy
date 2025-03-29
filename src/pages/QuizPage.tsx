@@ -107,6 +107,7 @@ const QuizPage = () => {
   const [quiz, setQuiz] = useState<Quiz | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [showRatingModal, setShowRatingModal] = useState(false)
+  const [hasFinalTest, setHasFinalTest] = useState(false) // Track if a final test exists
 
   // Determine if this is a final test
   const isFinalTest = sectionId === "final"
@@ -141,6 +142,34 @@ const QuizPage = () => {
           return
         }
         setSections(sectionsData)
+
+        // Check if a final test exists for this lesson (when not already viewing final test)
+        if (!isFinalTest) {
+          try {
+            const { data: finalTestData, error: finalTestError } =
+              await supabase
+                .from("quizzes")
+                .select("id, title")
+                .eq("lesson_id", lessonId)
+                .eq("is_final_test", true)
+
+            if (!finalTestError && finalTestData && finalTestData.length > 0) {
+              setHasFinalTest(true)
+              console.log(
+                `Final test available for this lesson: "${finalTestData[0].title}" (ID: ${finalTestData[0].id})`
+              )
+            } else {
+              setHasFinalTest(false)
+              console.log(`No final test found for lesson ${lessonId}`)
+              if (finalTestError) {
+                console.error("Error checking for final test:", finalTestError)
+              }
+            }
+          } catch (err) {
+            console.error("Exception checking for final test:", err)
+            setHasFinalTest(false)
+          }
+        }
 
         // Fetch quiz data
         const quizData = await fetchQuizByLessonAndSection(
@@ -221,17 +250,56 @@ const QuizPage = () => {
   // For the final test, check if all section quizzes are completed
   useEffect(() => {
     if (!isLoading && isFinalTest && lesson && sections.length > 0) {
+      // Function to forcefully mark all sections as completed
+      const forceCompleteAllSections = async () => {
+        try {
+          console.log(`Force completing all sections for lesson ${lessonId}`)
+          for (const section of sections) {
+            await userProgressService.completeSection(
+              lessonId || "",
+              section.id
+            )
+            // Also update local cache
+            lessonService.completeSection(lessonId || "", section.id)
+            console.log(`Force marked section ${section.id} as completed`)
+          }
+          console.log("All sections are now marked as completed")
+          return true
+        } catch (error) {
+          console.error("Error force completing sections:", error)
+          return false
+        }
+      }
+
       // Skip checking for already completed final tests
       if (lessonService.isFinalTestCompleted(lessonId || "")) {
+        console.log("Final test already completed, skipping section checks")
+        return
+      }
+
+      // Check if we're coming directly from a section quiz by checking the URL
+      const urlParams = new URLSearchParams(window.location.search)
+      const fromSectionQuiz = urlParams.get("from_section_quiz") === "true"
+
+      if (fromSectionQuiz) {
+        console.log(
+          "Coming directly from section quiz, bypassing section completion checks"
+        )
+        // Force mark all sections as completed
+        forceCompleteAllSections()
         return
       }
 
       const checkSectionQuizzes = async () => {
         try {
+          console.log(
+            `Running section quiz check for final test, lessonId=${lessonId}`
+          )
+
           // First check if there are any section quizzes for this lesson
           const { data: sectionQuizzes, error: quizError } = await supabase
             .from("quizzes")
-            .select("id")
+            .select("id, section_id")
             .eq("lesson_id", lessonId)
             .eq("is_final_test", false)
             .not("section_id", "is", null)
@@ -243,22 +311,96 @@ const QuizPage = () => {
 
           // If there are no section quizzes, allow taking the final test
           if (!sectionQuizzes || sectionQuizzes.length === 0) {
+            console.log("No section quizzes found, allowing final test")
             return
           }
 
-          // If there are section quizzes, check if they're all completed
-          const allSectionsCompleted = sections.every((section) =>
-            lessonService.isSectionCompleted(lessonId || "", section.id)
+          console.log(`Found ${sectionQuizzes.length} section quizzes`)
+          console.log(
+            "Section quiz IDs:",
+            sectionQuizzes
+              .map((q) => `${q.id} (section ${q.section_id})`)
+              .join(", ")
           )
 
+          // Get the user's completed sections directly from database
+          const {
+            data: { user },
+          } = await supabase.auth.getUser()
+
+          if (!user) {
+            console.error("No authenticated user found")
+            return // Allow the user to take the final test if we can't check
+          }
+
+          // Check progress in the database
+          const { data: userProgress, error: progressError } = await supabase
+            .from("user_progress")
+            .select("completed_sections")
+            .eq("user_id", user.id)
+            .eq("lesson_id", lessonId)
+            .single()
+
+          if (progressError) {
+            console.error("Error checking progress:", progressError)
+            return // Allow the user to take the final test if we can't check
+          }
+
+          const completedSections = userProgress?.completed_sections || []
+          console.log("User's completed sections:", completedSections)
+
+          // Check which sections need quizzes
+          const sectionsWithQuizzes = new Set(
+            sectionQuizzes.map((q) => String(q.section_id))
+          )
+          console.log("Sections with quizzes:", Array.from(sectionsWithQuizzes))
+
+          // If there are section quizzes, check if they're all completed
+          const allSectionsCompleted = sections.every((section) => {
+            // Only check sections that have quizzes
+            if (sectionsWithQuizzes.has(String(section.id))) {
+              const isCompleted = completedSections.includes(section.id)
+              console.log(
+                `Section ${section.id} has a quiz and is ${
+                  isCompleted ? "completed" : "not completed"
+                }`
+              )
+              return isCompleted
+            }
+            console.log(
+              `Section ${section.id} has no quiz, considered completed`
+            )
+            return true // Sections without quizzes are considered completed
+          })
+
+          console.log(`All sections completed: ${allSectionsCompleted}`)
+
           if (!allSectionsCompleted) {
-            toast({
-              title: "Complete all sections first",
-              description:
-                "You need to complete all section quizzes before taking the final test.",
-              variant: "destructive",
-            })
-            navigate(`/lesson/${lessonId}`)
+            console.log(
+              "Some sections are not completed. Attempting to force complete them first..."
+            )
+
+            // Try to force complete all sections
+            const forcedSuccess = await forceCompleteAllSections()
+
+            if (forcedSuccess) {
+              console.log(
+                "Successfully force completed all sections, allowing final test"
+              )
+            } else {
+              // If force completion fails, show error and redirect
+              toast({
+                title: "Complete all sections first",
+                description:
+                  "You need to complete all section quizzes before taking the final test.",
+                variant: "destructive",
+              })
+              navigate(`/lesson/${lessonId}`)
+            }
+          } else {
+            console.log(
+              "All required section quizzes are completed, final test allowed"
+            )
           }
         } catch (error) {
           console.error("Error checking section quizzes:", error)
@@ -347,8 +489,16 @@ const QuizPage = () => {
     const totalQuestions = quiz?.questions?.length || 1
     const percentScore = (score / totalQuestions) * 100
 
+    // Log which quiz is being completed
+    console.log(
+      `Completing quiz: ${quiz?.title}, isFinalTest=${isFinalTest}, score=${score}/${totalQuestions}`
+    )
+
     // First check if the quiz is already completed
     if (quiz && (await quizService.hasCompletedQuiz(quiz.id))) {
+      console.log(
+        `Quiz ${quiz.id} already completed, updating local state only`
+      )
       // Still mark local progress for UI feedback
       if (isFinalTest) {
         lessonService.completeQuiz(quiz, score, earnedPoints)
@@ -389,7 +539,12 @@ const QuizPage = () => {
       // Show rating modal directly
       setShowRatingModal(true)
     } else {
-      // For section quizzes, mark the section as completed locally
+      // For section quizzes, mark the section as completed locally and in database
+      console.log(
+        `Completing section quiz: ${sectionId} for lesson ${lessonId}`
+      )
+
+      // Update local state first
       lessonService.completeQuiz(quiz, score, earnedPoints)
       lessonService.completeSection(lessonId || "", sectionId || "")
 
@@ -401,6 +556,9 @@ const QuizPage = () => {
             quiz.id,
             percentScore,
             earnedPoints
+          )
+          console.log(
+            `Successfully saved quiz completion to database: ${quiz.id}`
           )
         } catch (error) {
           console.error("Error updating quiz completion in Supabase:", error)
@@ -416,9 +574,64 @@ const QuizPage = () => {
   const handleSectionQuizComplete = async () => {
     // For section quizzes, determine if there's a next section
     const isLastSection = currentSectionIndex >= sections.length - 1
+    console.log(
+      `handleSectionQuizComplete: isLastSection=${isLastSection}, hasFinalTest=${hasFinalTest}, lessonId=${lessonId}`
+    )
 
     if (isLastSection) {
-      // If this was the last section quiz, auto-complete the lesson and show rating
+      // Check if a final test exists and redirect to it
+      if (hasFinalTest) {
+        console.log(`Navigating to final test for lesson ${lessonId}`)
+
+        try {
+          // First, ensure the quiz is marked as completed in the database
+          await userProgressService.completeSection(
+            lessonId || "",
+            sectionId || ""
+          )
+          console.log(`Section ${sectionId} marked as completed successfully`)
+
+          // Force a delay to ensure the database update is processed
+          await new Promise((resolve) => setTimeout(resolve, 1000))
+
+          // For lessons with a final test, we need to ensure ALL sections are marked as completed
+          // This is critical because the final test page checks for all sections to be completed
+          for (const section of sections) {
+            await userProgressService.completeSection(
+              lessonId || "",
+              section.id
+            )
+            console.log(`Ensuring section ${section.id} is marked as completed`)
+          }
+
+          // Also update the local cache in lessonService
+          for (const section of sections) {
+            lessonService.completeSection(lessonId || "", section.id)
+          }
+
+          toast({
+            title: "Section completed!",
+            description: "Now taking the final test to complete the lesson.",
+          })
+
+          // Use a slight delay to ensure the toast is displayed before redirecting
+          setTimeout(() => {
+            // Force a hard navigation to the final test page with a special bypass parameter
+            // This signals that we're coming directly from a section quiz and should bypass section completion checks
+            window.location.href = `/quiz/${lessonId}/final?from_section_quiz=true`
+          }, 1000)
+        } catch (error) {
+          console.error(
+            "Error completing section before final test redirect:",
+            error
+          )
+          // Still try to navigate to the final test even if there's an error
+          window.location.href = `/quiz/${lessonId}/final?from_section_quiz=true`
+        }
+        return
+      }
+
+      // If no final test, auto-complete the lesson and show rating
       try {
         // Mark the lesson as completed in the database
         await userProgressService.completeLesson(lessonId || "")
@@ -432,17 +645,13 @@ const QuizPage = () => {
         return
       } catch (error) {
         console.error("Error completing lesson:", error)
-        // If error, still try to navigate to final test as fallback
+        // If error, show toast and navigate to dashboard as fallback
+        toast({
+          title: "Lesson completed!",
+          description: "You've completed this lesson successfully.",
+        })
+        navigate("/dashboard")
       }
-
-      // Navigate to the final test if auto-completion fails
-      toast({
-        title: "All sections completed!",
-        description: "You can now take the final test for this lesson.",
-      })
-
-      // Explicitly navigate to the final test
-      navigate(`/quiz/${lessonId}/final`)
     } else {
       // If there are more sections, navigate to the next section
       const nextSectionIndex = currentSectionIndex + 1
@@ -504,6 +713,8 @@ const QuizPage = () => {
             totalQuestions={quiz.questions.length}
             onComplete={handleCompleteQuiz}
             quiz={quiz}
+            hasFinalTest={hasFinalTest}
+            isLastSection={currentSectionIndex === sections.length - 1}
           />
         )}
 

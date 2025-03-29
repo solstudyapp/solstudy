@@ -8,6 +8,8 @@ interface QuizResultsProps {
   totalQuestions: number
   onComplete: (earnedPoints: number) => void
   quiz?: Quiz // Make quiz optional for backward compatibility
+  hasFinalTest?: boolean // Add prop to indicate if a final test is available
+  isLastSection?: boolean // Add prop to indicate if this is the last section
 }
 
 const QuizResults = ({
@@ -15,7 +17,14 @@ const QuizResults = ({
   score,
   totalQuestions,
   onComplete,
+  hasFinalTest = false,
+  isLastSection = false,
 }: QuizResultsProps) => {
+  // Log props to debug issues
+  console.log(
+    `QuizResults props: isFinalTest=${quiz?.isFinalTest}, isLastSection=${isLastSection}, hasFinalTest=${hasFinalTest}`
+  )
+
   // Use quiz.questions.length if available, otherwise use totalQuestions
   const questionCount = quiz?.questions?.length || totalQuestions
   const earnedPoints = Math.round(
@@ -23,6 +32,39 @@ const QuizResults = ({
   )
 
   const isFinalTest = quiz?.isFinalTest || false
+
+  // Determine button text based on the quiz type and final test availability
+  const buttonText = (() => {
+    // For final tests, show "Finish Lesson"
+    if (isFinalTest) return "Finish Lesson"
+
+    // For the last section quiz when a final test is available,
+    // show a combined button text that indicates both completing the quiz
+    // and taking the final test in one action
+    if (isLastSection && hasFinalTest)
+      return "Complete Quiz and Take Final Test"
+
+    // For all other section quizzes, show standard text
+    return "Complete Quiz"
+  })()
+
+  // Handle button click with appropriate action
+  const handleButtonClick = () => {
+    console.log(`Button clicked: ${buttonText}`)
+    console.log(
+      `Quiz details: isFinalTest=${isFinalTest}, isLastSection=${isLastSection}, hasFinalTest=${hasFinalTest}`
+    )
+
+    // If this is for taking the final test after a section quiz, log extra information
+    if (isLastSection && hasFinalTest) {
+      console.log(
+        "Preparing for final test navigation - completing this section quiz first"
+      )
+    }
+
+    // Call the parent component's completion handler with the earned points
+    onComplete(earnedPoints)
+  }
 
   return (
     <Card className="backdrop-blur-md bg-white/10 border border-white/10 text-white">
@@ -52,10 +94,10 @@ const QuizResults = ({
           </div>
 
           <Button
-            onClick={() => onComplete(earnedPoints)}
+            onClick={handleButtonClick}
             className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0 mt-4"
           >
-            {isFinalTest ? "Finish Lesson" : "Complete Quiz"}
+            {buttonText}
           </Button>
         </div>
       </CardContent>

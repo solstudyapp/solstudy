@@ -72,13 +72,15 @@ const LessonNavigation = ({
       if (!isLastPageOfSection) return
 
       console.log(
-        `Checking if quiz exists for lesson ${lessonId}, section ${sectionId}`
+        `Checking if quiz exists for lesson ${lessonId}, section ${sectionId}, isLastPage=${isLastPage}`
       )
       setIsCheckingQuiz(true)
 
       try {
-        // If this is the last page of the last section, also check for a final test
+        // Always check for a final test if this is the last page
+        // This ensures we detect the final test even when there's a section quiz
         if (isLastPage) {
+          console.log(`Last page detected, checking for final test`)
           const finalTestQuery = supabase
             .from("quizzes")
             .select("id")
@@ -92,13 +94,14 @@ const LessonNavigation = ({
             console.error("Error checking for final test:", finalTestError)
             setHasFinalTest(false)
           } else {
-            setHasFinalTest(finalTestData && finalTestData.length > 0)
+            const hasFinalTestResult = finalTestData && finalTestData.length > 0
+            setHasFinalTest(hasFinalTestResult)
             console.log(
               `Final test ${
-                finalTestData && finalTestData.length > 0
-                  ? "found"
-                  : "not found"
-              } for lesson ${lessonId}`
+                hasFinalTestResult ? "found" : "not found"
+              } for lesson ${lessonId}. ID: ${
+                hasFinalTestResult ? finalTestData[0].id : "none"
+              }`
             )
           }
         }
@@ -357,6 +360,21 @@ const LessonNavigation = ({
     navigate(`/quiz/${lessonId}/${sectionId}`)
   }
 
+  // New function to handle final test navigation
+  const handleTakeFinalTest = async () => {
+    // Mark all sections as completed before taking the final test
+    try {
+      // First mark current section as completed
+      await completeSection(lessonId, sectionId)
+
+      console.log(`Navigating to final test for lesson ${lessonId}`)
+      // Navigate to the final test
+      navigate(`/quiz/${lessonId}/final`)
+    } catch (error) {
+      console.error("Error preparing for final test:", error)
+    }
+  }
+
   // Function to mark page as completed
   const markPageAsCompleted = async () => {
     if (!lessonId || !pageId) {
@@ -433,22 +451,18 @@ const LessonNavigation = ({
         {isLastPageOfSection ? (
           hasQuiz ? (
             quizCompleted ? (
-              // If quiz is completed, show a success button
-              <Button
-                className="bg-green-600/70 hover:bg-green-600/90 text-white border-0"
-                onClick={() => {
-                  toast({
-                    title: "Quiz already completed",
-                    description: "You can continue to the next section.",
-                  })
-                  if (!isLastPage) {
-                    handleNextSection()
-                  }
-                }}
-              >
-                <CheckCircle className="mr-2 h-4 w-4" />
-                Quiz Completed
-              </Button>
+              // If quiz is completed, always show the quiz completed button first
+              // Don't show the final test button here - it should only appear when there's no quiz
+              <div className="flex items-center gap-2">
+                {/* Button to retake the section quiz */}
+                <Button
+                  className="bg-blue-600/70 hover:bg-blue-600/90 text-white border-0"
+                  onClick={handleTakeQuiz}
+                >
+                  Retake Section Quiz
+                  <FileQuestion className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
             ) : (
               // If quiz is not completed, show the timer first, then take quiz button
               <div className="flex items-center gap-2">
@@ -507,6 +521,7 @@ const LessonNavigation = ({
               </div>
             )
           ) : isLastPage && hasFinalTest ? (
+            // Only show final test button if there's no quiz for this section
             // Final test button with timer
             <div className="flex items-center gap-2">
               {/* Timer display tooltip for last page */}
@@ -535,7 +550,7 @@ const LessonNavigation = ({
                 onClick={
                   !isPageComplete && timeRemaining > 0
                     ? undefined
-                    : handleNextSection
+                    : handleTakeFinalTest
                 }
                 className="bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90 text-white border-0"
                 disabled={
