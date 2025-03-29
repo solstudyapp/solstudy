@@ -6,12 +6,12 @@ import { DBQuiz } from "./LessonEditor"
 export const SectionEditor = ({
   sections,
   currentSectionIndex,
-  updateSection,
+  setSections,
   quizzes,
 }: {
   sections: Section[]
   currentSectionIndex: number
-  updateSection: (index: number, field: keyof Section, value: any) => void
+  setSections: (sections: Section[] | ((prev: Section[]) => Section[])) => void
   quizzes: DBQuiz[]
 }) => {
   if (sections.length === 0) return null
@@ -22,6 +22,14 @@ export const SectionEditor = ({
   const associatedQuiz = quizzes.find(
     (quiz) => quiz.id === currentSection.quizId
   )
+
+  const updateSection = (index: number, field: keyof Section, value: any) => {
+    setSections((prev) => {
+      const updated = [...prev]
+      updated[index] = { ...updated[index], [field]: value }
+      return updated
+    })
+  }
 
   return (
     <div className="space-y-4 mb-4">

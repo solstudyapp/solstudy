@@ -51,6 +51,7 @@ import { BasicDetails } from "./BasicDetails"
 import { PageEditor } from "./PageEditor"
 import { SectionsList } from "./SectionsList"
 import { PagesList } from "./PagesList"
+
 interface LessonEditorProps {
   lesson: LessonType
   onSave: (lesson: LessonType, sections: Section[]) => void
@@ -103,9 +104,6 @@ export const LessonEditor = ({
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0)
   const [currentPageIndex, setCurrentPageIndex] = useState(0)
   const [selectedIconName, setSelectedIconName] = useState<string>("")
-  const [newCategory, setNewCategory] = useState<string>("")
-  const [showNewCategoryInput, setShowNewCategoryInput] =
-    useState<boolean>(false)
   const [sponsorId, setSponsorId] = useState<number | null>(
     lesson.sponsorId || null
   )
@@ -262,61 +260,6 @@ export const LessonEditor = ({
     }))
   }, [sections])
 
-  const handleInputChange = (field: keyof LessonType, value: any) => {
-    setEditedLesson((prev) => ({ ...prev, [field]: value }))
-  }
-
-  const handleIconChange = (iconName: string) => {
-    setSelectedIconName(iconName)
-
-    const selectedIcon = availableIcons.find((icon) => icon.name === iconName)
-
-    if (selectedIcon) {
-      handleInputChange("icon", selectedIcon.component)
-    }
-  }
-
-  const handleAddCategory = () => {
-    if (newCategory.trim() === "") return
-
-    const updatedCategories = [...categories]
-    if (!updatedCategories.includes(newCategory.trim())) {
-      updatedCategories.push(newCategory.trim())
-      setCategories(updatedCategories)
-    }
-
-    setEditedLesson((prev) => ({
-      ...prev,
-      category: newCategory.trim(),
-    }))
-    setNewCategory("")
-    setShowNewCategoryInput(false)
-  }
-
-  const handleSponsoredChange = (checked: boolean) => {
-    setEditedLesson((prev) => ({
-      ...prev,
-      is_sponsored: checked,
-      // If not sponsored, reset sponsor ID
-      sponsorId: checked ? prev.sponsorId : null,
-    }))
-  }
-
-  const handleSponsorChange = (selectedSponsorId: string) => {
-    const id = parseInt(selectedSponsorId)
-    setSponsorId(id)
-
-    // Get the selected sponsor's logo URL
-    const selectedSponsor = sponsors.find((sponsor) => sponsor.id === id)
-    const logoUrl = selectedSponsor ? selectedSponsor.logo_url : null
-
-    setEditedLesson((prev) => ({
-      ...prev,
-      sponsorId: id,
-      sponsorLogo: logoUrl,
-    }))
-  }
-
   const handleSaveLesson = async () => {
     // Save current page content before submitting
     saveCurrentPageContent()
@@ -368,80 +311,6 @@ export const LessonEditor = ({
     }
   }
 
-  const addSection = () => {
-    const newSection: Section = {
-      id: `section-${Date.now()}`,
-      title: `Section ${sections.length + 1}`,
-      pages: [
-        {
-          id: `page-${Date.now()}`,
-          title: "New Page",
-          content: "<h1>New Page</h1><p>Add your content here.</p>",
-        },
-      ],
-      quizId: null,
-    }
-
-    setSections((prev) => [...prev, newSection])
-  }
-
-  const updateSection = (index: number, field: keyof Section, value: any) => {
-    setSections((prev) => {
-      const updated = [...prev]
-      updated[index] = { ...updated[index], [field]: value }
-      return updated
-    })
-  }
-
-  const deleteSection = (index: number) => {
-    if (sections.length <= 1) {
-      return
-    }
-
-    setSections((prev) => prev.filter((_, i) => i !== index))
-
-    if (currentSectionIndex >= index && currentSectionIndex > 0) {
-      setCurrentSectionIndex((prev) => prev - 1)
-      setCurrentPageIndex(0)
-    }
-  }
-
-  const moveSection = (index: number, direction: "up" | "down") => {
-    if (
-      (direction === "up" && index === 0) ||
-      (direction === "down" && index === sections.length - 1)
-    ) {
-      return
-    }
-
-    const newIndex = direction === "up" ? index - 1 : index + 1
-
-    setSections((prev) => {
-      const updated = [...prev]
-      ;[updated[index], updated[newIndex]] = [updated[newIndex], updated[index]]
-      return updated
-    })
-
-    setCurrentSectionIndex(newIndex)
-  }
-
-  const addPage = (sectionIndex: number) => {
-    // Use the saveCurrentPageContent function
-    saveCurrentPageContent()
-
-    setSections((prev) => {
-      const updated = [...prev]
-      updated[sectionIndex].pages.push({
-        id: `page-${Date.now()}`,
-        title: `New Page ${updated[sectionIndex].pages.length + 1}`,
-        content: "<h1>New Page</h1><p>Add your content here.</p>",
-      })
-      return updated
-    })
-
-    setCurrentPageIndex(sections[sectionIndex].pages.length)
-  }
-
   const updatePage = (
     sectionIndex: number,
     pageIndex: number,
@@ -456,50 +325,6 @@ export const LessonEditor = ({
       }
       return updated
     })
-  }
-
-  const deletePage = (sectionIndex: number, pageIndex: number) => {
-    if (sections[sectionIndex].pages.length <= 1) {
-      return
-    }
-
-    setSections((prev) => {
-      const updated = [...prev]
-      updated[sectionIndex].pages = updated[sectionIndex].pages.filter(
-        (_, i) => i !== pageIndex
-      )
-      return updated
-    })
-
-    if (currentPageIndex >= pageIndex && currentPageIndex > 0) {
-      setCurrentPageIndex((prev) => prev - 1)
-    }
-  }
-
-  const movePage = (
-    sectionIndex: number,
-    pageIndex: number,
-    direction: "up" | "down"
-  ) => {
-    if (
-      (direction === "up" && pageIndex === 0) ||
-      (direction === "down" &&
-        pageIndex === sections[sectionIndex].pages.length - 1)
-    ) {
-      return
-    }
-
-    const newIndex = direction === "up" ? pageIndex - 1 : pageIndex + 1
-
-    setSections((prev) => {
-      const updated = [...prev]
-      const pages = [...updated[sectionIndex].pages]
-      ;[pages[pageIndex], pages[newIndex]] = [pages[newIndex], pages[pageIndex]]
-      updated[sectionIndex].pages = pages
-      return updated
-    })
-
-    setCurrentPageIndex(newIndex)
   }
 
   // Function to save the current page content before switching
@@ -542,20 +367,11 @@ export const LessonEditor = ({
         <TabsContent value="details" className="pt-4 space-y-4">
           <BasicDetails
             editedLesson={editedLesson}
-            handleInputChange={handleInputChange}
-            showNewCategoryInput={showNewCategoryInput}
-            setNewCategory={setNewCategory}
-            handleAddCategory={handleAddCategory}
-            categories={categories}
+            setEditedLesson={setEditedLesson}
             availableIcons={availableIcons}
-            selectedIconName={selectedIconName}
-            handleIconChange={handleIconChange}
-            handleSponsoredChange={handleSponsoredChange}
-            handleSponsorChange={handleSponsorChange}
             sponsors={sponsors}
-            sponsorId={sponsorId}
-            setShowNewCategoryInput={setShowNewCategoryInput}
-            newCategory={newCategory}
+            categories={categories}
+            setCategories={setCategories}
           />
         </TabsContent>
 
@@ -565,9 +381,7 @@ export const LessonEditor = ({
               <SectionsList
                 sections={sections}
                 currentSectionIndex={currentSectionIndex}
-                addSection={addSection}
-                moveSection={moveSection}
-                deleteSection={deleteSection}
+                setSections={setSections}
                 saveCurrentPageContent={saveCurrentPageContent}
                 setCurrentSectionIndex={setCurrentSectionIndex}
                 setCurrentPageIndex={setCurrentPageIndex}
@@ -575,12 +389,10 @@ export const LessonEditor = ({
               <PagesList
                 sections={sections}
                 currentSectionIndex={currentSectionIndex}
-                addPage={addPage}
-                movePage={movePage}
-                deletePage={deletePage}
+                currentPageIndex={currentPageIndex}
+                setSections={setSections}
                 saveCurrentPageContent={saveCurrentPageContent}
                 setCurrentPageIndex={setCurrentPageIndex}
-                currentPageIndex={currentPageIndex}
               />
             </div>
 
@@ -588,14 +400,14 @@ export const LessonEditor = ({
               <SectionEditor
                 sections={sections}
                 currentSectionIndex={currentSectionIndex}
-                updateSection={updateSection}
+                setSections={setSections}
                 quizzes={quizzes}
               />
               <PageEditor
                 sections={sections}
                 currentSectionIndex={currentSectionIndex}
                 currentPageIndex={currentPageIndex}
-                updatePage={updatePage}
+                setSections={setSections}
               />
             </div>
           </div>

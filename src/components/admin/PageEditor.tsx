@@ -1,4 +1,4 @@
-import { Section } from "@/types/lesson"
+import { Section, Page } from "@/types/lesson"
 import { RichTextEditor } from "./RichTextEditor"
 import { Input } from "../ui/input"
 
@@ -6,17 +6,12 @@ export const PageEditor = ({
   sections,
   currentSectionIndex,
   currentPageIndex,
-  updatePage,
+  setSections,
 }: {
   sections: Section[]
   currentSectionIndex: number
   currentPageIndex: number
-  updatePage: (
-    sectionIndex: number,
-    pageIndex: number,
-    field: string,
-    value: any
-  ) => void
+  setSections: (sections: Section[] | ((prev: Section[]) => Section[])) => void
 }) => {
   if (
     sections.length === 0 ||
@@ -26,6 +21,22 @@ export const PageEditor = ({
   }
 
   const currentPage = sections[currentSectionIndex].pages[currentPageIndex]
+
+  const updatePage = (
+    sectionIndex: number,
+    pageIndex: number,
+    field: keyof Page,
+    value: any
+  ) => {
+    setSections((prev) => {
+      const updated = [...prev]
+      updated[sectionIndex].pages[pageIndex] = {
+        ...updated[sectionIndex].pages[pageIndex],
+        [field]: value,
+      }
+      return updated
+    })
+  }
 
   return (
     <div className="space-y-4">

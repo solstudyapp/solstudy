@@ -6,23 +6,69 @@ import { Section } from "@/types/lesson"
 interface SectionsListProps {
   sections: Section[]
   currentSectionIndex: number
-  addSection: () => void
-  moveSection: (index: number, direction: "up" | "down") => void
-  deleteSection: (index: number) => void
-  saveCurrentPageContent: () => void
+  setSections: (sections: Section[] | ((prev: Section[]) => Section[])) => void
   setCurrentSectionIndex: (index: number) => void
   setCurrentPageIndex: (index: number) => void
+  saveCurrentPageContent: () => void
 }
+
 export const SectionsList = ({
   sections,
   currentSectionIndex,
-  addSection,
-  moveSection,
-  deleteSection,
+  setSections,
   saveCurrentPageContent,
   setCurrentSectionIndex,
   setCurrentPageIndex,
 }: SectionsListProps) => {
+  const addSection = () => {
+    const newSection: Section = {
+      id: `section-${Date.now()}`,
+      title: `Section ${sections.length + 1}`,
+      pages: [
+        {
+          id: `page-${Date.now()}`,
+          title: "New Page",
+          content: "<h1>New Page</h1><p>Add your content here.</p>",
+        },
+      ],
+      quizId: null,
+    }
+
+    setSections((prev) => [...prev, newSection])
+  }
+
+  const moveSection = (index: number, direction: "up" | "down") => {
+    if (
+      (direction === "up" && index === 0) ||
+      (direction === "down" && index === sections.length - 1)
+    ) {
+      return
+    }
+
+    const newIndex = direction === "up" ? index - 1 : index + 1
+
+    setSections((prev) => {
+      const updated = [...prev]
+      ;[updated[index], updated[newIndex]] = [updated[newIndex], updated[index]]
+      return updated
+    })
+
+    setCurrentSectionIndex(newIndex)
+  }
+
+  const deleteSection = (index: number) => {
+    if (sections.length <= 1) {
+      return
+    }
+
+    setSections((prev) => prev.filter((_, i) => i !== index))
+
+    if (currentSectionIndex >= index && currentSectionIndex > 0) {
+      setCurrentSectionIndex(currentSectionIndex - 1)
+      setCurrentPageIndex(0)
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">

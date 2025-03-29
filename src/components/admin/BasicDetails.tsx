@@ -12,40 +12,111 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Plus, X, Sparkles, Award, AlertCircle } from "lucide-react"
 import { LessonType } from "@/types/lesson"
+import { useEffect, useState } from "react"
+
+interface Sponsor {
+  id: number
+  name: string
+  logo_url: string
+}
+
+interface IconOption {
+  name: string
+  component: React.ReactNode
+}
+
+interface BasicDetailsProps {
+  editedLesson: LessonType
+  setEditedLesson: (lesson: LessonType) => void
+  availableIcons: IconOption[]
+  sponsors: Sponsor[]
+  categories: string[]
+  setCategories: (categories: string[]) => void
+}
 
 export const BasicDetails = ({
   editedLesson,
-  handleInputChange,
-  showNewCategoryInput,
-  setNewCategory,
-  handleAddCategory,
-  categories,
+  setEditedLesson,
   availableIcons,
-  selectedIconName,
-  handleIconChange,
-  handleSponsoredChange,
-  handleSponsorChange,
   sponsors,
-  sponsorId,
-  setShowNewCategoryInput,
-  newCategory,
-}: {
-  editedLesson: LessonType
-  handleInputChange: (field: string, value: any) => void
-  showNewCategoryInput: boolean
-  setNewCategory: (value: string) => void
-  handleAddCategory: () => void
-  categories: string[]
-  availableIcons: { name: string; component: React.ReactNode }[]
-  selectedIconName: string
-  handleIconChange: (value: string) => void
-  handleSponsoredChange: (value: boolean) => void
-  handleSponsorChange: (value: string) => void
-  sponsors: { id: number; name: string; logo_url: string }[]
-  sponsorId: number | null
-  setShowNewCategoryInput: (value: boolean) => void
-  newCategory: string
-}) => {
+  categories,
+  setCategories,
+}: BasicDetailsProps) => {
+  const [selectedIconName, setSelectedIconName] = useState<string>("")
+  const [newCategory, setNewCategory] = useState<string>("")
+  const [showNewCategoryInput, setShowNewCategoryInput] =
+    useState<boolean>(false)
+  const [sponsorId, setSponsorId] = useState<number | null>(
+    editedLesson.sponsorId || null
+  )
+
+  useEffect(() => {
+    const initialIconName = determineInitialIconName(editedLesson.icon)
+    setSelectedIconName(initialIconName)
+    setSponsorId(editedLesson.sponsorId || null)
+  }, [editedLesson.icon, editedLesson.sponsorId])
+
+  const determineInitialIconName = (iconElement: React.ReactNode): string => {
+    const iconString = String(iconElement)
+
+    for (const icon of availableIcons) {
+      if (iconString.includes(icon.name)) {
+        return icon.name
+      }
+    }
+
+    return "Database"
+  }
+
+  const handleInputChange = (field: keyof LessonType, value: any) => {
+    setEditedLesson({ ...editedLesson, [field]: value })
+  }
+
+  const handleIconChange = (iconName: string) => {
+    setSelectedIconName(iconName)
+
+    const selectedIcon = availableIcons.find((icon) => icon.name === iconName)
+
+    if (selectedIcon) {
+      handleInputChange("icon", selectedIcon.component)
+    }
+  }
+
+  const handleAddCategory = () => {
+    if (newCategory.trim() === "") return
+
+    const updatedCategories = [...categories]
+    if (!updatedCategories.includes(newCategory.trim())) {
+      updatedCategories.push(newCategory.trim())
+      setCategories(updatedCategories)
+    }
+
+    handleInputChange("category", newCategory.trim())
+    setNewCategory("")
+    setShowNewCategoryInput(false)
+  }
+
+  const handleSponsoredChange = (checked: boolean) => {
+    handleInputChange("is_sponsored", checked)
+
+    // If not sponsored, reset sponsor ID
+    if (!checked) {
+      handleInputChange("sponsorId", null)
+    }
+  }
+
+  const handleSponsorChange = (selectedSponsorId: string) => {
+    const id = parseInt(selectedSponsorId)
+    setSponsorId(id)
+
+    // Get the selected sponsor's logo URL
+    const selectedSponsor = sponsors.find((sponsor) => sponsor.id === id)
+    const logoUrl = selectedSponsor ? selectedSponsor.logo_url : null
+
+    handleInputChange("sponsorId", id)
+    handleInputChange("sponsorLogo", logoUrl)
+  }
+
   return (
     <div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -248,12 +319,14 @@ export const BasicDetails = ({
                   {sponsors.find((s) => s.id === sponsorId)?.logo_url ? (
                     <img
                       src={sponsors.find((s) => s.id === sponsorId)?.logo_url}
-                      alt="Sponsor Logo"
+                      alt={`${
+                        sponsors.find((s) => s.id === sponsorId)?.name
+                      } logo`}
                       className="h-12 object-contain mx-auto"
                     />
                   ) : (
-                    <div className="text-white/50 text-center">
-                      <AlertCircle size={16} className="inline-block mr-2" />
+                    <div className="text-center text-sm text-white/50 flex items-center justify-center">
+                      <AlertCircle size={16} className="mr-2" />
                       No logo available for this sponsor
                     </div>
                   )}
@@ -264,13 +337,16 @@ export const BasicDetails = ({
         </div>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <label className="text-sm font-medium">Description</label>
-        <Textarea
-          value={editedLesson.description}
-          onChange={(e) => handleInputChange("description", e.target.value)}
-          className="bg-white/10 border-white/20 text-white min-h-[100px]"
-        />
+      <div className="mt-4">
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium">Description</label>
+          <Textarea
+            value={editedLesson.description}
+            onChange={(e) => handleInputChange("description", e.target.value)}
+            rows={3}
+            className="bg-white/10 border-white/20 text-white"
+          />
+        </div>
       </div>
     </div>
   )

@@ -1,35 +1,104 @@
 import { Button } from "../ui/button"
 import { Plus, ChevronUp, ChevronDown, Trash, Edit } from "lucide-react"
-import { Section } from "@/types/lesson"
+import { Section, Page } from "@/types/lesson"
 
 interface PagesListProps {
   sections: Section[]
   currentSectionIndex: number
-  addPage: (sectionIndex: number) => void
-  movePage: (
-    sectionIndex: number,
-    pageIndex: number,
-    direction: "up" | "down"
-  ) => void
-  deletePage: (sectionIndex: number, pageIndex: number) => void
-  saveCurrentPageContent: () => void
-  setCurrentPageIndex: (index: number) => void
   currentPageIndex: number
+  setSections: (sections: Section[] | ((prev: Section[]) => Section[])) => void
+  setCurrentPageIndex: (index: number) => void
+  saveCurrentPageContent: () => void
 }
 
 export const PagesList = ({
   sections,
   currentSectionIndex,
-  addPage,
-  movePage,
-  deletePage,
+  currentPageIndex,
+  setSections,
   saveCurrentPageContent,
   setCurrentPageIndex,
-  currentPageIndex,
 }: PagesListProps) => {
   if (sections.length === 0) return null
 
   const currentSection = sections[currentSectionIndex]
+
+  const addPage = (sectionIndex: number) => {
+    // Use the saveCurrentPageContent function
+    saveCurrentPageContent()
+
+    setSections((prev) => {
+      const updated = [...prev]
+      updated[sectionIndex].pages.push({
+        id: `page-${Date.now()}`,
+        title: `New Page ${updated[sectionIndex].pages.length + 1}`,
+        content: "<h1>New Page</h1><p>Add your content here.</p>",
+      })
+      return updated
+    })
+
+    setCurrentPageIndex(sections[sectionIndex].pages.length)
+  }
+
+  const updatePage = (
+    sectionIndex: number,
+    pageIndex: number,
+    field: keyof Page,
+    value: any
+  ) => {
+    setSections((prev) => {
+      const updated = [...prev]
+      updated[sectionIndex].pages[pageIndex] = {
+        ...updated[sectionIndex].pages[pageIndex],
+        [field]: value,
+      }
+      return updated
+    })
+  }
+
+  const deletePage = (sectionIndex: number, pageIndex: number) => {
+    if (sections[sectionIndex].pages.length <= 1) {
+      return
+    }
+
+    setSections((prev) => {
+      const updated = [...prev]
+      updated[sectionIndex].pages = updated[sectionIndex].pages.filter(
+        (_, i) => i !== pageIndex
+      )
+      return updated
+    })
+
+    if (currentPageIndex >= pageIndex && currentPageIndex > 0) {
+      setCurrentPageIndex(currentPageIndex - 1)
+    }
+  }
+
+  const movePage = (
+    sectionIndex: number,
+    pageIndex: number,
+    direction: "up" | "down"
+  ) => {
+    if (
+      (direction === "up" && pageIndex === 0) ||
+      (direction === "down" &&
+        pageIndex === sections[sectionIndex].pages.length - 1)
+    ) {
+      return
+    }
+
+    const newIndex = direction === "up" ? pageIndex - 1 : pageIndex + 1
+
+    setSections((prev) => {
+      const updated = [...prev]
+      const pages = [...updated[sectionIndex].pages]
+      ;[pages[pageIndex], pages[newIndex]] = [pages[newIndex], pages[pageIndex]]
+      updated[sectionIndex].pages = pages
+      return updated
+    })
+
+    setCurrentPageIndex(newIndex)
+  }
 
   return (
     <div className="space-y-4 mt-6">
