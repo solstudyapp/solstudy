@@ -454,15 +454,7 @@ export const RichTextEditor = ({
     onUpdate: ({ editor }) => {
       const html = editor.getHTML()
       // Only update if content has actually changed and we're not already updating
-      if (html !== htmlContent && !isUpdatingRef.current) {
-        console.log(`[RichTextEditor] onUpdate triggered, content changed`)
-        console.log(
-          `[RichTextEditor] New content starts with: "${html.substring(
-            0,
-            50
-          )}..."`
-        )
-        setHtmlContent(html)
+      if (html !== htmlContent) {
         onChange(html)
       }
     },
@@ -475,45 +467,47 @@ export const RichTextEditor = ({
 
   // Update editor content when initialContent changes, but only if it's different
   useEffect(() => {
-    console.log(`[RichTextEditor] useEffect for initialContent triggered`)
-    console.log(
-      `[RichTextEditor] initialContent starts with: "${initialContent.substring(
-        0,
-        50
-      )}..."`
-    )
-
     if (editor && !editor.isDestroyed) {
       const editorContent = editor.getHTML()
-      console.log(
-        `[RichTextEditor] Current editor content starts with: "${editorContent.substring(
-          0,
-          50
-        )}..."`
-      )
 
-      if (initialContent !== editorContent) {
-        console.log(`[RichTextEditor] Content differs, updating editor...`)
+      // Check if the content needs updating - add a slight tolerance for whitespace/formatting differences
+      // by comparing normalized versions to avoid unnecessary updates
+      const normalizedInitial = initialContent.replace(/\s+/g, " ").trim()
+      const normalizedEditor = editorContent.replace(/\s+/g, " ").trim()
+
+      if (normalizedInitial !== normalizedEditor) {
+        // Set flag to prevent onUpdate from firing during programmatic changes
         isUpdatingRef.current = true
+
+        // Store selection before update
         const { from, to } = editor.state.selection
-        editor.commands.setContent(initialContent)
+
+        // Use transaction to batch the content update
+        editor.chain().focus().setContent(initialContent).run()
         setHtmlContent(initialContent)
 
-        // Wait for the next tick to restore selection
-        setTimeout(() => {
+        // Use requestAnimationFrame for smoother visual transitions
+        requestAnimationFrame(() => {
           try {
-            editor.commands.setTextSelection({ from, to })
+            if (!editor.isDestroyed) {
+              // Restore selection when possible
+              editor.commands.setTextSelection({ from, to })
+            }
           } catch (e) {
-            editor.commands.focus()
+            // Fallback focus
+            if (!editor.isDestroyed) {
+              editor.commands.focus()
+            }
           }
+
+          // Release update lock
           isUpdatingRef.current = false
-          console.log(`[RichTextEditor] Editor updated with new content`)
-        }, 0)
+        })
       } else {
-        console.log(`[RichTextEditor] Content is the same, no update needed`)
       }
     } else {
-      console.log(`[RichTextEditor] Editor not available yet or destroyed`)
+      // Initialize HTML content even if editor isn't ready
+      setHtmlContent(initialContent)
     }
   }, [editor, initialContent])
 

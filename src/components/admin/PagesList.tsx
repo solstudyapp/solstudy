@@ -87,39 +87,19 @@ export const PagesList = ({
       return
     }
 
-    console.log(
-      `[movePage] Start: Moving page from index ${pageIndex} ${direction}`
-    )
-
     // Save the current page content before moving
-    console.log("[movePage] Saving current page content...")
+
     saveCurrentPageContent()
 
     const newIndex = direction === "up" ? pageIndex - 1 : pageIndex + 1
-    console.log(`[movePage] Target index: ${newIndex}`)
 
     // Get page IDs to track the pages
     const movingPageId = sections[sectionIndex].pages[pageIndex].id
     const targetPageId = sections[sectionIndex].pages[newIndex].id
 
-    console.log(
-      `[movePage] Moving page ID: ${movingPageId} to position ${newIndex}`
-    )
-    console.log(
-      `[movePage] Target page ID: ${targetPageId} will move to position ${pageIndex}`
-    )
-
     setSections((prev) => {
       // Deep clone the entire sections array
       const updated = JSON.parse(JSON.stringify(prev))
-
-      // Log content before swap
-      console.log(
-        `[movePage] BEFORE swap - Page ${pageIndex} (ID: ${updated[sectionIndex].pages[pageIndex].id}): "${updated[sectionIndex].pages[pageIndex].title}"`
-      )
-      console.log(
-        `[movePage] BEFORE swap - Page ${newIndex} (ID: ${updated[sectionIndex].pages[newIndex].id}): "${updated[sectionIndex].pages[newIndex].title}"`
-      )
 
       // Store the pages we're swapping by making deep copies
       const movingPage = JSON.parse(
@@ -139,22 +119,13 @@ export const PagesList = ({
       updated[sectionIndex].pages[pageIndex] = targetPage
 
       // Log content after swap
-      console.log(
-        `[movePage] AFTER swap - Page ${pageIndex} (ID: ${updated[sectionIndex].pages[pageIndex].id}, position: ${targetPage.position}): "${updated[sectionIndex].pages[pageIndex].title}"`
-      )
-      console.log(
-        `[movePage] AFTER swap - Page ${newIndex} (ID: ${updated[sectionIndex].pages[newIndex].id}, position: ${movingPage.position}): "${updated[sectionIndex].pages[newIndex].title}"`
-      )
 
       return updated
     })
 
-    // Add a small delay before updating current page index to ensure editor unmounts/remounts
-    setTimeout(() => {
-      // Update the current page index to follow the moved page
-      setCurrentPageIndex(newIndex)
-      console.log(`[movePage] Updated current page index to ${newIndex}`)
-    }, 10)
+    // Update the current page index immediately to follow the moved page
+    // This reduces flickering by avoiding the delay between state updates
+    setCurrentPageIndex(newIndex)
   }
 
   return (

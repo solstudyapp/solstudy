@@ -202,10 +202,6 @@ async function savePages(
   pages: Page[]
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    console.log(
-      `[savePages] Saving ${pages.length} pages for section ID: ${sectionId}`
-    )
-
     // First, get existing pages to determine what to add, update, or delete
     const existingPages = (await db.fetchPagesBySectionId(
       sectionId
@@ -233,9 +229,6 @@ async function savePages(
 
     // Delete pages that are no longer present
     if (pagesToDelete.length > 0) {
-      console.log(
-        `[savePages] Deleting ${pagesToDelete.length} pages that are no longer present`
-      )
       for (const pageId of pagesToDelete) {
         await db.deletePage(pageId)
       }
@@ -266,11 +259,6 @@ async function savePages(
 
       // Ensure position is set explicitly based on array index
       const pageData = frontendToDbPage(page, sectionId, i)
-      console.log(
-        `[savePages] ${isNewPage ? "Creating" : "Updating"} page "${
-          page.title
-        }" at position ${i}`
-      )
 
       if (isNewPage) {
         // Insert new page
@@ -296,9 +284,6 @@ async function savePages(
       }
     }
 
-    console.log(
-      `[savePages] Successfully saved all pages for section ID: ${sectionId}`
-    )
     return { success: true }
   } catch (error) {
     console.error("Error in savePages:", error)

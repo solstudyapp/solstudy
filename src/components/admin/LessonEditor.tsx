@@ -1,13 +1,23 @@
-import { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useState, useEffect, useRef } from "react"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import {
   Save,
   X,
@@ -117,6 +127,9 @@ export const LessonEditor = ({
     "Development",
   ])
   const [quizzes, setQuizzes] = useState<DBQuiz[]>([])
+
+  // Ref to track last saved content to avoid unnecessary updates
+  const lastSavedContentRef = useRef<{ [pageId: string]: string }>({})
 
   useEffect(() => {
     const loadSections = async () => {
@@ -329,31 +342,18 @@ export const LessonEditor = ({
 
   // Function to save the current page content before switching
   const saveCurrentPageContent = () => {
-    console.log(
-      "[saveCurrentPageContent] START - Attempting to save current page"
-    )
-    console.log(
-      `[saveCurrentPageContent] Current section index: ${currentSectionIndex}, current page index: ${currentPageIndex}`
-    )
-
     if (
       sections.length === 0 ||
       !sections[currentSectionIndex] ||
       !sections[currentSectionIndex].pages ||
       !sections[currentSectionIndex].pages[currentPageIndex]
     ) {
-      console.log(
-        "[saveCurrentPageContent] ERROR - Invalid section or page indexes, aborting save"
-      )
       return // Don't attempt to save if there's no valid page
     }
 
     // Get the current content from the editor if available
     const currentEditor = document.querySelector(".ProseMirror")
     if (!currentEditor) {
-      console.log(
-        "[saveCurrentPageContent] ERROR - Editor not found, aborting save"
-      )
       return // Exit if editor not found
     }
 
@@ -363,25 +363,19 @@ export const LessonEditor = ({
     const currentPageId = currentPage.id
     const currentPageTitle = currentPage.title
 
-    console.log(
-      `[saveCurrentPageContent] Page "${currentPageTitle}" - ID: ${currentPageId}`
-    )
-    console.log(
-      `[saveCurrentPageContent] Current stored content starts with: "${currentContent.substring(
-        0,
-        50
-      )}..."`
-    )
-    console.log(
-      `[saveCurrentPageContent] New editor content starts with: "${newContent.substring(
-        0,
-        50
-      )}..."`
-    )
+    // Compare with last saved content to avoid duplicate saves
+    const lastSavedContent = lastSavedContentRef.current[currentPageId]
+    if (lastSavedContent === newContent) {
+      return
+    }
+    // Normalize content to avoid unnecessary updates due to minor formatting differences
+    const normalizedNewContent = newContent.replace(/\s+/g, " ").trim()
+    const normalizedCurrentContent = currentContent.replace(/\s+/g, " ").trim()
 
     // Only update if content has actually changed
-    if (newContent && newContent !== currentContent) {
-      console.log("[saveCurrentPageContent] Content has changed, updating...")
+    if (newContent && normalizedNewContent !== normalizedCurrentContent) {
+      // Store this content in our ref to avoid duplicate saves
+      lastSavedContentRef.current[currentPageId] = newContent
 
       setSections((prev) => {
         // Create deep copies to avoid reference issues
@@ -397,46 +391,23 @@ export const LessonEditor = ({
 
           if (pageIdx !== -1) {
             // Found the page by ID in this section
-            console.log(
-              `[saveCurrentPageContent] Found page with ID ${currentPageId} in section ${s}, at index ${pageIdx}`
-            )
-            console.log(
-              `[saveCurrentPageContent] BEFORE - content starts with: "${updated[
-                s
-              ].pages[pageIdx].content.substring(0, 50)}..."`
-            )
 
             // Update the page content
             updated[s].pages[pageIdx].content = newContent
 
-            console.log(
-              `[saveCurrentPageContent] AFTER - content updated to start with: "${updated[
-                s
-              ].pages[pageIdx].content.substring(0, 50)}..."`
-            )
             targetPageFound = true
             break
           }
         }
 
         if (!targetPageFound) {
-          console.log(
-            `[saveCurrentPageContent] ERROR - Page with ID ${currentPageId} not found in any section`
-          )
           return prev // Return unchanged state
         }
 
         return updated
       })
-
-      console.log("[saveCurrentPageContent] Update completed")
     } else {
-      console.log(
-        "[saveCurrentPageContent] No content change detected, skipping update"
-      )
     }
-
-    console.log("[saveCurrentPageContent] END")
   }
 
   return (

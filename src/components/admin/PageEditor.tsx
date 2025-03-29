@@ -24,37 +24,27 @@ export const PageEditor = ({
   // Store the current page info for reference
   const currentPage = sections[currentSectionIndex].pages[currentPageIndex]
   const currentPageId = currentPage.id
-  const editorKey = `editor-${currentPageId}-${Date.now()}`
+  // Use just the page ID for the key, removing the timestamp to reduce unmounting
+  const editorKey = `editor-${currentPageId}`
   const [editorMounted, setEditorMounted] = useState(false)
+  const [editorHeight, setEditorHeight] = useState<number | null>(null)
+  const editorContainerRef = useRef<HTMLDivElement>(null)
 
-  // Log when the page changes
+  // Track editor height and log page changes
   useEffect(() => {
-    console.log(
-      `[PageEditor] Page changed to "${currentPage.title}" (ID: ${currentPageId})`
-    )
-    console.log(
-      `[PageEditor] Current page at section ${currentSectionIndex}, index ${currentPageIndex}`
-    )
-
-    // Reset editor mounted state when page changes
-    setEditorMounted(false)
-
-    // Small delay to allow editor to unmount/remount
-    setTimeout(() => {
-      setEditorMounted(true)
-    }, 50)
+    // Measure current editor height if it exists
+    if (editorContainerRef.current) {
+      const currentHeight = editorContainerRef.current.offsetHeight
+      if (currentHeight > 350) {
+        // Only update if it's larger than our minimum
+        setEditorHeight(currentHeight)
+      }
+    }
   }, [currentPageId, currentSectionIndex, currentPageIndex, currentPage.title])
 
   // Find the page by ID rather than relying on indices
   const updatePageById = useCallback(
     (pageId: string, field: keyof Page, value: any) => {
-      console.log(`[PageEditor] updatePageById called for page ID: ${pageId}`)
-      console.log(
-        `[PageEditor] Field: ${String(field)}, value starts with: "${String(
-          value
-        ).substring(0, 50)}..."`
-      )
-
       setSections((prev) => {
         // First, find the section and page by ID
         for (let sectionIndex = 0; sectionIndex < prev.length; sectionIndex++) {
@@ -64,25 +54,11 @@ export const PageEditor = ({
 
           if (pageIndex !== -1) {
             // Found the page by ID
-            console.log(
-              `[PageEditor] Found page at section ${sectionIndex}, index ${pageIndex}`
-            )
 
             // Don't update if the value hasn't changed
             if (prev[sectionIndex].pages[pageIndex][field] === value) {
-              console.log(
-                `[PageEditor] No change detected in ${String(
-                  field
-                )}, skipping update`
-              )
               return prev
             }
-
-            console.log(
-              `[PageEditor] Updating ${String(field)} for page "${
-                prev[sectionIndex].pages[pageIndex].title
-              }"`
-            )
 
             // Create deep copies to avoid reference issues
             const updated = JSON.parse(JSON.stringify(prev))
@@ -91,16 +67,10 @@ export const PageEditor = ({
               [field]: value,
             }
 
-            console.log(
-              `[PageEditor] Update complete for page "${updated[sectionIndex].pages[pageIndex].title}"`
-            )
             return updated
           }
         }
 
-        console.log(
-          `[PageEditor] Page with ID ${pageId} not found, no update made`
-        )
         return prev
       })
     },
@@ -110,13 +80,6 @@ export const PageEditor = ({
   // Memoize the content change handler to prevent recreating it on each render
   const handleContentChange = useCallback(
     (content: string) => {
-      console.log(
-        `[PageEditor] handleContentChange: Content changed for page "${currentPage.title}" (ID: ${currentPageId})`
-      )
-      console.log(
-        `[PageEditor] New content starts with: "${content.substring(0, 50)}..."`
-      )
-
       // Use ID-based update to ensure the correct page is modified
       updatePageById(currentPageId, "content", content)
     },
@@ -138,14 +101,19 @@ export const PageEditor = ({
 
       <div className="flex flex-col gap-2 pt-4">
         <label className="text-sm font-medium">Content</label>
-        <div className="border border-white/20 rounded-md overflow-hidden">
-          {editorMounted && (
-            <RichTextEditor
-              key={editorKey}
-              initialContent={currentPage.content}
-              onChange={handleContentChange}
-            />
-          )}
+        {/* Apply minimum height to editor container to prevent layout shifts */}
+        <div
+          ref={editorContainerRef}
+          className="border border-white/20 rounded-md overflow-hidden"
+          style={{
+            minHeight: editorHeight ? `${editorHeight}px` : "350px",
+          }}
+        >
+          <RichTextEditor
+            key={editorKey}
+            initialContent={currentPage.content}
+            onChange={handleContentChange}
+          />
         </div>
       </div>
     </div>
