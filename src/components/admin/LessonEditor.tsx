@@ -336,12 +336,19 @@ export const LessonEditor = ({
       // Get the current content from the editor if available
       const currentEditor = document.querySelector(".ProseMirror")
       if (currentEditor && currentEditor.innerHTML) {
-        updatePage(
-          currentSectionIndex,
-          currentPageIndex,
-          "content",
-          currentEditor.innerHTML
-        )
+        const newContent = currentEditor.innerHTML
+        const currentContent =
+          sections[currentSectionIndex].pages[currentPageIndex].content
+
+        // Only update if content has changed
+        if (newContent !== currentContent) {
+          setSections((prev) => {
+            const updated = [...prev]
+            updated[currentSectionIndex].pages[currentPageIndex].content =
+              newContent
+            return updated
+          })
+        }
       }
     }
   }

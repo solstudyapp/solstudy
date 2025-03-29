@@ -1,6 +1,7 @@
 import { Section, Page } from "@/types/lesson"
 import { RichTextEditor } from "./RichTextEditor"
 import { Input } from "../ui/input"
+import { useCallback } from "react"
 
 export const PageEditor = ({
   sections,
@@ -22,21 +23,38 @@ export const PageEditor = ({
 
   const currentPage = sections[currentSectionIndex].pages[currentPageIndex]
 
-  const updatePage = (
-    sectionIndex: number,
-    pageIndex: number,
-    field: keyof Page,
-    value: any
-  ) => {
-    setSections((prev) => {
-      const updated = [...prev]
-      updated[sectionIndex].pages[pageIndex] = {
-        ...updated[sectionIndex].pages[pageIndex],
-        [field]: value,
-      }
-      return updated
-    })
-  }
+  // Memoize the updatePage function to prevent recreating it on each render
+  const updatePage = useCallback(
+    (
+      sectionIndex: number,
+      pageIndex: number,
+      field: keyof Page,
+      value: any
+    ) => {
+      setSections((prev) => {
+        // Don't update if the value hasn't changed
+        if (prev[sectionIndex].pages[pageIndex][field] === value) {
+          return prev
+        }
+
+        const updated = [...prev]
+        updated[sectionIndex].pages[pageIndex] = {
+          ...updated[sectionIndex].pages[pageIndex],
+          [field]: value,
+        }
+        return updated
+      })
+    },
+    [setSections]
+  )
+
+  // Memoize the content change handler to prevent recreating it on each render
+  const handleContentChange = useCallback(
+    (content: string) => {
+      updatePage(currentSectionIndex, currentPageIndex, "content", content)
+    },
+    [currentSectionIndex, currentPageIndex, updatePage]
+  )
 
   return (
     <div className="space-y-4">
@@ -61,14 +79,7 @@ export const PageEditor = ({
         <div className="border border-white/20 rounded-md overflow-hidden">
           <RichTextEditor
             initialContent={currentPage.content}
-            onChange={(content) =>
-              updatePage(
-                currentSectionIndex,
-                currentPageIndex,
-                "content",
-                content
-              )
-            }
+            onChange={handleContentChange}
           />
         </div>
       </div>

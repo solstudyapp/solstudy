@@ -451,6 +451,7 @@ export const RichTextEditor = ({
     ],
     content: initialContent,
     autofocus: true,
+    // Do not change code in onUpdate, which impacts an issue with using spacebar
     onUpdate: ({ editor }) => {
       const html = editor.getHTML()
       if (html !== htmlContent) {
@@ -467,8 +468,10 @@ export const RichTextEditor = ({
   // Update editor content when initialContent changes, but only if it's different
   useEffect(() => {
     if (editor && !editor.isDestroyed && initialContent !== editor.getHTML()) {
+      isUpdatingRef.current = true
       const { from, to } = editor.state.selection
       editor.commands.setContent(initialContent)
+      setHtmlContent(initialContent)
 
       // Wait for the next tick to restore selection
       setTimeout(() => {
@@ -477,6 +480,7 @@ export const RichTextEditor = ({
         } catch (e) {
           editor.commands.focus()
         }
+        isUpdatingRef.current = false
       }, 0)
     }
   }, [editor, initialContent])
