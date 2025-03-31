@@ -14,10 +14,10 @@ export function SocialAuthButtons({
     <>
       <div className="relative my-4">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-white/10"></div>
+          <div className="w-full border-t border-border"></div>
         </div>
         <div className="relative flex justify-center text-xs">
-          <span className="bg-black/60 px-2 text-white/50 backdrop-blur-md">
+          <span className="bg-background/60 px-2 text-muted-foreground backdrop-blur-md">
             or continue with
           </span>
         </div>
@@ -26,7 +26,7 @@ export function SocialAuthButtons({
       <div className="grid grid-cols-2 gap-4">
         <Button
           variant="outline"
-          className="border-white/10 text-white hover:bg-white/5 bg-white/5"
+          className="border-border text-foreground hover:bg-muted/5 bg-muted/5"
           onClick={() => onSocialAuth("Google")}
           disabled={loading}
         >

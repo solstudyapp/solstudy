@@ -28,9 +28,9 @@ const LessonContent = ({
 }: LessonContentProps) => {
   if (!currentPageData) {
     return (
-      <div className="col-span-3 bg-white/5 rounded-lg p-6">
+      <div className="col-span-3 bg-card/50 rounded-lg p-6 border border-border">
         <div className="text-center py-12">
-          <p className="text-white/70">Page content not available</p>
+          <p className="text-muted-foreground">Page content not available</p>
         </div>
       </div>
     )
@@ -44,12 +44,12 @@ const LessonContent = ({
     currentPage === currentSectionData.pages.length - 1
 
   return (
-    <div className="col-span-3 bg-white/5 rounded-lg p-6">
+    <div className="col-span-3 bg-card/50 rounded-lg p-6 border border-border">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-white mb-1">
+        <h2 className="text-2xl font-bold text-foreground mb-1">
           {currentPageData.title}
         </h2>
-        <p className="text-white/70 text-sm">
+        <p className="text-muted-foreground text-sm">
           Section {currentSection + 1} • Page {currentPage + 1}
         </p>
       </div>

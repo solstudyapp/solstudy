@@ -92,7 +92,6 @@ const AuthPage = ({ defaultTab = "signin" }: AuthPageProps) => {
 
     if (isSignUp) {
       // Pass the referral info if available
-
       const success = await handleSignUp(email, password, referrerInfo)
       if (success) {
         navigate("/email-confirmation")
@@ -113,38 +112,38 @@ const AuthPage = ({ defaultTab = "signin" }: AuthPageProps) => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="max-w-md w-full">
         <div className="mb-8 text-center">
           <Link to="/" className="inline-block">
             <h1 className="text-3xl font-bold text-gradient">SolStudy</h1>
           </Link>
-          <p className="text-white/70 mt-2">
+          <p className="text-muted-foreground mt-2">
             Learn, earn, and grow with crypto
           </p>
         </div>
 
         <Tabs defaultValue={defaultTab} className="w-full">
-          <TabsList className="grid grid-cols-2 w-full bg-white/5 backdrop-blur-md text-white border border-white/10">
+          <TabsList className="grid grid-cols-2 w-full bg-muted/10 backdrop-blur-md text-foreground border border-border">
             <TabsTrigger
               value="signin"
-              className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/70"
+              className="data-[state=active]:bg-muted/20 data-[state=active]:text-foreground text-muted-foreground"
             >
               Sign In
             </TabsTrigger>
             <TabsTrigger
               value="signup"
-              className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/70"
+              className="data-[state=active]:bg-muted/20 data-[state=active]:text-foreground text-muted-foreground"
             >
               Sign Up
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="signin">
-            <Card className="dark-glass border-white/10 text-white">
+            <Card className="border-border">
               <CardHeader>
                 <CardTitle>Sign In</CardTitle>
-                <CardDescription className="text-white/70">
+                <CardDescription>
                   Sign in to your SolStudy account to continue learning
                 </CardDescription>
               </CardHeader>
@@ -161,7 +160,7 @@ const AuthPage = ({ defaultTab = "signin" }: AuthPageProps) => {
                     placeholder="name@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="bg-white/5 border-white/10 text-white placeholder:text-white/50"
+                    className="bg-muted/5 border-border text-foreground placeholder:text-muted-foreground"
                     disabled={loading}
                   />
                 </div>
@@ -172,7 +171,7 @@ const AuthPage = ({ defaultTab = "signin" }: AuthPageProps) => {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="bg-white/5 border-white/10 text-white placeholder:text-white/50"
+                    className="bg-muted/5 border-border text-foreground placeholder:text-muted-foreground"
                     disabled={loading}
                   />
                 </div>
@@ -204,10 +203,10 @@ const AuthPage = ({ defaultTab = "signin" }: AuthPageProps) => {
           </TabsContent>
 
           <TabsContent value="signup">
-            <Card className="dark-glass border-white/10 text-white">
+            <Card className="border-border">
               <CardHeader>
                 <CardTitle>Sign Up</CardTitle>
-                <CardDescription className="text-white/70">
+                <CardDescription>
                   Create a SolStudy account to start learning
                 </CardDescription>
               </CardHeader>
@@ -224,7 +223,7 @@ const AuthPage = ({ defaultTab = "signin" }: AuthPageProps) => {
                     placeholder="name@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="bg-white/5 border-white/10"
+                    className="bg-muted/5 border-border text-foreground placeholder:text-muted-foreground"
                   />
                 </div>
                 <div className="space-y-2">
@@ -234,12 +233,12 @@ const AuthPage = ({ defaultTab = "signin" }: AuthPageProps) => {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="bg-white/5 border-white/10"
+                    className="bg-muted/5 border-border text-foreground placeholder:text-muted-foreground"
                   />
                 </div>
                 {referralCode && (
                   <div className="bg-[#14F195]/10 border border-[#14F195]/30 rounded-md p-3 text-sm">
-                    <p className="text-white flex items-center">
+                    <p className="text-foreground flex items-center">
                       <UserPlus className="h-4 w-4 mr-2 text-[#14F195]" />
                       <span>
                         <strong>Referral bonus:</strong> You've been referred!
@@ -249,7 +248,7 @@ const AuthPage = ({ defaultTab = "signin" }: AuthPageProps) => {
                   </div>
                 )}
                 <div className="bg-[#14F195]/10 border border-[#14F195]/30 rounded-md p-3 text-sm">
-                  <p className="text-white">
+                  <p className="text-foreground">
                     <strong>Bonus:</strong> Get 100 points just for signing up!
                   </p>
                 </div>
@@ -277,7 +276,7 @@ const AuthPage = ({ defaultTab = "signin" }: AuthPageProps) => {
                   />
                 )}
               </CardContent>
-              <CardFooter className="text-white/70 text-sm text-center">
+              <CardFooter className="text-muted-foreground text-sm text-center">
                 By signing up, you agree to our Terms of Service and Privacy
                 Policy
               </CardFooter>

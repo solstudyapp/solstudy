@@ -4,6 +4,49 @@
 
 @layer base {
   :root {
+    --background: 0 0% 100%;
+      --foreground: 222.2 84% 4.9%;
+    
+      --card: 0 0% 100%;
+      --card-foreground: 222.2 84% 4.9%;
+    
+      --popover: 0 0% 100%;
+      --popover-foreground: 222.2 84% 4.9%;
+    
+      --primary: 272 75% 60%;
+      --primary-foreground: 0 0% 100%;
+    
+      --secondary: 150 75% 60%;
+      --secondary-foreground: 222.2 47.4% 11.2%;
+    
+      --muted: 210 40% 96.1%;
+      --muted-foreground: 215.4 16.3% 46.9%;
+    
+      --accent: 272 75% 60%;
+      --accent-foreground: 222.2 47.4% 11.2%;
+    
+      --destructive: 0 84.2% 60.2%;
+      --destructive-foreground: 210 40% 98%;
+    
+      --border: 214.3 31.8% 91.4%;
+      --input: 214.3 31.8% 91.4%;
+      --ring: 272 75% 60%;
+    
+      --radius: 0.5rem;
+    
+      --sidebar-background: 0 0% 100%;
+      --sidebar-foreground: 222.2 84% 4.9%;
+      --sidebar-primary: 272 75% 60%;
+      --sidebar-primary-foreground: 0 0% 100%;
+      --sidebar-accent: 210 40% 96.1%;
+      --sidebar-accent-foreground: 222.2 47.4% 11.2%;
+      --sidebar-border: 214.3 31.8% 91.4%;
+      --sidebar-ring: 272 75% 60%;
+    
+      --link-color: #0EA5E9;
+    }
+    
+    .dark {
     --background: 0 0% 0%;
     --foreground: 210 40% 98%;
 
@@ -32,8 +75,6 @@
     --input: 0 0% 15%;
     --ring: 272 75% 60%;
 
-    --radius: 0.5rem;
-
     --sidebar-background: 0 0% 5%;
     --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 272 75% 60%;
@@ -42,8 +83,6 @@
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 0 0% 15%;
     --sidebar-ring: 272 75% 60%;
-    
-    --link-color: #0EA5E9;
   }
 }
 
@@ -65,7 +104,7 @@
 
 @layer utilities {
   .glass-card {
-    @apply backdrop-blur-md bg-white/5 border border-white/10 shadow-lg;
+    @apply backdrop-blur-md bg-white/5 border border-white/10 shadow-lg dark:bg-white/5 dark:border-white/10;
   }
   
   .text-gradient {
@@ -77,19 +116,19 @@
   }
   
   .dark-glass {
-    @apply backdrop-blur-md bg-black/40 border border-white/10;
+    @apply backdrop-blur-md bg-black/40 border border-white/10 dark:bg-black/40 dark:border-white/10;
   }
   
   .admin-card {
-    @apply backdrop-blur-md bg-black/30 border-white/10 text-white;
+    @apply backdrop-blur-md bg-black/30 border-white/10 text-white dark:bg-black/30 dark:border-white/10 dark:text-white;
   }
   
   .admin-table-row {
-    @apply hover:bg-white/5 border-white/10;
+    @apply hover:bg-white/5 border-white/10 dark:hover:bg-white/5 dark:border-white/10;
   }
   
   .admin-table-header {
-    @apply bg-black/20;
+    @apply bg-black/20 dark:bg-black/20;
   }
 }
 

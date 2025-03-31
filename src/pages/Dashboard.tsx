@@ -192,32 +192,34 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-[#14F195] mx-auto mb-4" />
-          <p className="text-white text-lg">Loading your dashboard...</p>
+          <p className="text-foreground text-lg">Loading your dashboard...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-white mb-6">Your Dashboard</h1>
+        <h1 className="text-3xl font-bold text-foreground mb-6">
+          Your Dashboard
+        </h1>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="mb-8 bg-white/10 border-b border-white/10 w-full justify-start rounded-lg p-1">
+          <TabsList className="mb-8 bg-muted/10 border-b border-border w-full justify-start rounded-lg p-1">
             <TabsTrigger
               value="overview"
-              className="rounded-md data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/70"
+              className="rounded-md data-[state=active]:bg-muted/20 data-[state=active]:text-foreground text-muted-foreground"
             >
               <TrendingUp className="mr-2 h-4 w-4" />
               Overview
             </TabsTrigger>
             <TabsTrigger
               value="referrals"
-              className="rounded-md data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/70"
+              className="rounded-md data-[state=active]:bg-muted/20 data-[state=active]:text-foreground text-muted-foreground"
             >
               <Users className="mr-2 h-4 w-4" />
               Referrals
@@ -226,7 +228,7 @@ const Dashboard = () => {
 
           <TabsContent value="overview" className="mt-0">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <Card className="glass-card text-white col-span-1">
+              <Card className="border-border">
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Trophy className="mr-2 h-5 w-5 text-[#14F195]" />
@@ -234,14 +236,16 @@ const Dashboard = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-4xl font-bold">{userPoints}</div>
-                  <p className="text-white/70 mt-2">
+                  <div className="text-4xl font-bold text-foreground">
+                    {userPoints}
+                  </div>
+                  <p className="text-muted-foreground mt-2">
                     Keep learning to earn more!
                   </p>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="mt-4 border-white/20 text-white hover:bg-white/10"
+                    className="mt-4 border-border text-foreground hover:bg-muted/10"
                     asChild
                   >
                     <Link to="/quiz-progress">
@@ -252,7 +256,7 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card className="glass-card text-white col-span-1 md:col-span-2">
+              <Card className="border-border md:col-span-2">
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <LineChart className="mr-2 h-5 w-5 text-[#14F195]" />
@@ -268,15 +272,18 @@ const Dashboard = () => {
                       >
                         <CartesianGrid
                           strokeDasharray="3 3"
-                          stroke="#ffffff20"
+                          stroke="var(--border)"
                         />
-                        <XAxis dataKey="date" stroke="#ffffff80" />
-                        <YAxis stroke="#ffffff80" />
+                        <XAxis
+                          dataKey="date"
+                          stroke="var(--muted-foreground)"
+                        />
+                        <YAxis stroke="var(--muted-foreground)" />
                         <Tooltip
                           contentStyle={{
-                            backgroundColor: "#1A1F2C",
-                            borderColor: "#ffffff30",
-                            color: "white",
+                            backgroundColor: "var(--background)",
+                            borderColor: "var(--border)",
+                            color: "var(--foreground)",
                           }}
                         />
                         <Legend />
@@ -314,15 +321,13 @@ const Dashboard = () => {
               </Card>
             </div>
 
-            <Card className="glass-card text-white mb-8">
+            <Card className="border-border mb-8">
               <CardHeader>
                 <CardTitle className="flex items-center text-lg sm:text-xl">
                   <BookOpen className="mr-2 h-5 w-5 text-[#14F195] flex-shrink-0" />
                   <span className="flex-wrap">Courses In Progress</span>
                 </CardTitle>
-                <CardDescription className="text-white/70">
-                  Continue where you left off
-                </CardDescription>
+                <CardDescription>Continue where you left off</CardDescription>
               </CardHeader>
               <CardContent>
                 {inProgressLessons.length > 0 ? (
@@ -330,30 +335,30 @@ const Dashboard = () => {
                     {inProgressLessons.map((lesson: any) => (
                       <div
                         key={lesson.id || lesson.lessonId}
-                        className="bg-white/10 rounded-lg p-4"
+                        className="bg-muted/10 rounded-lg p-4"
                       >
                         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                           <div
                             className={`p-3 rounded-lg mb-3 sm:mb-0 ${
                               lesson.difficulty === "beginner"
-                                ? "bg-green-500/30 text-white"
+                                ? "bg-green-500/30 text-foreground"
                                 : lesson.difficulty === "intermediate"
-                                ? "bg-blue-500/30 text-white"
-                                : "bg-orange-500/30 text-white"
+                                ? "bg-blue-500/30 text-foreground"
+                                : "bg-orange-500/30 text-foreground"
                             }`}
                           >
                             {getLessonIcon(lesson.id || lesson.lessonId)}
                           </div>
                           <div className="flex-1 w-full">
-                            <h3 className="font-medium text-lg">
+                            <h3 className="font-medium text-lg text-foreground">
                               {lesson.title}
                             </h3>
                             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-1">
-                              <span className="text-sm text-white/70 mb-1 sm:mb-0">
+                              <span className="text-sm text-muted-foreground mb-1 sm:mb-0">
                                 {lesson.progress}% Complete
                               </span>
                               {lesson.lastActivity && (
-                                <span className="text-xs text-white/50 mt-1 sm:mt-0">
+                                <span className="text-xs text-muted-foreground mt-1 sm:mt-0">
                                   Last activity:{" "}
                                   {new Date(
                                     lesson.lastActivity
@@ -363,7 +368,7 @@ const Dashboard = () => {
                             </div>
                             <Progress
                               value={lesson.progress}
-                              className="h-2 mt-2 mb-3 bg-white/20"
+                              className="h-2 mt-2 mb-3 bg-muted/20"
                             />
                           </div>
                           <Button
@@ -384,8 +389,10 @@ const Dashboard = () => {
                   </div>
                 ) : (
                   <div className="text-center py-6">
-                    <GraduationCap className="h-12 w-12 mx-auto text-white/30 mb-3" />
-                    <p className="mb-4">You haven't started any courses yet</p>
+                    <GraduationCap className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+                    <p className="mb-4 text-foreground">
+                      You haven't started any courses yet
+                    </p>
                     <Button variant="gradient" asChild>
                       <Link to="/">Browse Courses</Link>
                     </Button>
@@ -394,15 +401,13 @@ const Dashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="glass-card text-white mb-8">
+            <Card className="border-border mb-8">
               <CardHeader>
                 <CardTitle className="flex items-center text-lg sm:text-xl">
                   <Award className="mr-2 h-5 w-5 text-[#14F195] flex-shrink-0" />
                   <span className="flex-wrap">Completed Courses</span>
                 </CardTitle>
-                <CardDescription className="text-white/70">
-                  Your learning achievements
-                </CardDescription>
+                <CardDescription>Your learning achievements</CardDescription>
               </CardHeader>
               <CardContent>
                 {completedLessons.length > 0 ? (
@@ -410,25 +415,25 @@ const Dashboard = () => {
                     {completedLessons.map((lesson: any) => (
                       <div
                         key={lesson.id || lesson.lessonId}
-                        className="bg-white/10 rounded-lg p-4"
+                        className="bg-muted/10 rounded-lg p-4"
                       >
                         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                           <div
                             className={`p-3 rounded-lg mb-3 sm:mb-0 ${
                               lesson.difficulty === "beginner"
-                                ? "bg-green-500/30 text-white"
+                                ? "bg-green-500/30 text-foreground"
                                 : lesson.difficulty === "intermediate"
-                                ? "bg-blue-500/30 text-white"
-                                : "bg-orange-500/30 text-white"
+                                ? "bg-blue-500/30 text-foreground"
+                                : "bg-orange-500/30 text-foreground"
                             }`}
                           >
                             {getLessonIcon(lesson.id || lesson.lessonId)}
                           </div>
                           <div className="flex-1">
-                            <h3 className="font-medium text-lg">
+                            <h3 className="font-medium text-lg text-foreground">
                               {lesson.title}
                             </h3>
-                            <p className="text-sm text-white/70">
+                            <p className="text-sm text-muted-foreground">
                               Completed on {lesson.completedDate}
                             </p>
                           </div>
@@ -439,7 +444,7 @@ const Dashboard = () => {
                             <Button
                               size="sm"
                               variant="outline"
-                              className="mt-2 border-white/20 text-white hover:bg-white/10 w-full sm:w-auto"
+                              className="mt-2 border-border text-foreground hover:bg-muted/10 w-full sm:w-auto"
                               asChild
                             >
                               <Link
@@ -455,7 +460,7 @@ const Dashboard = () => {
                   </div>
                 ) : (
                   <div className="text-center py-6">
-                    <p className="text-white/70 mb-4">
+                    <p className="text-muted-foreground mb-4">
                       Complete your first course to see it here!
                     </p>
                     <Button variant="gradient" asChild>
@@ -469,7 +474,7 @@ const Dashboard = () => {
 
           <TabsContent value="referrals" className="mt-0">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <Card className="glass-card text-white col-span-1">
+              <Card className="border-border col-span-1">
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Share2 className="mr-2 h-5 w-5 text-[#14F195]" />
@@ -477,10 +482,10 @@ const Dashboard = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-4xl font-bold">
+                  <div className="text-4xl font-bold text-foreground">
                     {referrals.filter((r) => r.status === "completed").length}
                   </div>
-                  <p className="text-white/70 mt-2">
+                  <p className="text-muted-foreground mt-2">
                     Each referral earns you 100 points!
                   </p>
                 </CardContent>
@@ -491,7 +496,7 @@ const Dashboard = () => {
               </div>
             </div>
 
-            <Card className="glass-card text-white">
+            <Card className="border-border">
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Users className="mr-2 h-5 w-5 text-[#14F195]" />
@@ -503,26 +508,27 @@ const Dashboard = () => {
                   <div className="overflow-x-auto">
                     <Table>
                       <TableHeader>
-                        <TableRow className="border-white/10">
-                          <TableHead className="text-white">Email</TableHead>
-                          <TableHead className="text-white">Date</TableHead>
-                          <TableHead className="text-white text-right">
+                        <TableRow className="border-border">
+                          <TableHead className="text-foreground">
+                            Email
+                          </TableHead>
+                          <TableHead className="text-foreground">
+                            Date
+                          </TableHead>
+                          <TableHead className="text-foreground text-right">
                             Points
                           </TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {referrals.map((referral) => (
-                          <TableRow
-                            key={referral.id}
-                            className="border-white/10"
-                          >
-                            <TableCell className="text-white">
+                          <TableRow key={referral.id} className="border-border">
+                            <TableCell className="text-foreground">
                               {referral.referee?.email || "Unknown"}
                             </TableCell>
-                            <TableCell className="text-white">
+                            <TableCell className="text-foreground">
                               <div className="flex items-center">
-                                <Calendar className="mr-2 h-4 w-4 text-white/70" />
+                                <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
                                 {new Date(
                                   referral.created_at
                                 ).toLocaleDateString()}
@@ -534,7 +540,9 @@ const Dashboard = () => {
                                   +{referral.points_earned}
                                 </span>
                               ) : (
-                                <span className="text-white/50">--</span>
+                                <span className="text-muted-foreground">
+                                  --
+                                </span>
                               )}
                             </TableCell>
                           </TableRow>
@@ -544,11 +552,11 @@ const Dashboard = () => {
                   </div>
                 ) : (
                   <div className="text-center py-10">
-                    <Users className="h-16 w-16 mx-auto text-white/20 mb-4" />
+                    <Users className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
                     <h3 className="text-xl font-medium mb-2">
                       No referrals yet
                     </h3>
-                    <p className="text-white/70 mb-6">
+                    <p className="text-muted-foreground mb-6">
                       Share your referral link with friends to start earning
                       points!
                     </p>

@@ -10,6 +10,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { supabase } from "@/lib/supabase"
+import { cn } from "@/lib/utils"
+import { useTheme } from "@/components/theme-provider"
 
 interface LessonSidebarProps {
   sections: Section[]
@@ -33,6 +35,7 @@ const LessonSidebar = ({
   const [completedPages, setCompletedPages] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
+  const { theme } = useTheme()
 
   // Fetch completed sections, quizzes, and pages from user_progress table
   useEffect(() => {
@@ -137,10 +140,10 @@ const LessonSidebar = ({
           value={`${currentSection}:${currentPage}`}
           onValueChange={handlePageSelect}
         >
-          <SelectTrigger className="w-full bg-white/10 border-white/20 text-white">
+          <SelectTrigger className="w-full bg-card border-border text-foreground">
             <SelectValue placeholder="Select a page" />
           </SelectTrigger>
-          <SelectContent className="bg-gray-900 border-white/20 text-white max-h-[300px] z-50">
+          <SelectContent className="bg-card border-border text-foreground max-h-[300px] z-50">
             {allPages.map((page) => (
               <SelectItem
                 key={page.id}
@@ -156,8 +159,10 @@ const LessonSidebar = ({
         </Select>
       </div>
 
-      <div className="backdrop-blur-md bg-white/10 border border-white/10 rounded-lg p-4 sticky top-24">
-        <h3 className="text-lg font-medium text-white mb-4">Course Contents</h3>
+      <div className="backdrop-blur-md bg-card/50 border border-border rounded-lg p-4 sticky top-24">
+        <h3 className="text-lg font-medium text-foreground mb-4">
+          Course Contents
+        </h3>
         <div className="space-y-4">
           {sections.map((section, sectionIndex) => {
             const completed = isSectionCompleted(section.id)
@@ -166,16 +171,26 @@ const LessonSidebar = ({
               <div key={section.id}>
                 <div className="flex items-center mb-2">
                   {completed ? (
-                    <CheckCircle className="h-4 w-4 text-[#14F195] mr-2" />
+                    <CheckCircle
+                      className={cn(
+                        "h-4 w-4 mr-2",
+                        theme === "dark" ? "text-[#14F195]" : "text-[#0E9F63]"
+                      )}
+                    />
                   ) : sectionIndex === currentSection ? (
-                    <BookOpen className="h-4 w-4 text-white mr-2" />
+                    <BookOpen className="h-4 w-4 text-foreground mr-2" />
                   ) : (
-                    <div className="h-4 w-4 rounded-full border border-white/40 mr-2"></div>
+                    <div className="h-4 w-4 rounded-full border border-border mr-2"></div>
                   )}
                   <span
-                    className={`font-medium ${
-                      completed ? "text-[#14F195]" : "text-white"
-                    }`}
+                    className={cn(
+                      "font-medium",
+                      completed
+                        ? theme === "dark"
+                          ? "text-[#14F195]"
+                          : "text-[#0E9F63]"
+                        : "text-foreground"
+                    )}
                   >
                     {section.title}
                   </span>
@@ -187,7 +202,7 @@ const LessonSidebar = ({
                     // 2. It's in a previous section
                     // 3. It's in the current section and before or at the current page
                     // 4. The page ID is in the completedPages array
-                    const pageIsCompleted = isPageCompleted(String(page.id - 1))
+                    const pageIsCompleted = isPageCompleted(String(page.id))
                     const isPageAccessible =
                       completed ||
                       sectionIndex < currentSection ||
@@ -198,16 +213,19 @@ const LessonSidebar = ({
                     return (
                       <button
                         key={page.id}
-                        className={`text-sm w-full text-left py-1 px-2 rounded flex items-center gap-2 ${
+                        className={cn(
+                          "text-sm w-full text-left py-1 px-2 rounded flex items-center gap-2",
                           sectionIndex === currentSection &&
-                          pageIndex === currentPage
-                            ? "bg-white/20 text-white"
+                            pageIndex === currentPage
+                            ? "bg-muted text-foreground"
                             : pageIsCompleted
-                            ? "text-[#14F195] hover:bg-white/10"
+                            ? theme === "dark"
+                              ? "text-[#14F195] hover:bg-muted/10"
+                              : "text-[#0E9F63] hover:bg-muted/10"
                             : isPageAccessible
-                            ? "text-white/70 hover:text-white hover:bg-white/10"
-                            : "text-white/50 cursor-not-allowed"
-                        }`}
+                            ? "text-muted-foreground hover:text-foreground hover:bg-muted/10"
+                            : "text-muted-foreground/50 cursor-not-allowed"
+                        )}
                         onClick={() => {
                           // Only allow navigating to accessible pages
                           if (isPageAccessible) {
@@ -218,9 +236,23 @@ const LessonSidebar = ({
                         disabled={!isPageAccessible}
                       >
                         {pageIsCompleted ? (
-                          <Check className="h-3 w-3 text-[#14F195]" />
+                          <Check
+                            className={cn(
+                              "h-3 w-3",
+                              theme === "dark"
+                                ? "text-[#14F195]"
+                                : "text-[#0E9F63]"
+                            )}
+                          />
                         ) : completed && sectionIndex < currentSection ? (
-                          <Check className="h-3 w-3 text-[#14F195]" />
+                          <Check
+                            className={cn(
+                              "h-3 w-3",
+                              theme === "dark"
+                                ? "text-[#14F195]"
+                                : "text-[#0E9F63]"
+                            )}
+                          />
                         ) : null}
                         <span>{page.title}</span>
                       </button>
@@ -230,13 +262,16 @@ const LessonSidebar = ({
                   {/* Quiz indicator */}
                   {section.quizId && (
                     <div
-                      className={`mt-2 text-sm rounded py-1 px-2 border border-dotted flex items-center gap-2 ${
+                      className={cn(
+                        "mt-2 text-sm rounded py-1 px-2 border border-dotted flex items-center gap-2",
                         completedQuizzes.includes(section.quizId)
-                          ? "border-[#14F195]/30 text-[#14F195]"
+                          ? theme === "dark"
+                            ? "border-[#14F195]/30 text-[#14F195]"
+                            : "border-[#0E9F63]/30 text-[#0E9F63]"
                           : completed
-                          ? "border-yellow-500/30 text-yellow-500 hover:bg-white/5 cursor-pointer"
-                          : "border-white/20 text-white/40"
-                      }`}
+                          ? "border-yellow-500/30 text-yellow-500 hover:bg-muted/10 cursor-pointer"
+                          : "border-border text-muted-foreground/40"
+                      )}
                       onClick={() => {
                         // Only navigate to quiz if section is completed
                         if (
@@ -260,7 +295,14 @@ const LessonSidebar = ({
                       }
                     >
                       {completedQuizzes.includes(section.quizId) ? (
-                        <CheckCircle className="h-3 w-3" />
+                        <CheckCircle
+                          className={cn(
+                            "h-3 w-3",
+                            theme === "dark"
+                              ? "text-[#14F195]"
+                              : "text-[#0E9F63]"
+                          )}
+                        />
                       ) : null}
                       <span>
                         Quiz: {section.title}

@@ -65,14 +65,14 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black p-6">
+    <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto">
         {/* Hero Section */}
-        <div className="relative mb-12 overflow-hidden rounded-xl p-4 text-white">
+        <div className="relative mb-12 overflow-hidden rounded-xl p-4">
           {/* Gradient border/outline for the hero card */}
           <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-[#9945FF] to-[#14F195] opacity-70"></div>
-          {/* Dark inner content background */}
-          <div className="absolute inset-[1px] rounded-xl bg-black/80 backdrop-blur-sm"></div>
+          {/* Content background */}
+          <div className="absolute inset-[1px] rounded-xl bg-background/80 backdrop-blur-sm"></div>
 
           <div className="relative z-10 flex flex-col items-center text-center mx-auto max-w-5xl px-2">
             <h1 className="text-4xl font-bold mb-4">
@@ -80,14 +80,14 @@ const Index = () => {
                 SolStudy
               </span>
             </h1>
-            <p className="text-xl mb-6">
+            <p className="text-xl mb-6 text-foreground">
               Learn about crypto from fundamentals to advanced trading
               strategies. With our course feedback component you play an
               important role helping evolve the material for future users. Earn
-              SOFLY rewards points for completing courses and referring others to do so.
-              Rewards points will be converted to tokens upon SocialFiLy TGE. We are
-              part of the growing SocialFiLy ecosystem and look forward to
-              having you in our community.
+              SOFLY rewards points for completing courses and referring others
+              to do so. Rewards points will be converted to tokens upon
+              SocialFiLy TGE. We are part of the growing SocialFiLy ecosystem
+              and look forward to having you in our community.
             </p>
             <Button
               variant="default"
@@ -106,17 +106,17 @@ const Index = () => {
         <div className="relative rounded-xl p-4 mb-8">
           {/* Gradient border/outline for the search section */}
           <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-[#9945FF] to-[#14F195] opacity-70"></div>
-          {/* Dark inner content background */}
-          <div className="absolute inset-[1px] rounded-xl bg-black/80 backdrop-blur-sm"></div>
+          {/* Content background */}
+          <div className="absolute inset-[1px] rounded-xl bg-background/80 backdrop-blur-sm"></div>
 
           <div className="relative z-10 flex flex-col md:flex-row gap-4 items-center justify-between">
             <div className="relative w-full md:w-1/3">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search courses..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/60 focus-visible:ring-white/30"
+                className="pl-10 bg-background/5 border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
               />
             </div>
             <FilterBar
@@ -131,7 +131,10 @@ const Index = () => {
         {/* Loading State */}
         {loading ? (
           <div className="flex justify-center items-center py-20">
-            <Loader2 className="h-10 w-10 animate-spin text-[#14F195]" />
+            <div className="text-center">
+              <Loader2 className="h-10 w-10 animate-spin text-[#14F195] mx-auto mb-4" />
+              <p className="text-foreground text-lg">Loading SolStudy...</p>
+            </div>
           </div>
         ) : (
           <>
@@ -146,10 +149,10 @@ const Index = () => {
               <div className="relative text-center rounded-xl p-12">
                 {/* Gradient border/outline */}
                 <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-[#9945FF] to-[#14F195] opacity-70"></div>
-                {/* Dark inner content background */}
-                <div className="absolute inset-[1px] rounded-xl bg-black/80 backdrop-blur-sm"></div>
+                {/* Content background */}
+                <div className="absolute inset-[1px] rounded-xl bg-background/80 backdrop-blur-sm"></div>
 
-                <div className="relative z-10 text-white">
+                <div className="relative z-10 text-foreground">
                   <h3 className="text-xl font-medium">No courses found</h3>
                   <p className="mt-2">Try adjusting your search or filters</p>
                 </div>

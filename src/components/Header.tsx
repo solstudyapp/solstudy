@@ -4,6 +4,7 @@ import { Menu, X, LogOut, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
 import { isUserAdmin } from "@/services/admin"
+import { ThemeToggle } from "./theme-toggle"
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -35,7 +36,7 @@ const Header = () => {
   }
 
   return (
-    <header className="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
+    <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -49,16 +50,16 @@ const Header = () => {
           <nav className="hidden md:flex space-x-4">
             <Link
               to="/"
-              className={`text-sm font-medium transition-colors hover:text-white ${
-                isActive("/") ? "text-white" : "text-white/70"
+              className={`text-sm font-medium transition-colors hover:text-foreground ${
+                isActive("/") ? "text-foreground" : "text-muted-foreground"
               }`}
             >
               Home
             </Link>
             <Link
               to="/about"
-              className={`text-sm font-medium transition-colors hover:text-white ${
-                isActive("/about") ? "text-white" : "text-white/70"
+              className={`text-sm font-medium transition-colors hover:text-foreground ${
+                isActive("/about") ? "text-foreground" : "text-muted-foreground"
               }`}
             >
               About
@@ -67,8 +68,10 @@ const Header = () => {
               <>
                 <Link
                   to="/dashboard"
-                  className={`text-sm font-medium transition-colors hover:text-white ${
-                    isActive("/dashboard") ? "text-white" : "text-white/70"
+                  className={`text-sm font-medium transition-colors hover:text-foreground ${
+                    isActive("/dashboard")
+                      ? "text-foreground"
+                      : "text-muted-foreground"
                   }`}
                 >
                   Dashboard
@@ -78,10 +81,10 @@ const Header = () => {
             {isAdmin && (
               <Link
                 to="/admin"
-                className={`text-sm font-medium transition-colors hover:text-white flex items-center ${
+                className={`text-sm font-medium transition-colors hover:text-foreground flex items-center ${
                   location.pathname.startsWith("/admin")
-                    ? "text-white"
-                    : "text-white/70"
+                    ? "text-foreground"
+                    : "text-muted-foreground"
                 }`}
               >
                 <Shield className="mr-1 h-3 w-3" />
@@ -92,10 +95,11 @@ const Header = () => {
 
           {/* Login/Register or Logout Button */}
           <div className="hidden md:flex items-center space-x-4">
+            <ThemeToggle />
             {user ? (
               <Button
                 variant="outline"
-                className="text-white bg-transparent border-white/20 hover:bg-white/10"
+                className="text-foreground bg-transparent border-border hover:bg-muted"
                 onClick={onLogout}
               >
                 <LogOut className="mr-2 h-4 w-4" />
@@ -104,7 +108,7 @@ const Header = () => {
             ) : (
               <Button
                 variant="outline"
-                className="text-white bg-transparent border-white/20 hover:bg-white/10"
+                className="text-foreground bg-transparent border-border hover:bg-muted"
                 asChild
               >
                 <Link to="/auth">Login / Register</Link>
@@ -118,7 +122,7 @@ const Header = () => {
               variant="ghost"
               size="icon"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-white"
+              className="text-foreground"
             >
               {mobileMenuOpen ? (
                 <X className="h-6 w-6" />
@@ -132,14 +136,14 @@ const Header = () => {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-black/95 backdrop-blur-md border-b border-white/10">
+        <div className="md:hidden bg-background/95 backdrop-blur-md border-b border-border">
           <div className="px-2 pt-2 pb-3 space-y-1">
             <Link
               to="/"
               className={`block px-3 py-2 rounded-md text-base font-medium ${
                 isActive("/")
-                  ? "bg-white/10 text-white"
-                  : "text-white/70 hover:bg-white/5 hover:text-white"
+                  ? "bg-muted text-foreground"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
               }`}
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -149,8 +153,8 @@ const Header = () => {
               to="/about"
               className={`block px-3 py-2 rounded-md text-base font-medium ${
                 isActive("/about")
-                  ? "bg-white/10 text-white"
-                  : "text-white/70 hover:bg-white/5 hover:text-white"
+                  ? "bg-muted text-foreground"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
               }`}
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -162,24 +166,13 @@ const Header = () => {
                   to="/dashboard"
                   className={`block px-3 py-2 rounded-md text-base font-medium ${
                     isActive("/dashboard")
-                      ? "bg-white/10 text-white"
-                      : "text-white/70 hover:bg-white/5 hover:text-white"
+                      ? "bg-muted text-foreground"
+                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                   }`}
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Dashboard
                 </Link>
-                {/* <Link
-                  to="/quiz-progress"
-                  className={`block px-3 py-2 rounded-md text-base font-medium ${
-                    isActive("/quiz-progress")
-                      ? "bg-white/10 text-white"
-                      : "text-white/70 hover:bg-white/5 hover:text-white"
-                  }`}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Quiz Progress
-                </Link> */}
               </>
             )}
             {isAdmin && (
@@ -187,8 +180,8 @@ const Header = () => {
                 to="/admin"
                 className={`flex items-center px-3 py-2 rounded-md text-base font-medium ${
                   location.pathname.startsWith("/admin")
-                    ? "bg-white/10 text-white"
-                    : "text-white/70 hover:bg-white/5 hover:text-white"
+                    ? "bg-muted text-foreground"
+                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                 }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -196,9 +189,12 @@ const Header = () => {
                 Admin
               </Link>
             )}
+            <div className="px-3 py-2">
+              <ThemeToggle />
+            </div>
             {user ? (
               <button
-                className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-white bg-gradient-to-r from-[#9945FF]/30 to-[#14F195]/30 hover:from-[#9945FF]/40 hover:to-[#14F195]/40"
+                className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-foreground bg-gradient-to-r from-[#9945FF]/30 to-[#14F195]/30 hover:from-[#9945FF]/40 hover:to-[#14F195]/40"
                 onClick={() => {
                   setMobileMenuOpen(false)
                   onLogout()
@@ -212,7 +208,7 @@ const Header = () => {
             ) : (
               <Link
                 to="/auth"
-                className="block px-3 py-2 rounded-md text-base font-medium text-white bg-gradient-to-r from-[#9945FF]/30 to-[#14F195]/30 hover:from-[#9945FF]/40 hover:to-[#14F195]/40"
+                className="block px-3 py-2 rounded-md text-base font-medium text-foreground bg-gradient-to-r from-[#9945FF]/30 to-[#14F195]/30 hover:from-[#9945FF]/40 hover:to-[#14F195]/40"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Login / Register

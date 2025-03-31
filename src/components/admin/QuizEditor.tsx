@@ -307,19 +307,19 @@ export const QuizEditor = ({ quiz, onSave, onCancel }: QuizEditorProps) => {
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium">Lesson</label>
           {isLoadingLessons ? (
-            <div className="flex items-center space-x-2 h-10 px-3 py-2 bg-white/10 border border-white/20 rounded-md">
-              <Loader2 className="h-4 w-4 animate-spin text-white/70" />
-              <span className="text-white/70">Loading lessons...</span>
+            <div className="flex items-center space-x-2 h-10 px-3 py-2 bg-muted border border-border rounded-md">
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              <span className="text-muted-foreground">Loading lessons...</span>
             </div>
           ) : (
             <Select
               value={editedQuiz.lessonId}
               onValueChange={handleLessonChange}
             >
-              <SelectTrigger className="bg-white/10 border-white/20 text-white">
+              <SelectTrigger className="bg-muted border-border text-foreground">
                 <SelectValue placeholder="Select a lesson" />
               </SelectTrigger>
-              <SelectContent className="bg-black/70 backdrop-blur-md border-white/10 text-white">
+              <SelectContent className="bg-card backdrop-blur-md border-border text-foreground">
                 <SelectItem value="default">No Lesson</SelectItem>
                 {lessons.map((lesson) => (
                   <SelectItem key={lesson.id} value={lesson.id}>

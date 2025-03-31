@@ -97,19 +97,19 @@ export function ReferralCard() {
   }
 
   return (
-    <Card className="dark-glass border-white/10 text-white">
+    <Card className="border-border">
       <CardHeader>
         <CardTitle className="flex items-center">
           <UserPlus className="h-5 w-5 mr-2 text-[#14F195]" />
           Refer Friends
         </CardTitle>
-        <CardDescription className="text-white/70">
+        <CardDescription>
           Invite friends to join SolStudy and earn points
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="bg-[#14F195]/10 border border-[#14F195]/30 rounded-md p-3 text-sm">
-          <p className="text-white">
+          <p className="text-foreground">
             <strong>Earn 100 points</strong> for each friend who signs up using
             your referral link!
           </p>
@@ -117,18 +117,18 @@ export function ReferralCard() {
 
         {loading ? (
           <div className="flex justify-center py-4">
-            <Loader2 className="h-6 w-6 animate-spin text-white/50" />
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : referralCode ? (
           <div className="space-y-4">
-            <div className="bg-white/5 border border-white/20 rounded-lg p-4 flex justify-between items-center">
-              <div className="font-mono text-lg truncate mr-2">
+            <div className="bg-muted/5 border border-border rounded-lg p-4 flex justify-between items-center">
+              <div className="font-mono text-lg truncate mr-2 text-foreground">
                 {referralLink}
               </div>
               <Button
                 variant="outline"
                 size="sm"
-                className="border-white/20 text-white hover:bg-white/10 flex-shrink-0"
+                className="border-border text-foreground hover:bg-muted/10 flex-shrink-0"
                 onClick={copyReferralLink}
               >
                 <Copy className="h-4 w-4" />
@@ -160,7 +160,7 @@ export function ReferralCard() {
           </div>
         ) : (
           <div className="text-center py-6">
-            <p className="text-white/70 mb-4">
+            <p className="text-muted-foreground mb-4">
               Create a referral code to start inviting friends!
             </p>
             <Button

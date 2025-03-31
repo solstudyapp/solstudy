@@ -268,10 +268,10 @@ const LessonView = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-[#14F195] mx-auto mb-4" />
-          <p className="text-white text-lg">Loading course content...</p>
+          <p className="text-foreground text-lg">Loading course content...</p>
         </div>
       </div>
     )
@@ -279,10 +279,10 @@ const LessonView = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-6 bg-gray-900 rounded-lg">
-          <h2 className="text-xl text-white mb-4">{error}</h2>
-          <p className="text-gray-400 mb-6">
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6 bg-card rounded-lg border border-border">
+          <h2 className="text-xl text-foreground mb-4">{error}</h2>
+          <p className="text-muted-foreground mb-6">
             We couldn't load the course content. This might be because the
             course doesn't exist or there was a problem connecting to our
             servers.
@@ -301,10 +301,10 @@ const LessonView = () => {
 
   if (!lesson) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-6 bg-gray-900 rounded-lg">
-          <h2 className="text-xl text-white mb-4">Lesson not found</h2>
-          <p className="text-gray-400 mb-6">
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6 bg-card rounded-lg border border-border">
+          <h2 className="text-xl text-foreground mb-4">Lesson not found</h2>
+          <p className="text-muted-foreground mb-6">
             We couldn't find the lesson you're looking for. It might have been
             removed or doesn't exist.
           </p>
@@ -322,10 +322,10 @@ const LessonView = () => {
 
   if (sections.length === 0) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-6 bg-gray-900 rounded-lg">
-          <h2 className="text-xl text-white mb-4">No sections found</h2>
-          <p className="text-gray-400 mb-6">
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6 bg-card rounded-lg border border-border">
+          <h2 className="text-xl text-foreground mb-4">No sections found</h2>
+          <p className="text-muted-foreground mb-6">
             This lesson doesn't have any sections yet. Please add some sections
             to continue.
           </p>
@@ -523,7 +523,7 @@ const LessonView = () => {
   )
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Lesson Header */}
         <LessonHeader

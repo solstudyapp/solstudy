@@ -371,10 +371,10 @@ const QuizPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-[#14F195] mx-auto mb-4" />
-          <p className="text-white text-lg">Loading quiz...</p>
+          <p className="text-foreground text-lg">Loading quiz...</p>
         </div>
       </div>
     )
@@ -382,12 +382,12 @@ const QuizPage = () => {
 
   if (error || !lesson || !quiz) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-6 bg-gray-900 rounded-lg">
-          <h2 className="text-xl text-white mb-4">
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6 bg-card rounded-lg border border-border">
+          <h2 className="text-xl text-foreground mb-4">
             {error || "Quiz not available"}
           </h2>
-          <p className="text-gray-400 mb-6">
+          <p className="text-muted-foreground mb-6">
             We couldn't load the quiz. This might be because the quiz doesn't
             exist or there was a problem connecting to our servers.
           </p>
@@ -519,7 +519,6 @@ const QuizPage = () => {
   const handleSectionQuizComplete = async () => {
     // For section quizzes, determine if there's a next section
     const isLastSection = currentSectionIndex >= sections.length - 1
-    
 
     if (isLastSection) {
       // Check if a final test exists and redirect to it
@@ -625,7 +624,7 @@ const QuizPage = () => {
   const hasAnswered = userAnswers[currentQuestion] !== undefined
 
   return (
-    <div className="min-h-screen bg-black py-8 px-4">
+    <div className="min-h-screen bg-background py-8 px-4">
       <div className="max-w-3xl mx-auto">
         <QuizHeader
           lessonId={lessonId}

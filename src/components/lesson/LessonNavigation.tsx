@@ -395,12 +395,12 @@ const LessonNavigation = ({
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex justify-between pt-4 border-t border-white/10">
+      <div className="flex justify-between pt-4 border-t border-border">
         <Button
           variant="outline"
           onClick={navigatePrev}
           disabled={isFirstPage || isUpdating}
-          className={`border-white/20 text-white hover:bg-white/10 hover:text-white ${
+          className={`border-border text-foreground hover:bg-muted hover:text-foreground ${
             isFirstPage ? "invisible" : ""
           }`}
         >
@@ -424,7 +424,6 @@ const LessonNavigation = ({
                 </Button>
               </div>
             ) : (
-              // If quiz is not completed, show the timer first, then take quiz button
               <div className="flex items-center gap-2">
                 {/* Timer display tooltip for last page */}
                 {!isPageComplete && timeRemaining > 0 && (
