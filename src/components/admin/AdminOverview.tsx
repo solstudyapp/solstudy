@@ -82,26 +82,28 @@ const StatCard = ({
   icon: React.ReactNode
   trend?: number
 }) => (
-  <Card className="admin-card">
+  <Card>
     <CardHeader className="flex flex-row items-center justify-between pb-2">
       <CardTitle className="text-sm font-medium">{title}</CardTitle>
-      <div className="p-2 bg-white/10 rounded-full">{icon}</div>
+      <div className="p-2 bg-muted rounded-full">{icon}</div>
     </CardHeader>
     <CardContent>
       <div className="text-2xl font-bold">{value}</div>
-      <p className="text-xs text-white/70 mt-1">{description}</p>
+      <p className="text-xs text-muted-foreground mt-1">{description}</p>
       {trend !== undefined && (
         <div className="flex items-center mt-4">
           <div
             className={`text-xs flex items-center ${
-              trend >= 0 ? "text-green-400" : "text-red-400"
+              trend >= 0 ? "text-emerald-500" : "text-red-500"
             }`}
           >
             {trend >= 0 ? "+" : ""}
             {trend}%
             <ArrowUpRight size={14} className="ml-1" />
           </div>
-          <div className="text-xs text-white/50 ml-2">from last month</div>
+          <div className="text-xs text-muted-foreground ml-2">
+            from last month
+          </div>
         </div>
       )}
     </CardContent>
@@ -120,8 +122,10 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     if (name === "lessons") displayName = "Lessons Completed"
 
     return (
-      <div className="bg-black/90 p-3 border border-white/20 rounded-md shadow-lg">
-        <p className="font-medium text-white text-sm mb-1">{label}</p>
+      <div className="bg-popover/95 p-3 border border-border rounded-md shadow-lg">
+        <p className="font-medium text-popover-foreground text-sm mb-1">
+          {label}
+        </p>
         <div className="flex items-center gap-2">
           <div
             className="w-3 h-3 rounded-full"
@@ -131,7 +135,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
             className="text-sm font-medium"
             style={{ color: payload[0].color }}
           >
-            {displayName}: <span className="text-white">{value}</span>
+            {displayName}:{" "}
+            <span className="text-popover-foreground">{value}</span>
           </p>
         </div>
       </div>
@@ -160,15 +165,13 @@ const ChartCard = ({
   // Select appropriate colors based on the data type
   const strokeColor = dataProp === "users" ? "#14F195" : "#9945FF"
   const dotColor = dataProp === "users" ? "#14F195" : "#9945FF"
-  const activeDotColor = "#ffffff"
+  const activeDotColor = "hsl(var(--foreground))"
 
   return (
-    <Card className="admin-card">
+    <Card>
       <CardHeader>
         <CardTitle className="text-lg">{title}</CardTitle>
-        <CardDescription className="text-white/70">
-          Last {period} days
-        </CardDescription>
+        <CardDescription>Last {period} days</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="h-[200px]">
@@ -179,16 +182,16 @@ const ChartCard = ({
             >
               <CartesianGrid
                 strokeDasharray="3 3"
-                stroke="rgba(255,255,255,0.1)"
+                stroke="hsl(var(--border))"
               />
               <XAxis
                 dataKey="date"
-                stroke="rgba(255,255,255,0.5)"
+                stroke="hsl(var(--muted-foreground))"
                 fontSize={12}
                 tickLine={false}
               />
               <YAxis
-                stroke="rgba(255,255,255,0.5)"
+                stroke="hsl(var(--muted-foreground))"
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
@@ -499,19 +502,17 @@ const AdminOverview = () => {
 
   return (
     <div className="space-y-6">
-      <Card className="admin-card">
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <div>
             <CardTitle>Dashboard Overview</CardTitle>
-            <CardDescription className="text-white/70">
-              Platform metrics and statistics
-            </CardDescription>
+            <CardDescription>Platform metrics and statistics</CardDescription>
           </div>
           <Tabs
             defaultValue={period}
             onValueChange={(v) => setPeriod(v as "7" | "30" | "90")}
           >
-            <TabsList className="bg-black/60">
+            <TabsList className="bg-muted">
               <TabsTrigger value="7">7d</TabsTrigger>
               <TabsTrigger value="30">30d</TabsTrigger>
               <TabsTrigger value="90">90d</TabsTrigger>
@@ -521,7 +522,7 @@ const AdminOverview = () => {
         <CardContent>
           {loading ? (
             <div className="min-h-[300px] flex items-center justify-center">
-              <div className="flex flex-col items-center text-white/70">
+              <div className="flex flex-col items-center text-muted-foreground">
                 <Loader2 className="h-8 w-8 animate-spin mb-2" />
                 <div>Loading dashboard metrics...</div>
               </div>
@@ -533,21 +534,21 @@ const AdminOverview = () => {
                   title="Total Users"
                   value={stats.totalUsers}
                   description={`${stats.activeUsers} currently active`}
-                  icon={<Users size={16} className="text-white" />}
+                  icon={<Users size={16} className="text-foreground" />}
                   trend={stats.userGrowth}
                 />
                 <StatCard
                   title="Lessons Completed"
                   value={stats.completedLessons}
                   description={`Out of ${stats.totalLessons} total lessons`}
-                  icon={<BookOpen size={16} className="text-white" />}
+                  icon={<BookOpen size={16} className="text-foreground" />}
                   trend={stats.lessonCompletionGrowth}
                 />
                 <StatCard
                   title="Points Earned"
                   value={stats.totalPointsEarned}
                   description={`${stats.lastMonthPointsEarned} in the last month`}
-                  icon={<Award size={16} className="text-white" />}
+                  icon={<Award size={16} className="text-foreground" />}
                   trend={stats.pointsGrowth}
                 />
               </div>

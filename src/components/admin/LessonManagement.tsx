@@ -43,6 +43,7 @@ import {
   ExternalLink,
   Award,
   Database,
+  Loader2,
 } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import { LessonTable } from "./LessonTable"
@@ -249,11 +250,11 @@ const LessonManagement = () => {
 
   return (
     <div className="space-y-6">
-      <Card className="admin-card">
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <div>
             <CardTitle>Lessons Management</CardTitle>
-            <CardDescription className="text-white/70">
+            <CardDescription>
               Create and manage learning modules
             </CardDescription>
           </div>
@@ -268,10 +269,10 @@ const LessonManagement = () => {
         <CardContent>
           <div className="mb-4 flex items-center">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search lessons..."
-                className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/60"
+                className="pl-10"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -280,16 +281,18 @@ const LessonManagement = () => {
 
           {isLoading && (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#14F195] mx-auto mb-4"></div>
-              <p className="text-white/70">Loading lessons...</p>
+              <div className="flex flex-col items-center text-muted-foreground">
+                <Loader2 className="h-8 w-8 animate-spin mb-2" />
+                <div>Loading lessons...</div>
+              </div>
             </div>
           )}
 
           {!isLoading && (
-            <div className="rounded-md border border-white/20 overflow-hidden">
+            <div className="rounded-md border">
               <Table>
-                <TableHeader className="bg-black/20">
-                  <TableRow className="hover:bg-white/5 border-white/10">
+                <TableHeader>
+                  <TableRow>
                     <TableHead>Title</TableHead>
                     <TableHead>Difficulty</TableHead>
                     <TableHead>Category</TableHead>
@@ -301,21 +304,18 @@ const LessonManagement = () => {
                 </TableHeader>
                 <TableBody>
                   {filteredLessons.map((lesson) => (
-                    <TableRow
-                      key={lesson.id}
-                      className="hover:bg-white/5 border-white/10"
-                    >
+                    <TableRow key={lesson.id}>
                       <TableCell className="font-medium">
                         {lesson.title}
                       </TableCell>
                       <TableCell>
                         <Badge
-                          className={
+                          variant={
                             lesson.difficulty === "beginner"
-                              ? "bg-green-500/30 text-green-50"
+                              ? "default"
                               : lesson.difficulty === "intermediate"
-                              ? "bg-blue-500/30 text-blue-50"
-                              : "bg-orange-500/30 text-orange-50"
+                              ? "secondary"
+                              : "outline"
                           }
                         >
                           {lesson.difficulty}
@@ -325,8 +325,8 @@ const LessonManagement = () => {
                       <TableCell>
                         <div className="flex items-center">
                           {lesson.rating}
-                          <span className="text-yellow-400 ml-1">★</span>
-                          <span className="text-xs text-white/50 ml-1">
+                          <span className="text-yellow-500 ml-1">★</span>
+                          <span className="text-xs text-muted-foreground ml-1">
                             ({lesson.reviewCount})
                           </span>
                         </div>
@@ -342,53 +342,42 @@ const LessonManagement = () => {
                               <span>{lesson.points}</span>
                             </>
                           ) : (
-                            <span className="text-white/50">-</span>
+                            <span className="text-muted-foreground">-</span>
                           )}
                         </div>
                       </TableCell>
                       <TableCell>
                         {lesson.is_sponsored ? (
-                          <Badge className="bg-purple-500/30 text-purple-50">
-                            Sponsored
-                          </Badge>
+                          <Badge variant="secondary">Sponsored</Badge>
                         ) : (
-                          <span className="text-white/50">-</span>
+                          <span className="text-muted-foreground">-</span>
                         )}
                       </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-white/70 hover:text-white hover:bg-white/10"
-                            >
-                              <MoreVertical size={16} />
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <MoreVertical className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent
-                            align="end"
-                            className="bg-black/70 backdrop-blur-md border-white/10 text-white"
-                          >
+                          <DropdownMenuContent align="end">
                             <DropdownMenuItem
                               onClick={() => handleEditLesson(lesson)}
-                              className="hover:bg-white/10 cursor-pointer"
                             >
-                              <Pencil size={16} className="mr-2" />
+                              <Pencil className="mr-2 h-4 w-4" />
                               Edit
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => previewLesson(lesson.id)}
-                              className="hover:bg-white/10 cursor-pointer"
                             >
-                              <ExternalLink size={16} className="mr-2" />
+                              <ExternalLink className="mr-2 h-4 w-4" />
                               Preview
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleDeleteLesson(lesson)}
-                              className="hover:bg-white/10 cursor-pointer text-red-400"
+                              className="text-red-600"
                             >
-                              <Trash size={16} className="mr-2" />
+                              <Trash className="mr-2 h-4 w-4" />
                               Delete
                             </DropdownMenuItem>
                           </DropdownMenuContent>
@@ -401,7 +390,7 @@ const LessonManagement = () => {
                     <TableRow>
                       <TableCell
                         colSpan={7}
-                        className="text-center py-6 text-white/50"
+                        className="text-center py-6 text-muted-foreground"
                       >
                         No lessons found
                       </TableCell>
@@ -416,7 +405,7 @@ const LessonManagement = () => {
 
       {/* Edit Lesson Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="bg-[#1A1F2C] text-white border-white/10 max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {isNewLesson ? "Create New Lesson" : "Edit Lesson"}:{" "}
@@ -436,18 +425,18 @@ const LessonManagement = () => {
 
       {/* Delete Lesson Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent className="bg-[#1A1F2C] text-white border-white/10">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete Lesson</DialogTitle>
-            <DialogDescription className="text-white/70">
+            <DialogDescription>
               Are you sure you want to delete this lesson? This action cannot be
               undone.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="mt-4 p-4 bg-white/5 rounded-md">
+          <div className="mt-4 p-4 bg-muted rounded-md">
             <p className="font-medium">{currentLesson?.title}</p>
-            <p className="text-sm text-white/70 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               {currentLesson?.description}
             </p>
           </div>
@@ -456,13 +445,12 @@ const LessonManagement = () => {
             <Button
               variant="outline"
               onClick={() => setShowDeleteDialog(false)}
-              className="border-white/20 text-white hover:bg-white/10"
             >
               Cancel
             </Button>
             <Button
+              variant="destructive"
               onClick={confirmDeleteLesson}
-              className="bg-red-500 hover:bg-red-600 text-white"
               disabled={isLoading}
             >
               {isLoading ? "Deleting..." : "Delete Lesson"}

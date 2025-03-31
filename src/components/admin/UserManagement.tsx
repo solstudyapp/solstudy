@@ -40,9 +40,16 @@ import {
   CheckCircle,
   ChevronLeft,
   ChevronRight,
+  MoreHorizontal,
+  Eye,
+  Edit,
+  RefreshCw,
+  Loader2,
 } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import { supabase } from "@/lib/supabase"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+import { formatDistanceToNow } from "date-fns"
 
 interface User {
   id: string
@@ -52,6 +59,9 @@ interface User {
   lessonsCompleted: number
   lastActivity: string
   isActive: boolean
+  avatar: string
+  status: string
+  progress: number
 }
 
 const currentDate = new Date()
@@ -106,6 +116,11 @@ const UserManagement = () => {
         lessonsCompleted: profile.lessons_completed || 0,
         lastActivity: profile.last_activity || profile.created_at,
         isActive: profile.is_active,
+        avatar: profile.avatar || "",
+        status: profile.is_active ? "active" : "inactive",
+        progress: Math.round(
+          (profile.lessons_completed / profile.lessons_total) * 100
+        ),
       }))
 
       setUsers(transformedUsers)
@@ -301,155 +316,129 @@ const UserManagement = () => {
   if (loading) {
     return (
       <div className="min-h-[300px] bg-black/30 p-4 flex items-center justify-center">
-        Loading users...
+        <div className="flex flex-col items-center text-muted-foreground">
+          <Loader2 className="h-8 w-8 animate-spin mb-2" />
+          <div>Loading users...</div>
+        </div>
       </div>
     )
   }
 
   return (
     <div className="space-y-6">
-      <Card className="admin-card">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <div>
-            <CardTitle>Users Management</CardTitle>
-            <CardDescription className="text-white/70">
-              Manage users and send reward airdrops
-            </CardDescription>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-white/20 text-white hover:bg-white/10"
-              onClick={() => setShowAirdropDialog(true)}
-              disabled={selectedUsers.length === 0}
-            >
-              <Gift size={16} className="mr-2" />
-              Bulk Airdrop
-            </Button>
-          </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>User Management</CardTitle>
+          <CardDescription>View and manage user accounts</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="mb-4 flex items-center">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60" />
+          <div className="flex items-center justify-between mb-6">
+            <div className="relative w-72">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search users..."
-                className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/60"
+                className="pl-8"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
+            <Button onClick={() => fetchUsers()}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
           </div>
 
-          <div className="rounded-md border border-white/20 overflow-hidden">
+          <div className="rounded-md border">
             <Table>
-              <TableHeader className="bg-black/20">
-                <TableRow className="hover:bg-white/5 border-white/10">
-                  <TableHead className="w-12">
-                    <div className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={
-                          selectedUsers.length === paginatedUsers.length &&
-                          paginatedUsers.length > 0
-                        }
-                        onChange={selectAll}
-                        className="rounded border-white/20 bg-white/10 text-[#9945FF] focus:ring-0 focus:ring-offset-0"
-                      />
-                    </div>
-                  </TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Points</TableHead>
-                  <TableHead>Lessons</TableHead>
-                  <TableHead>Last Activity</TableHead>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>User</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Progress</TableHead>
+                  <TableHead>Last Active</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paginatedUsers.map((user) => (
-                  <TableRow
-                    key={user.id}
-                    className="hover:bg-white/5 border-white/10"
-                  >
+                  <TableRow key={user.id}>
                     <TableCell>
-                      <input
-                        type="checkbox"
-                        checked={selectedUsers.includes(user.id)}
-                        onChange={() => toggleUserSelection(user.id)}
-                        className="rounded border-white/20 bg-white/10 text-[#9945FF] focus:ring-0 focus:ring-offset-0"
-                      />
+                      <div className="flex items-center">
+                        <Avatar className="h-8 w-8 mr-2">
+                          <AvatarImage src={user.avatar} />
+                          <AvatarFallback>
+                            {user.name.substring(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium">{user.name}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {user.email}
+                          </div>
+                        </div>
+                      </div>
                     </TableCell>
-                    <TableCell className="font-medium">{user.name}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>{user.points}</TableCell>
-                    <TableCell>{user.lessonsCompleted}</TableCell>
-                    <TableCell>{formatDate(user.lastActivity)}</TableCell>
                     <TableCell>
                       <Badge
-                        className={
-                          user.isActive
-                            ? "bg-green-500/70 hover:bg-green-500"
-                            : "bg-gray-500/70 hover:bg-gray-500"
+                        variant={
+                          user.status === "active" ? "default" : "secondary"
                         }
                       >
-                        {user.isActive ? "Active" : "Inactive"}
+                        {user.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell>
+                      <div className="flex items-center">
+                        <div className="w-32 h-2 bg-muted rounded-full overflow-hidden mr-2">
+                          <div
+                            className="h-full bg-emerald-500"
+                            style={{ width: `${user.progress}%` }}
+                          />
+                        </div>
+                        <span className="text-sm text-muted-foreground">
+                          {user.progress}%
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-muted-foreground">
+                        {formatDistanceToNow(new Date(user.lastActivity), {
+                          addSuffix: true,
+                        })}
+                      </span>
+                    </TableCell>
+                    <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-white/70 hover:text-white hover:bg-white/10"
-                          >
-                            <MoreVertical size={16} />
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent
-                          align="end"
-                          className="bg-black/70 backdrop-blur-md border-white/10 text-white"
-                        >
-                          {/* <DropdownMenuItem
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
                             onClick={() => handleSingleAirdrop(user)}
-                            className="hover:bg-white/10 cursor-pointer"
                           >
-                            <Gift size={16} className="mr-2" />
+                            <Gift className="mr-2 h-4 w-4" />
                             Send Points
-                          </DropdownMenuItem> */}
+                          </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleSingleUserSettings(user)}
-                            className="hover:bg-white/10 cursor-pointer"
                           >
-                            <Settings size={16} className="mr-2" />
+                            <Settings className="mr-2 h-4 w-4" />
                             Settings
                           </DropdownMenuItem>
                           <DropdownMenuItem
+                            className="text-red-600"
                             onClick={() => handleDeleteUser(user)}
-                            className="hover:bg-white/10 cursor-pointer text-red-400"
                           >
-                            <Trash size={16} className="mr-2" />
-                            Delete
+                            <Trash className="mr-2 h-4 w-4" />
+                            Delete User
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}
-
-                {paginatedUsers.length === 0 && (
-                  <TableRow>
-                    <TableCell
-                      colSpan={8}
-                      className="text-center py-6 text-white/50"
-                    >
-                      No users found
-                    </TableCell>
-                  </TableRow>
-                )}
               </TableBody>
             </Table>
           </div>

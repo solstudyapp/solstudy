@@ -38,6 +38,7 @@ import {
   Pencil,
   Trash,
   ExternalLink,
+  Loader2,
 } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import { supabase } from "@/lib/supabase"
@@ -258,28 +259,29 @@ const QuizManagement = () => {
 
   if (loading) {
     return (
-      <div className="min-h-[300px] bg-black/30 p-4 flex items-center justify-center">
-        Loading quizzes...
+      <div className="min-h-[300px] flex items-center justify-center">
+        <div className="flex flex-col items-center text-muted-foreground">
+          <Loader2 className="h-8 w-8 animate-spin mb-2" />
+          <div>Loading quizzes...</div>
+        </div>
       </div>
     )
   }
 
   return (
     <div className="space-y-6">
-      <Card className="admin-card">
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <div>
             <CardTitle>Quizzes Management</CardTitle>
-            <CardDescription className="text-white/70">
+            <CardDescription>
               Create and manage quizzes and assessments
             </CardDescription>
           </div>
           <div className="flex items-center space-x-2">
             <Button
-              variant="gradient"
-              size="sm"
-              className="text-white"
               onClick={handleCreateQuiz}
+              className="bg-[#14F195] text-[#1A1F2C] hover:bg-[#14F195]/90"
             >
               <Plus size={16} className="mr-2" />
               New Quiz
@@ -289,20 +291,20 @@ const QuizManagement = () => {
         <CardContent>
           <div className="mb-4 flex items-center">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search quizzes..."
-                className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/60"
+                className="pl-10"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
           </div>
 
-          <div className="rounded-md border border-white/20 overflow-hidden">
+          <div className="rounded-md border">
             <Table>
-              <TableHeader className="bg-black/20">
-                <TableRow className="hover:bg-white/5 border-white/10">
+              <TableHeader>
+                <TableRow>
                   <TableHead>Title</TableHead>
                   <TableHead>Lesson</TableHead>
                   <TableHead>Section</TableHead>
@@ -314,64 +316,42 @@ const QuizManagement = () => {
               </TableHeader>
               <TableBody>
                 {filteredQuizzes.map((quiz) => (
-                  <TableRow
-                    key={quiz.id}
-                    className="hover:bg-white/5 border-white/10"
-                  >
+                  <TableRow key={quiz.id}>
                     <TableCell className="font-medium">{quiz.title}</TableCell>
                     <TableCell>{quiz.lesson?.title || "No Lesson"}</TableCell>
                     <TableCell>{quiz.section?.title || "No Section"}</TableCell>
                     <TableCell>{quiz.questions.length}</TableCell>
                     <TableCell>
-                      <Badge className="bg-blue-500/30 text-blue-50">
-                        {quiz.points} pts
-                      </Badge>
+                      <Badge variant="secondary">{quiz.points} pts</Badge>
                     </TableCell>
                     <TableCell>
                       {quiz.is_final_test ? (
-                        <Badge className="bg-purple-500/30 text-purple-50">
-                          Final Test
-                        </Badge>
+                        <Badge variant="default">Final Test</Badge>
                       ) : (
-                        <Badge className="bg-green-500/30 text-green-50">
-                          Section Quiz
-                        </Badge>
+                        <Badge variant="outline">Section Quiz</Badge>
                       )}
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-white/70 hover:text-white hover:bg-white/10"
-                          >
-                            <MoreVertical size={16} />
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent
-                          align="end"
-                          className="bg-black/70 backdrop-blur-md border-white/10 text-white"
-                        >
-                          <DropdownMenuItem
-                            onClick={() => handleEdit(quiz)}
-                            className="hover:bg-white/10 cursor-pointer"
-                          >
-                            <Pencil size={16} className="mr-2" />
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleEdit(quiz)}>
+                            <Pencil className="mr-2 h-4 w-4" />
                             Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => previewQuiz(quiz)}
-                            className="hover:bg-white/10 cursor-pointer"
-                          >
-                            <ExternalLink size={16} className="mr-2" />
+                          <DropdownMenuItem onClick={() => previewQuiz(quiz)}>
+                            <ExternalLink className="mr-2 h-4 w-4" />
                             Preview
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleDelete(quiz)}
-                            className="hover:bg-white/10 cursor-pointer text-red-400"
+                            className="text-red-600"
                           >
-                            <Trash size={16} className="mr-2" />
+                            <Trash className="mr-2 h-4 w-4" />
                             Delete
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -384,7 +364,7 @@ const QuizManagement = () => {
                   <TableRow>
                     <TableCell
                       colSpan={6}
-                      className="text-center py-6 text-white/50"
+                      className="text-center py-6 text-muted-foreground"
                     >
                       No quizzes found
                     </TableCell>
@@ -398,12 +378,12 @@ const QuizManagement = () => {
 
       {/* Quiz Editor Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="bg-[#1A1F2C] text-white border-white/10 max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {isNewQuiz ? "Create New Quiz" : "Edit Quiz"}
             </DialogTitle>
-            <DialogDescription className="text-white/70">
+            <DialogDescription>
               {isNewQuiz
                 ? "Create a new quiz by adding questions and answers"
                 : "Edit quiz questions and answers"}
