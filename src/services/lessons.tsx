@@ -12,12 +12,13 @@ import {
 } from "lucide-react"
 import { ReactNode } from "react"
 import * as db from "@/lib/db"
-import { supabase } from "@/lib/supabase"
+import { supabase, supabaseConfig } from "@/integrations/supabase/client"
 import {
   dbToFrontendLesson,
   frontendToDbLesson,
   safelyParseId,
 } from "@/lib/type-converters"
+import { sampleLessons } from "@/data/lessons"
 
 // Placeholder for sponsor logo - replace with your actual import
 const COINGECKO_LOGO = "/path/to/coingecko-logo.png"
@@ -56,6 +57,11 @@ const getSpecificIcon = (id: string): ReactNode | null => {
  * Fetch all lessons from Supabase
  */
 export async function fetchLessons(): Promise<LessonType[]> {
+  // Return sample lessons if in offline mode
+  if (supabaseConfig.isOfflineMode) {
+    return [...sampleLessons];
+  }
+
   try {
     const data = (await db.fetchAllLessons()) as unknown as DbLessonData[]
 
@@ -63,7 +69,9 @@ export async function fetchLessons(): Promise<LessonType[]> {
     return data.map(dbToFrontendLesson)
   } catch (error) {
     console.error("Error fetching lessons:", error)
-    return []
+    
+    // Return sample lessons as fallback
+    return [...sampleLessons]
   }
 }
 
@@ -73,6 +81,14 @@ export async function fetchLessons(): Promise<LessonType[]> {
 export async function fetchLessonById(
   lessonId: string
 ): Promise<LessonType | null> {
+  // If in offline mode, return a sample lesson
+  if (supabaseConfig.isOfflineMode) {
+    const sampleLesson = sampleLessons.find(lesson => 
+      lesson.id === lessonId || lessonId.includes('offline')
+    );
+    return sampleLesson || sampleLessons[0] || null;
+  }
+
   try {
     // For UUID-based IDs, we can pass the ID directly
     // For older numeric IDs, we'll try to parse them
@@ -97,7 +113,10 @@ export async function fetchLessonById(
     return frontendLesson
   } catch (error) {
     console.error("Error fetching lesson by ID:", error)
-    return null
+    
+    // Try to find a matching sample lesson as fallback
+    const sampleLesson = sampleLessons.find(lesson => lesson.id === lessonId);
+    return sampleLesson || null;
   }
 }
 
@@ -107,6 +126,15 @@ export async function fetchLessonById(
 export async function saveLesson(
   lesson: LessonType
 ): Promise<{ success: boolean; error?: string; data?: { id: string }[] }> {
+  // In offline mode, return a mock successful response
+  if (supabaseConfig.isOfflineMode) {
+    console.info("Running in offline mode. Lesson save operation simulated.");
+    return {
+      success: true,
+      data: [{ id: lesson.id || `offline-${Date.now()}` }]
+    };
+  }
+
   try {
     // Check if the lesson has an ID that's not a temporary ID
     const isUuid =
@@ -159,6 +187,12 @@ export async function saveLesson(
 export async function deleteLesson(
   lessonId: string | number
 ): Promise<{ success: boolean; error?: string }> {
+  // In offline mode, return a mock successful response
+  if (supabaseConfig.isOfflineMode) {
+    console.info("Running in offline mode. Lesson delete operation simulated.");
+    return { success: true };
+  }
+
   try {
     // If it's a UUID, use it directly; otherwise try to convert to number
     return await db.deleteLesson(lessonId)

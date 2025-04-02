@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabase, supabaseConfig } from '@/lib/supabase';
 import { completeReferral } from '@/services/referralService';
 
 export type AuthError = {
@@ -9,6 +9,15 @@ export type AuthResponse = {
   success: boolean;
   error?: AuthError;
   data?: any;
+};
+
+// Mock user for offline mode
+const OFFLINE_USER = {
+  id: 'offline-user-id',
+  email: 'offline@example.com',
+  user_metadata: {
+    name: 'Offline User'
+  }
 };
 
 /**
@@ -22,6 +31,18 @@ export async function signUp(
   password: string, 
   referrerInfo?: { id: string; code: string } | null
 ): Promise<AuthResponse> {
+  // If in offline mode, return a mock successful response
+  if (supabaseConfig.isOfflineMode) {
+    console.info("Running in offline mode. Sign-up operation simulated.");
+    return {
+      success: true,
+      data: {
+        user: { ...OFFLINE_USER, email },
+        session: { user: { ...OFFLINE_USER, email } }
+      }
+    };
+  }
+
   try {
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -91,6 +112,18 @@ export async function signUp(
  * Sign in an existing user with email and password
  */
 export async function signIn(email: string, password: string): Promise<AuthResponse> {
+  // If in offline mode, return a mock successful response
+  if (supabaseConfig.isOfflineMode) {
+    console.info("Running in offline mode. Sign-in operation simulated.");
+    return {
+      success: true,
+      data: {
+        user: { ...OFFLINE_USER, email },
+        session: { user: { ...OFFLINE_USER, email } }
+      }
+    };
+  }
+
   try {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -124,6 +157,12 @@ export async function signIn(email: string, password: string): Promise<AuthRespo
  * Sign out the current user
  */
 export async function signOut(): Promise<AuthResponse> {
+  // If in offline mode, return a mock successful response
+  if (supabaseConfig.isOfflineMode) {
+    console.info("Running in offline mode. Sign-out operation simulated.");
+    return { success: true };
+  }
+
   try {
     const { error } = await supabase.auth.signOut();
 
@@ -153,6 +192,10 @@ export async function signOut(): Promise<AuthResponse> {
  * Get the current user session
  */
 export async function getCurrentSession() {
+  if (supabaseConfig.isOfflineMode) {
+    return { session: { user: OFFLINE_USER } };
+  }
+  
   const { data } = await supabase.auth.getSession();
   return data.session;
 }
@@ -161,6 +204,10 @@ export async function getCurrentSession() {
  * Get the current user
  */
 export async function getCurrentUser() {
+  if (supabaseConfig.isOfflineMode) {
+    return OFFLINE_USER;
+  }
+  
   const { data } = await supabase.auth.getUser();
   return data.user;
-} 
+}

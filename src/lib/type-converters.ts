@@ -37,7 +37,6 @@ export function frontendToDbLesson(lesson: LessonType): Omit<DbLessonData, 'id'>
     rating: lesson.rating || 0,
     rating_count: lesson.reviewCount || 0,
     is_sponsored: lesson.is_sponsored || false,
-    sponsorLogo: lesson.sponsorLogo || "",
     points: lesson.points || 0,
     // Convert icon ReactNode to string if needed
     icon: typeof lesson.icon === 'string' ? lesson.icon : undefined,
