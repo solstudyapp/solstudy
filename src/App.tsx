@@ -32,8 +32,6 @@ function App() {
         // Load lessons data
         await loadLessons()
 
-        // Ensure the images bucket exists in Supabase storage
-        await ensureImagesBucketExists()
       } catch (error) {
         console.error("Error initializing app:", error)
         toast({
