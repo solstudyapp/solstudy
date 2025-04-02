@@ -1,3 +1,4 @@
+
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { saveLesson, deleteLesson } from '../services/lessons';
 import { LessonType } from '../types/lesson';
@@ -30,9 +31,12 @@ describe('Lesson Service with UUID Support', () => {
         rating: 0,
         reviewCount: 0,
         icon: null,
-        sponsored: false,
+        is_sponsored: false,
+        sponsorId: null,
         sponsorLogo: '',
-        points: 0
+        points: 0,
+        sponsorName: '',
+        completedSections: 0
       };
 
       // Setup mock
@@ -60,9 +64,12 @@ describe('Lesson Service with UUID Support', () => {
         rating: 0,
         reviewCount: 0,
         icon: null,
-        sponsored: false,
+        is_sponsored: false,
+        sponsorId: null,
         sponsorLogo: '',
-        points: 0
+        points: 0,
+        sponsorName: '',
+        completedSections: 0
       };
 
       // Setup mock
@@ -92,9 +99,12 @@ describe('Lesson Service with UUID Support', () => {
         rating: 0,
         reviewCount: 0,
         icon: null,
-        sponsored: false,
+        is_sponsored: false,
+        sponsorId: null,
         sponsorLogo: '',
-        points: 0
+        points: 0,
+        sponsorName: '',
+        completedSections: 0
       };
 
       // Setup mock to throw an error

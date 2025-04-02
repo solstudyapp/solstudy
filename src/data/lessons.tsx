@@ -1,3 +1,4 @@
+
 import { LessonType } from "@/types/lesson"
 import { fetchLessons } from "@/services/lessons"
 import { Database, BarChart } from "lucide-react"
@@ -22,6 +23,8 @@ export const dailyBonusLesson: LessonType = {
   sponsorLogo: "",
   points: 50,
   bonusLesson: true,
+  sponsorName: "",
+  sponsorId: null
 }
 
 // Function to load lessons from Supabase

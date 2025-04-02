@@ -21,6 +21,7 @@ export function dbToFrontendLesson(lesson: DbLessonData): LessonType {
     points: lesson.points || 0,
     bonusLesson: lesson.bonusLesson || false,
     sponsorName: lesson.sponsor?.name || "",
+    sponsorId: null,
   };
 }
 
@@ -34,7 +35,7 @@ export function frontendToDbLesson(lesson: LessonType): Omit<DbLessonData, 'id'>
     difficulty: lesson.difficulty,
     category: lesson.category,
     rating: lesson.rating || 0,
-    reviewCount: lesson.reviewCount || 0,
+    rating_count: lesson.reviewCount || 0,
     is_sponsored: lesson.is_sponsored || false,
     sponsorLogo: lesson.sponsorLogo || "",
     points: lesson.points || 0,
@@ -152,4 +153,4 @@ export function isTemporaryId(id: string): boolean {
     id.includes('page') || 
     (isNaN(Number(id)) && id !== 'lesson-new' && !id.startsWith('new-lesson-'))
   );
-} 
+}

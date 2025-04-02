@@ -1,3 +1,4 @@
+
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import { LessonEditor } from "../components/admin/LessonEditor"
@@ -51,9 +52,12 @@ describe("LessonEditor Component", () => {
     rating: 4.5,
     reviewCount: 10,
     icon: null,
-    sponsored: false,
+    is_sponsored: false,
+    sponsorId: null,
     sponsorLogo: "",
+    sponsorName: "",
     points: 100,
+    completedSections: 0
   }
 
   const mockSections: Section[] = [

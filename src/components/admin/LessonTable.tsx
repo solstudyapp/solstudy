@@ -1,3 +1,4 @@
+
 import {
   Table,
   TableBody,
@@ -87,7 +88,7 @@ export const LessonTable = ({
                 </div>
               </TableCell>
               <TableCell>
-                {lesson.sponsored ? (
+                {lesson.is_sponsored ? (
                   <Badge className="bg-purple-500/30 text-purple-50">
                     Sponsored
                   </Badge>
