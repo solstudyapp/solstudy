@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { Section, Page, LessonType } from '@/types/lesson';
 
 // Lesson operations
@@ -285,4 +285,4 @@ export async function deletePagesBySectionId(sectionId: number): Promise<{ succe
   }
 
   return { success: true };
-} 
+}

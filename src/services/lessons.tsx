@@ -1,3 +1,4 @@
+
 import { LessonType, DbLessonData } from "@/types/lesson"
 import {
   Database,
@@ -12,7 +13,7 @@ import {
 } from "lucide-react"
 import { ReactNode } from "react"
 import * as db from "@/lib/db"
-import { supabase } from "@/lib/supabase"
+import { supabase } from "@/integrations/supabase/client"
 import {
   dbToFrontendLesson,
   frontendToDbLesson,

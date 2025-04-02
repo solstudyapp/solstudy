@@ -1,11 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as db from '../lib/db';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../integrations/supabase/client';
 
 // Mock the supabase client
-vi.mock('../lib/supabase', () => ({
+vi.mock('../integrations/supabase/client', () => ({
   supabase: {
-    from: vi.fn(),
+    from: vi.fn().mockReturnThis(),
+    select: vi.fn().mockReturnThis(),
+    order: vi.fn().mockReturnThis(),
+    then: vi.fn(),
   },
 }));
 
@@ -113,4 +116,4 @@ describe('Database Functions', () => {
       expect(result).toEqual(mockPages);
     });
   });
-}); 
+});

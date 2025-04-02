@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Check if the current user is an admin
@@ -30,4 +30,4 @@ export async function isUserAdmin(): Promise<boolean> {
     console.error('Error checking admin status:', error);
     return false;
   }
-} 
+}

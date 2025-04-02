@@ -1,4 +1,5 @@
-import { supabase } from './supabase'
+
+import { supabase } from '@/integrations/supabase/client'
 
 /**
  * Ensures that the 'images' bucket exists in Supabase storage

@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { completeReferral } from '@/services/referralService';
 
 export type AuthError = {
@@ -163,4 +163,4 @@ export async function getCurrentSession() {
 export async function getCurrentUser() {
   const { data } = await supabase.auth.getUser();
   return data.user;
-} 
+}

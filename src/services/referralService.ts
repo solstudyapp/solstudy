@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface Referral {
   id: string;
@@ -265,4 +265,4 @@ export const referralService = {
       return [];
     }
   },
-}; 
+};

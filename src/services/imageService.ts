@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase"
+import { supabase } from "@/integrations/supabase/client"
 
 /**
  * Service for handling image uploads to Supabase storage
@@ -49,4 +49,4 @@ export const imageService = {
       throw error
     }
   }
-} 
+}

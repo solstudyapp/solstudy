@@ -3,10 +3,10 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import { LessonEditor } from "../components/admin/LessonEditor"
 import { LessonType, Section } from "../types/lesson"
 import * as sectionsService from "../services/sections"
-import { supabase } from "../lib/supabase"
+import { supabase } from "../integrations/supabase/client"
 
 // Mock the supabase client
-vi.mock("../lib/supabase", () => ({
+vi.mock("../integrations/supabase/client", () => ({
   supabase: {
     from: vi.fn().mockReturnThis(),
     select: vi.fn().mockReturnThis(),

@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface UserQuizCompletion {
   id: string;
@@ -155,4 +155,4 @@ export const quizService = {
       return 0;
     }
   }
-}; 
+};
