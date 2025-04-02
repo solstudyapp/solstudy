@@ -1,4 +1,3 @@
-
 import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { vi, describe, test, expect, beforeEach } from "vitest"
@@ -6,7 +5,7 @@ import { MemoryRouter, Route, Routes } from "react-router-dom"
 import QuizPage from "@/pages/QuizPage"
 import * as lessonService from "@/services/lessonService"
 import * as toast from "@/hooks/use-toast"
-import { supabase } from "@/integrations/supabase/client"
+import { supabase } from "@/lib/supabase"
 import { quizService } from "@/services/quizService"
 import { userProgressService } from "@/services/userProgressService"
 
@@ -82,7 +81,7 @@ vi.mock("@/hooks/use-toast", () => ({
 }))
 
 // Mock Supabase
-vi.mock("@/integrations/supabase/client", () => ({
+vi.mock("@/lib/supabase", () => ({
   supabase: {
     from: vi.fn().mockReturnThis(),
     select: vi.fn().mockReturnThis(),

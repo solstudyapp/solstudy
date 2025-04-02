@@ -1,21 +1,25 @@
+import React from "react"
+import ReactDOM from "react-dom/client"
+import { BrowserRouter } from "react-router-dom"
+import App from "./App"
+import "./index.css"
+import { AuthProvider } from "./hooks/use-auth"
+import { ThemeProvider } from "./components/theme-provider"
 
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App.tsx'
-import './index.css'
-import { ThemeProvider } from './components/theme-provider.tsx'
-import { Toaster } from './components/ui/toaster.tsx'
-import { Toaster as Sonner } from './components/ui/sonner.tsx'
-import ErrorBoundary from './components/ErrorBoundary.tsx'
+const rootElement = document.getElementById("root")
+if (!rootElement) throw new Error("Failed to find the root element")
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <ErrorBoundary>
-      <ThemeProvider defaultTheme="light" storageKey="solstudy-theme">
-        <App />
-        <Toaster />
-        <Sonner />
-      </ThemeProvider>
-    </ErrorBoundary>
-  </React.StrictMode>,
-)
+// Add a small delay to ensure the DOM is ready
+setTimeout(() => {
+  ReactDOM.createRoot(rootElement).render(
+    <React.StrictMode>
+      <BrowserRouter>
+        <ThemeProvider defaultTheme="dark" storageKey="solstudy-theme">
+          <AuthProvider>
+            <App />
+          </AuthProvider>
+        </ThemeProvider>
+      </BrowserRouter>
+    </React.StrictMode>
+  )
+}, 0)
