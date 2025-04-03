@@ -411,7 +411,13 @@ export const RichTextEditor = ({
   // Initialize Tiptap editor
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        paragraph: {
+          HTMLAttributes: {
+            class: "paragraph-with-breaks",
+          },
+        },
+      }),
       UnderlineExtension,
       TextAlign.configure({
         types: ["heading", "paragraph"],
@@ -452,10 +458,18 @@ export const RichTextEditor = ({
     content: initialContent,
     autofocus: true,
     onUpdate: ({ editor }) => {
+      if (isUpdatingRef.current) return // Skip if we're updating programmatically
+
       const html = editor.getHTML()
-      // Only update if content has actually changed and we're not already updating
-      if (html !== htmlContent) {
-        onChange(html)
+
+      // Clean up any unnecessary additional line breaks, especially right before save
+      const cleanedHtml = html
+        .replace(/(\n\s*){3,}/g, "\n\n") // Replace any triple+ line breaks with double
+        .replace(/\n\s*$/g, "") // Remove trailing newlines
+
+      // Only update if content has actually changed
+      if (cleanedHtml !== htmlContent) {
+        onChange(cleanedHtml)
       }
     },
     editorProps: {
@@ -472,8 +486,17 @@ export const RichTextEditor = ({
 
       // Check if the content needs updating - add a slight tolerance for whitespace/formatting differences
       // by comparing normalized versions to avoid unnecessary updates
-      const normalizedInitial = initialContent.replace(/\s+/g, " ").trim()
-      const normalizedEditor = editorContent.replace(/\s+/g, " ").trim()
+      // Note: Preserve line breaks when normalizing by replacing them with placeholders
+      const normalizeContent = (content: string) => {
+        return content
+          .replace(/\n/g, "[[NEWLINE]]") // Preserve newlines
+          .replace(/\s+/g, " ")
+          .trim()
+          .replace(/\[\[NEWLINE\]\]/g, "\n") // Restore newlines
+      }
+
+      const normalizedInitial = normalizeContent(initialContent)
+      const normalizedEditor = normalizeContent(editorContent)
 
       if (normalizedInitial !== normalizedEditor) {
         // Set flag to prevent onUpdate from firing during programmatic changes
@@ -516,8 +539,14 @@ export const RichTextEditor = ({
     // Create a cleanup function that saves content when component unmounts
     return () => {
       if (editor && !editor.isDestroyed) {
-        const content = editor.getHTML()
-        onChange(content)
+        const html = editor.getHTML()
+
+        // Clean up any unnecessary additional line breaks on unmount
+        const cleanedHtml = html
+          .replace(/(\n\s*){3,}/g, "\n\n") // Replace any triple+ line breaks with double
+          .replace(/\n\s*$/g, "") // Remove trailing newlines
+
+        onChange(cleanedHtml)
       }
     }
   }, [editor, onChange])
@@ -550,7 +579,7 @@ export const RichTextEditor = ({
     setLinkUrl("")
     setShowLinkDialog(true)
   }
-  
+
   const insertLink = () => {
     if (!editor || !linkUrl) return
 
@@ -574,7 +603,7 @@ export const RichTextEditor = ({
       description: "The link has been added to your content",
     })
   }
-    
+
   // Image dialog handlers
   const openImageDialog = () => {
     setImageUrl("")
@@ -634,10 +663,18 @@ export const RichTextEditor = ({
       setUploading(false)
     }
   }
-  
+
   const handleHtmlChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setHtmlContent(e.target.value)
-    onChange(e.target.value)
+    const newContent = e.target.value
+
+    // Clean line breaks to prevent duplication
+    const cleanedContent = newContent
+      // Don't normalize line breaks while actively editing in HTML mode
+      // Only remove trailing whitespace/newlines
+      .replace(/\s+$/g, "")
+
+    setHtmlContent(cleanedContent)
+    onChange(cleanedContent)
   }
 
   if (!editor) {
@@ -645,7 +682,7 @@ export const RichTextEditor = ({
       <div className="min-h-[300px] bg-black/30 p-4">Loading editor...</div>
     )
   }
-  
+
   return (
     <div className="w-full bg-black/30">
       <Tabs
@@ -653,11 +690,23 @@ export const RichTextEditor = ({
         onValueChange={(val) => {
           // Auto-save content when switching tabs
           if (htmlMode && val === "visual") {
-            onChange(htmlContent)
+            // Clean line breaks when switching from HTML to visual
+            const cleanedHtml = htmlContent
+              .replace(/(\n\s*){3,}/g, "\n\n") // Replace any triple+ line breaks with double
+              .replace(/\n\s*$/g, "") // Remove trailing newlines
+
+            onChange(cleanedHtml)
+            setHtmlContent(cleanedHtml)
           } else if (!htmlMode && val === "html") {
-            const content = editor.getHTML()
-            setHtmlContent(content)
-            onChange(content)
+            const html = editor.getHTML()
+
+            // Clean line breaks when switching from visual to HTML
+            const cleanedHtml = html
+              .replace(/(\n\s*){3,}/g, "\n\n") // Replace any triple+ line breaks with double
+              .replace(/\n\s*$/g, "") // Remove trailing newlines
+
+            setHtmlContent(cleanedHtml)
+            onChange(cleanedHtml)
           }
           setHtmlMode(val === "html")
         }}

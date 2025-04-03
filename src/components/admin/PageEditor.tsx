@@ -80,10 +80,21 @@ export const PageEditor = ({
   // Memoize the content change handler to prevent recreating it on each render
   const handleContentChange = useCallback(
     (content: string) => {
-      // Use ID-based update to ensure the correct page is modified
-      updatePageById(currentPageId, "content", content)
+      // Use ID-based update to ensure the correct page is modified, preserving line breaks
+      if (content === currentPage.content) {
+        return // Skip update if content hasn't changed
+      }
+
+      // Prevent double line breaks that may be added when saving
+      const cleanedContent = content
+        // Replace any triple+ line breaks with double line breaks
+        .replace(/(\n\s*){3,}/g, "\n\n")
+        // Make sure we don't have extra line breaks at the end
+        .replace(/\n\s*$/g, "")
+
+      updatePageById(currentPageId, "content", cleanedContent)
     },
-    [currentPageId, currentPage.title, updatePageById]
+    [currentPageId, currentPage.content, updatePageById]
   )
 
   return (

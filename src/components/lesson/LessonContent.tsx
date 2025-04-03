@@ -43,6 +43,13 @@ const LessonContent = ({
   const isLastPageOfSection =
     currentPage === currentSectionData.pages.length - 1
 
+  // Process content to ensure line breaks are preserved
+  const processedContent = currentPageData.content
+    // Replace consecutive line breaks with paragraph tags
+    .replace(/(\r\n|\n){2,}/g, "</p><p>")
+    // Replace single line breaks with <br> tags
+    .replace(/(\r\n|\n)/g, "<br>")
+
   return (
     <div className="col-span-3 bg-card/50 rounded-lg p-6 border border-border">
       <div className="mb-6">
@@ -55,7 +62,7 @@ const LessonContent = ({
       </div>
 
       <div className="prose prose-invert lesson-content max-w-none pb-4">
-        {parse(currentPageData.content)}
+        {parse(processedContent)}
       </div>
 
       <LessonNavigation

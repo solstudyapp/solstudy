@@ -368,9 +368,19 @@ export const LessonEditor = ({
     if (lastSavedContent === newContent) {
       return
     }
+
     // Normalize content to avoid unnecessary updates due to minor formatting differences
-    const normalizedNewContent = newContent.replace(/\s+/g, " ").trim()
-    const normalizedCurrentContent = currentContent.replace(/\s+/g, " ").trim()
+    // But preserve intentional line breaks by using placeholders
+    const normalizeForComparison = (content) => {
+      return content
+        .replace(/\n/g, "[[NEWLINE]]") // Preserve newlines
+        .replace(/\s+/g, " ")
+        .trim()
+        .replace(/\[\[NEWLINE\]\]/g, "\n") // Restore newlines
+    }
+
+    const normalizedNewContent = normalizeForComparison(newContent)
+    const normalizedCurrentContent = normalizeForComparison(currentContent)
 
     // Only update if content has actually changed
     if (newContent && normalizedNewContent !== normalizedCurrentContent) {
@@ -406,7 +416,6 @@ export const LessonEditor = ({
 
         return updated
       })
-    } else {
     }
   }
 

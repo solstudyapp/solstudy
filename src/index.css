@@ -169,6 +169,16 @@
 .lesson-content li {
   margin-bottom: 0.25rem;
 }
+/* Fix line breaks in lesson content */
+.lesson-content p {
+  margin: 1rem 0;
+  white-space: pre-wrap;
+}
+
+/* Ensure paragraphs in the editor keep their line breaks */
+.paragraph-with-breaks {
+  white-space: pre-wrap;
+}
 /* Rich text editor table styles */
 .ProseMirror table {
   border-collapse: collapse;
