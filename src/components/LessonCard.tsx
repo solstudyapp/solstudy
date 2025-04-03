@@ -25,6 +25,11 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
     availableCourses,
   } = usePrerequisites()
 
+  console.log("lesson", lesson)
+
+  // Check if this lesson is completed - handle case when not logged in
+  const isCompleted = lesson.isCompleted || false
+
   const handleStartLesson = () => {
     // Check prerequisites for intermediate and advanced courses
     // if (lesson.difficulty !== "beginner") {
@@ -48,6 +53,8 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
       <Card
         className={cn(
           "overflow-hidden transition-all duration-300 glass-card border-0 group relative cursor-pointer h-full flex flex-col",
+          // Apply grayscale filter to completed lessons, keep on hover
+          isCompleted && "filter grayscale transition-all",
           lesson.difficulty === "beginner" &&
             "bg-gradient-to-br from-green-400/10 to-emerald-500/20",
           lesson.difficulty === "intermediate" &&
@@ -60,7 +67,9 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
         onMouseLeave={() => setIsHovered(false)}
         onClick={handleStartLesson}
       >
-        <div className="absolute top-0 right-0 bg-background/40 backdrop-blur-sm text-foreground px-3 py-1 text-xs font-medium"></div>
+        <div className="absolute top-0 right-0 bg-background/40 backdrop-blur-sm text-foreground px-3 py-1 text-xs font-medium">
+          {isCompleted && "Completed"}
+        </div>
 
         <CardHeader className="pb-0">
           <div className="flex justify-between items-start">
@@ -77,7 +86,12 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
               <div />
             )}
           </div>
-          <h3 className="text-xl font-bold text-foreground mt-2">
+          <h3
+            className={cn(
+              "text-xl font-bold text-foreground mt-2",
+              lesson.isCompleted && "text-muted-foreground"
+            )}
+          >
             {lesson.title}
           </h3>
         </CardHeader>
@@ -140,7 +154,9 @@ const LessonCard = ({ lesson }: LessonCardProps) => {
               handleStartLesson()
             }}
           >
-            <span className="mr-auto">Start Learning</span>
+            <span className="mr-auto">
+              {isCompleted ? "Review Lesson" : "Start Learning"}
+            </span>
             <ChevronRight
               size={18}
               className="transition-transform duration-300 group-hover:translate-x-1"

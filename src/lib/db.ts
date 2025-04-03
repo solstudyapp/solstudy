@@ -3,23 +3,57 @@ import { Section, Page, LessonType } from '@/types/lesson';
 
 // Lesson operations
 export async function fetchAllLessons(): Promise<LessonType[]> {
-  const { data, error } = await supabase
-    .from('lessons')
-    .select(`*,
-      sponsor:sponsors (
-        id,
-        name,
-        logo_url
-      )
-    `)
-    .order('title', { ascending: true });
-
-  if (error) {
-    console.error('Error fetching lessons:', error);
+  try {
+    // Get the current user
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    // Base query to get lessons with sponsor data
+    let query = supabase
+      .from('lessons')
+      .select(`*,
+        sponsor:sponsors (
+          id,
+          name,
+          logo_url
+        )
+      `)
+      .order('title', { ascending: true })
+    
+    // If user is logged in, include progress data filtered by user
+    if (user) {
+      // Add user_progress to the query with proper filter
+      query = supabase
+        .from('lessons')
+        .select(`*,
+          user_progress (
+            id,
+            user_id,
+            lesson_id,
+            is_completed
+          ),
+          sponsor:sponsors (
+            id,
+            name,
+            logo_url
+          )
+        `)
+        .eq('user_progress.user_id', user.id)
+        .order('title', { ascending: true })
+    }
+    
+    // Execute the query
+    const { data, error } = await query
+    
+    if (error) {
+      console.error('Error fetching lessons:', error);
+      return [];
+    }
+    
+    return data || [];
+  } catch (error) {
+    console.error('Error in fetchAllLessons:', error);
     return [];
   }
-
-  return data || [];
 }
 
 export async function fetchLessonById(id: string | number): Promise<LessonType | null> {

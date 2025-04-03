@@ -32,6 +32,7 @@ export type LessonType = {
   points: number;
   bonusLesson?: boolean;
   progress?: number;
+  isCompleted?: boolean;
 };
 
 export interface Question {
@@ -78,9 +79,16 @@ export interface DbLessonData {
     name: string;
     logo_url: string;
   };
+  user_progress?: {
+    id: string;
+    user_id: string;
+    lesson_id: string;
+    is_completed: boolean;
+  }[];
   points?: number;
   icon?: string; // Store icon as string in DB
   bonusLesson?: boolean;
+  isCompleted?: boolean;
 }
 
 export interface DbSection {

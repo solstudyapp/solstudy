@@ -4,7 +4,6 @@ import { LessonType, Section, Page, DbLessonData, DbSection, DbPage } from "@/ty
  * Convert database lesson data to frontend lesson type
  */
 export function dbToFrontendLesson(lesson: DbLessonData): LessonType {
-  
   return {
     id: typeof lesson.id === 'string' ? lesson.id : lesson.id.toString(),
     title: lesson.title,
@@ -22,6 +21,7 @@ export function dbToFrontendLesson(lesson: DbLessonData): LessonType {
     bonusLesson: lesson.bonusLesson || false,
     sponsorName: lesson.sponsor?.name || "",
     sponsorId: null,
+    isCompleted: lesson.user_progress?.[0]?.is_completed || false,
   };
 }
 
