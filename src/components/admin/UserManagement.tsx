@@ -223,6 +223,7 @@ const UserManagement = () => {
     setNewPassword("")
     setShowPassword(false)
     setShowPasswordResetDialog(true)
+    setResettingPassword(false)
   }
 
   const confirmPasswordReset = async () => {
@@ -825,6 +826,7 @@ const UserManagement = () => {
                 setNewPassword("");
               }}
               className="border-white/20 text-white hover:bg-white/10"
+              disabled={resettingPassword}
             >
               Cancel
             </Button>

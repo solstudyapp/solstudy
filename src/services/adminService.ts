@@ -1,3 +1,4 @@
+
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 
@@ -27,25 +28,26 @@ export async function resetUserPassword(userId: string, newPassword: string): Pr
       };
     }
 
-    // Call the Edge Function directly
+    // Call the Edge Function
     const { data, error } = await supabase.functions.invoke('admin-reset-password', {
       body: { userId, newPassword }
     });
     
+    // Handle network errors
     if (error) {
       console.error('Error calling admin-reset-password function:', error);
       return {
         success: false,
-        error: `Failed to call password reset function: ${error.message}`
+        error: 'Failed to connect to the password reset service'
       };
     }
     
-    // Check for error response from the function
-    if (data && data.error) {
+    // The function might return { success: false, error: '...' }
+    if (data && !data.success) {
       console.error('Edge function returned error:', data.error);
       return {
         success: false,
-        error: data.error
+        error: data.error || 'Password reset failed'
       };
     }
     

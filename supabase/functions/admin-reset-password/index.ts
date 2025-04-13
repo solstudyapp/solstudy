@@ -122,7 +122,11 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in admin-reset-password function:', error);
     return new Response(
-      JSON.stringify({ success: false, error: error.message || 'An unknown error occurred' }),
+      JSON.stringify({ 
+        success: false, 
+        error: error.message || 'An unknown error occurred',
+        details: JSON.stringify(error)
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }
