@@ -116,7 +116,7 @@ serve(async (req) => {
 
     // Return success response
     return new Response(
-      JSON.stringify({ success: true, data }),
+      JSON.stringify({ success: true, message: 'Password reset successfully' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     );
   } catch (error) {

@@ -221,6 +221,7 @@ const UserManagement = () => {
   const handlePasswordReset = (user: User) => {
     setCurrentUser(user)
     setNewPassword("")
+    setShowPassword(false)
     setShowPasswordResetDialog(true)
   }
 
@@ -240,6 +241,7 @@ const UserManagement = () => {
         setCurrentUser(null)
         setNewPassword("")
       } else {
+        console.error("Password reset error:", result.error)
         toast({
           title: "Password Reset Failed",
           description: result.error || "Failed to reset password",
@@ -763,7 +765,15 @@ const UserManagement = () => {
 
       <Dialog 
         open={showPasswordResetDialog} 
-        onOpenChange={setShowPasswordResetDialog}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowPasswordResetDialog(false)
+            setResettingPassword(false)
+            setNewPassword("")
+          } else {
+            setShowPasswordResetDialog(open)
+          }
+        }}
       >
         <DialogContent className="bg-[#1A1F2C] text-white border-white/10">
           <DialogHeader>
@@ -811,6 +821,7 @@ const UserManagement = () => {
               variant="outline"
               onClick={() => {
                 setShowPasswordResetDialog(false)
+                setResettingPassword(false)
                 setNewPassword("")
               }}
               className="border-white/20 text-white hover:bg-white/10"

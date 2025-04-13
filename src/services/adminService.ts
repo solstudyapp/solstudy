@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 
@@ -49,16 +48,7 @@ export async function resetUserPassword(userId: string, newPassword: string): Pr
     // If the database function was successful, call the Edge Function to actually reset the password
     if (data && data.success) {
       try {
-        // Get the current authentication header for the Edge Function call
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          return {
-            success: false,
-            error: 'Authentication required to reset password'
-          };
-        }
-
-        // Call the Edge Function with the auth header
+        // Call the Edge Function directly
         const { data: edgeData, error: edgeError } = await supabase.functions.invoke('admin-reset-password', {
           body: { userId, newPassword }
         });
@@ -72,6 +62,7 @@ export async function resetUserPassword(userId: string, newPassword: string): Pr
         }
         
         if (edgeData && edgeData.error) {
+          console.error('Edge function returned error:', edgeData.error);
           return {
             success: false,
             error: edgeData.error
