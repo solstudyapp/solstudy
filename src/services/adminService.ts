@@ -1,3 +1,4 @@
+
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 
@@ -45,26 +46,50 @@ export async function resetUserPassword(userId: string, newPassword: string): Pr
       };
     }
 
-    // Get the current authentication token for the Edge Function call
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      return {
-        success: false,
-        error: 'Authentication required to reset password'
-      };
-    }
-
-    // If the database function was successful, update the password directly
+    // If the database function was successful, call the Edge Function to actually reset the password
     if (data && data.success) {
-      // For development environments without Edge Functions, simulate success
-      // In production, this would be replaced with the actual Edge Function call
-      console.log('Password reset successful for user ID:', userId);
-      
-      // Return success without trying to call the Edge Function
-      return {
-        success: true,
-        data: { message: 'Password reset successful' }
-      };
+      try {
+        // Get the current authentication header for the Edge Function call
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          return {
+            success: false,
+            error: 'Authentication required to reset password'
+          };
+        }
+
+        // Call the Edge Function with the auth header
+        const { data: edgeData, error: edgeError } = await supabase.functions.invoke('admin-reset-password', {
+          body: { userId, newPassword }
+        });
+        
+        if (edgeError) {
+          console.error('Error calling admin-reset-password function:', edgeError);
+          return {
+            success: false,
+            error: edgeError.message
+          };
+        }
+        
+        if (edgeData && edgeData.error) {
+          return {
+            success: false,
+            error: edgeData.error
+          };
+        }
+        
+        return {
+          success: true,
+          data: edgeData
+        };
+      } catch (edgeFunctionError) {
+        console.error('Exception in Edge Function call:', edgeFunctionError);
+        // If we can't call the Edge Function, return a clear error
+        return {
+          success: false,
+          error: edgeFunctionError instanceof Error ? edgeFunctionError.message : 'Error calling password reset function'
+        };
+      }
     } else {
       return {
         success: false,
