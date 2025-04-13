@@ -45,11 +45,14 @@ import {
   Edit,
   RefreshCw,
   Loader2,
+  KeyRound,
+  EyeOff,
 } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import { supabase } from "@/lib/supabase"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { formatDistanceToNow } from "date-fns"
+import { resetUserPassword } from "@/services/adminService"
 
 interface User {
   id: string
@@ -93,6 +96,10 @@ const UserManagement = () => {
   const [airdropAmount, setAirdropAmount] = useState("50")
   const [currentPage, setCurrentPage] = useState(1)
   const [currentUser, setCurrentUser] = useState<User | null>(null)
+  const [showPasswordResetDialog, setShowPasswordResetDialog] = useState(false)
+  const [newPassword, setNewPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+  const [resettingPassword, setResettingPassword] = useState(false)
   const pageSize = 5
 
   useEffect(() => {
@@ -205,6 +212,57 @@ const UserManagement = () => {
 
     setShowDeleteDialog(false)
     setCurrentUser(null)
+  }
+
+  const handlePasswordReset = (user: User) => {
+    setCurrentUser(user)
+    setNewPassword("")
+    setShowPasswordResetDialog(true)
+  }
+
+  const confirmPasswordReset = async () => {
+    if (!currentUser || !newPassword) return
+    
+    setResettingPassword(true)
+    try {
+      const result = await resetUserPassword(currentUser.id, newPassword)
+      
+      if (result.success) {
+        toast({
+          title: "Password Reset",
+          description: `Password for ${currentUser.name} has been reset.`,
+        })
+      } else {
+        toast({
+          title: "Error",
+          description: result.error || "Failed to reset password",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Error resetting password:", error)
+      toast({
+        title: "Error",
+        description: "Failed to reset password",
+        variant: "destructive",
+      })
+    } finally {
+      setResettingPassword(false)
+      setShowPasswordResetDialog(false)
+      setCurrentUser(null)
+      setNewPassword("")
+    }
+  }
+
+  const generateRandomPassword = () => {
+    const length = 12
+    const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*"
+    let password = ""
+    for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * charset.length)
+      password += charset[randomIndex]
+    }
+    setNewPassword(password)
   }
 
   const confirmSingleAirdrop = async () => {
@@ -428,6 +486,12 @@ const UserManagement = () => {
                             Settings
                           </DropdownMenuItem>
                           <DropdownMenuItem
+                            onClick={() => handlePasswordReset(user)}
+                          >
+                            <KeyRound className="mr-2 h-4 w-4" />
+                            Reset Password
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
                             className="text-red-600"
                             onClick={() => handleDeleteUser(user)}
                           >
@@ -631,6 +695,84 @@ const UserManagement = () => {
             >
               <CheckCircle size={16} className="mr-2" />
               Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Password Reset Dialog */}
+      <Dialog 
+        open={showPasswordResetDialog} 
+        onOpenChange={setShowPasswordResetDialog}
+      >
+        <DialogContent className="bg-[#1A1F2C] text-white border-white/10">
+          <DialogHeader>
+            <DialogTitle>Reset Password</DialogTitle>
+            <DialogDescription className="text-white/70">
+              Reset password for {currentUser?.name}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4 space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">New Password</label>
+              <div className="relative">
+                <Input
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="bg-white/10 border-white/20 text-white pr-10"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter new password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-white/70 hover:text-white"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              onClick={generateRandomPassword}
+              className="w-full border-white/20 text-white hover:bg-white/10"
+            >
+              Generate Random Password
+            </Button>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowPasswordResetDialog(false)
+                setNewPassword("")
+              }}
+              className="border-white/20 text-white hover:bg-white/10"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmPasswordReset}
+              className="bg-[#14F195] text-[#1A1F2C] hover:bg-[#14F195]/90"
+              disabled={resettingPassword || !newPassword}
+            >
+              {resettingPassword ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Resetting...
+                </>
+              ) : (
+                <>
+                  <KeyRound size={16} className="mr-2" />
+                  Reset Password
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
