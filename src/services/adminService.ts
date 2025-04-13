@@ -28,22 +28,46 @@ export async function resetUserPassword(userId: string, newPassword: string): Pr
       };
     }
 
-    // Instead of using Supabase's admin API directly, we'll call our Edge Function
-    // which will verify admin status and then use service role key to reset the password
-    const { data, error } = await supabase.functions.invoke('admin-reset-password', {
-      body: { userId, newPassword }
-    });
+    // Call database function for password reset
+    // This function will check admin status and handle the reset securely
+    const { data, error } = await supabase.rpc(
+      'admin_reset_user_password',
+      { 
+        target_user_id: userId, 
+        new_password: newPassword 
+      }
+    );
 
     if (error) {
-      console.error('Error calling admin-reset-password function:', error);
+      console.error('Error calling admin_reset_user_password function:', error);
       return {
         success: false,
         error: error.message
       };
     }
 
-    // Edge function returns a standardized response
-    if (data.error) {
+    // If the password needs to be actually reset, we still need to use the Edge Function
+    // The database function just handles authorization and logging
+    if (data.success) {
+      const { data: edgeData, error: edgeError } = await supabase.functions.invoke('admin-reset-password', {
+        body: { userId, newPassword }
+      });
+      
+      if (edgeError) {
+        console.error('Error calling admin-reset-password function:', edgeError);
+        return {
+          success: false,
+          error: edgeError.message
+        };
+      }
+      
+      if (edgeData.error) {
+        return {
+          success: false,
+          error: edgeData.error
+        };
+      }
+    } else {
       return {
         success: false,
         error: data.error
@@ -122,53 +146,24 @@ export async function getAllUsers(): Promise<AdminResponse> {
  */
 export async function grantAdminPrivileges(userId: string): Promise<AdminResponse> {
   try {
-    // Verify that the current user is an admin
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      return {
-        success: false,
-        error: 'Authentication required'
-      };
-    }
-    
-    // Check if current user is an admin
-    const { data: adminData, error: adminCheckError } = await supabase
-      .from('admins')
-      .select('id')
-      .eq('user_id', user.id)
-      .single();
-      
-    if (adminCheckError || !adminData) {
-      return {
-        success: false,
-        error: 'You do not have admin privileges to perform this action'
-      };
-    }
-    
-    // First check if the user is already an admin
-    const { data: existingAdmin, error: checkError } = await supabase
-      .from('admins')
-      .select('id')
-      .eq('user_id', userId)
-      .single();
-
-    if (existingAdmin) {
-      return {
-        success: false,
-        error: 'User already has admin privileges'
-      };
-    }
-
-    // Add the user to the admins table
-    const { data, error } = await supabase
-      .from('admins')
-      .insert([{ user_id: userId }]);
+    // Call the secure database function to grant admin privileges
+    const { data, error } = await supabase.rpc(
+      'grant_admin_privileges',
+      { target_user_id: userId }
+    );
 
     if (error) {
+      console.error('Error granting admin privileges:', error);
       return {
         success: false,
         error: error.message
+      };
+    }
+
+    if (!data.success) {
+      return {
+        success: false,
+        error: data.error
       };
     }
 
@@ -191,47 +186,24 @@ export async function grantAdminPrivileges(userId: string): Promise<AdminRespons
  */
 export async function revokeAdminPrivileges(userId: string): Promise<AdminResponse> {
   try {
-    // Verify that the current user is an admin
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      return {
-        success: false,
-        error: 'Authentication required'
-      };
-    }
-    
-    // Check if current user is an admin
-    const { data: adminData, error: adminCheckError } = await supabase
-      .from('admins')
-      .select('id')
-      .eq('user_id', user.id)
-      .single();
-      
-    if (adminCheckError || !adminData) {
-      return {
-        success: false,
-        error: 'You do not have admin privileges to perform this action'
-      };
-    }
-    
-    // Prevent users from removing their own admin privileges
-    if (userId === user.id) {
-      return {
-        success: false,
-        error: 'You cannot remove your own admin privileges'
-      };
-    }
-
-    const { data, error } = await supabase
-      .from('admins')
-      .delete()
-      .eq('user_id', userId);
+    // Call the secure database function to revoke admin privileges
+    const { data, error } = await supabase.rpc(
+      'revoke_admin_privileges',
+      { target_user_id: userId }
+    );
 
     if (error) {
+      console.error('Error revoking admin privileges:', error);
       return {
         success: false,
         error: error.message
+      };
+    }
+
+    if (!data.success) {
+      return {
+        success: false,
+        error: data.error
       };
     }
 
