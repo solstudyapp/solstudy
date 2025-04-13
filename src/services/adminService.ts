@@ -28,6 +28,15 @@ export async function resetUserPassword(userId: string, newPassword: string): Pr
       };
     }
 
+    // Get the current session for the auth header
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      return {
+        success: false,
+        error: 'You must be logged in to perform this action'
+      };
+    }
+
     // Call the Edge Function
     const { data, error } = await supabase.functions.invoke('admin-reset-password', {
       body: { userId, newPassword }
@@ -43,11 +52,11 @@ export async function resetUserPassword(userId: string, newPassword: string): Pr
     }
     
     // The function might return { success: false, error: '...' }
-    if (data && !data.success) {
-      console.error('Edge function returned error:', data.error);
+    if (!data || data.success === false) {
+      console.error('Edge function returned error:', data?.error);
       return {
         success: false,
-        error: data.error || 'Password reset failed'
+        error: data?.error || 'Password reset failed'
       };
     }
     

@@ -769,10 +769,8 @@ const UserManagement = () => {
         onOpenChange={(open) => {
           if (!open) {
             setShowPasswordResetDialog(false);
-            setResettingPassword(false);
             setNewPassword("");
-          } else {
-            setShowPasswordResetDialog(open);
+            setResettingPassword(false);
           }
         }}
       >
@@ -812,6 +810,7 @@ const UserManagement = () => {
               variant="outline"
               onClick={generateRandomPassword}
               className="w-full border-white/20 text-white hover:bg-white/10"
+              disabled={resettingPassword}
             >
               Generate Random Password
             </Button>
@@ -822,8 +821,8 @@ const UserManagement = () => {
               variant="outline"
               onClick={() => {
                 setShowPasswordResetDialog(false);
-                setResettingPassword(false);
                 setNewPassword("");
+                setResettingPassword(false);
               }}
               className="border-white/20 text-white hover:bg-white/10"
               disabled={resettingPassword}

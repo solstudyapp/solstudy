@@ -101,7 +101,7 @@ serve(async (req) => {
     }
 
     // Use the service role client to reset the user's password
-    const { data, error } = await supabaseAdmin.auth.admin.updateUserById(
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(
       userId,
       { password: newPassword }
     );
@@ -125,7 +125,6 @@ serve(async (req) => {
       JSON.stringify({ 
         success: false, 
         error: error.message || 'An unknown error occurred',
-        details: JSON.stringify(error)
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
