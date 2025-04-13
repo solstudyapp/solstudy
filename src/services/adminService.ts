@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 
@@ -28,33 +27,31 @@ export async function resetUserPassword(userId: string, newPassword: string): Pr
       };
     }
 
-    // Use Supabase's updateUserById API
-    // Note: This requires that the calling user has admin privileges
-    const { data, error } = await supabase.auth.admin.updateUserById(
-      userId,
-      { password: newPassword }
-    );
+    // Instead of using Supabase's admin API directly, we'll call our Edge Function
+    // which will verify admin status and then use service role key to reset the password
+    const { data, error } = await supabase.functions.invoke('admin-reset-password', {
+      body: { userId, newPassword }
+    });
 
     if (error) {
-      console.error('Error in resetUserPassword:', error);
-      
-      // Check specific error messages from Supabase
-      if (error.message.includes('not allowed')) {
-        return {
-          success: false,
-          error: 'Your account does not have admin privileges to perform this action'
-        };
-      }
-      
+      console.error('Error calling admin-reset-password function:', error);
       return {
         success: false,
         error: error.message
       };
     }
 
+    // Edge function returns a standardized response
+    if (data.error) {
+      return {
+        success: false,
+        error: data.error
+      };
+    }
+
     return {
       success: true,
-      data
+      data: data
     };
   } catch (error) {
     console.error('Error resetting user password:', error);
