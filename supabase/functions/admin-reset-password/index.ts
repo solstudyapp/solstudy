@@ -35,7 +35,7 @@ serve(async (req) => {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(
-        JSON.stringify({ error: 'Missing authorization header' }),
+        JSON.stringify({ success: false, error: 'Missing authorization header' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
       );
     }
@@ -62,7 +62,7 @@ serve(async (req) => {
 
     if (userError || !user) {
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
+        JSON.stringify({ success: false, error: 'Unauthorized' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
       );
     }
@@ -76,7 +76,7 @@ serve(async (req) => {
 
     if (adminError || !adminData) {
       return new Response(
-        JSON.stringify({ error: 'You do not have admin privileges' }),
+        JSON.stringify({ success: false, error: 'You do not have admin privileges' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
       );
     }
@@ -87,7 +87,7 @@ serve(async (req) => {
 
     if (!userId || !newPassword) {
       return new Response(
-        JSON.stringify({ error: 'Missing required fields: userId and newPassword' }),
+        JSON.stringify({ success: false, error: 'Missing required fields: userId and newPassword' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
     }
@@ -95,7 +95,7 @@ serve(async (req) => {
     // Validate the new password
     if (newPassword.length < 6) {
       return new Response(
-        JSON.stringify({ error: 'Password must be at least 6 characters long' }),
+        JSON.stringify({ success: false, error: 'Password must be at least 6 characters long' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
     }
@@ -109,7 +109,7 @@ serve(async (req) => {
     if (error) {
       console.error('Error updating user password:', error);
       return new Response(
-        JSON.stringify({ error: error.message }),
+        JSON.stringify({ success: false, error: error.message }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
       );
     }
@@ -122,7 +122,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in admin-reset-password function:', error);
     return new Response(
-      JSON.stringify({ error: error.message || 'An unknown error occurred' }),
+      JSON.stringify({ success: false, error: error.message || 'An unknown error occurred' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }

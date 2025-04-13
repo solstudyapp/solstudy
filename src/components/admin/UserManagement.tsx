@@ -226,37 +226,37 @@ const UserManagement = () => {
   }
 
   const confirmPasswordReset = async () => {
-    if (!currentUser || !newPassword) return
+    if (!currentUser || !newPassword) return;
     
-    setResettingPassword(true)
+    setResettingPassword(true);
     try {
-      const result = await resetUserPassword(currentUser.id, newPassword)
+      const result = await resetUserPassword(currentUser.id, newPassword);
       
       if (result.success) {
         toast({
           title: "Password Reset",
           description: `Password for ${currentUser.name} has been reset.`,
-        })
-        setShowPasswordResetDialog(false)
-        setCurrentUser(null)
-        setNewPassword("")
+        });
+        setShowPasswordResetDialog(false);
+        setCurrentUser(null);
+        setNewPassword("");
       } else {
-        console.error("Password reset error:", result.error)
+        console.error("Password reset error:", result.error);
         toast({
           title: "Password Reset Failed",
           description: result.error || "Failed to reset password",
           variant: "destructive",
-        })
+        });
       }
     } catch (error) {
-      console.error("Error resetting password:", error)
+      console.error("Error resetting password:", error);
       toast({
         title: "Error",
         description: "Failed to reset password",
         variant: "destructive",
-      })
+      });
     } finally {
-      setResettingPassword(false)
+      setResettingPassword(false);
     }
   }
 
@@ -767,11 +767,11 @@ const UserManagement = () => {
         open={showPasswordResetDialog} 
         onOpenChange={(open) => {
           if (!open) {
-            setShowPasswordResetDialog(false)
-            setResettingPassword(false)
-            setNewPassword("")
+            setShowPasswordResetDialog(false);
+            setResettingPassword(false);
+            setNewPassword("");
           } else {
-            setShowPasswordResetDialog(open)
+            setShowPasswordResetDialog(open);
           }
         }}
       >
@@ -820,9 +820,9 @@ const UserManagement = () => {
             <Button
               variant="outline"
               onClick={() => {
-                setShowPasswordResetDialog(false)
-                setResettingPassword(false)
-                setNewPassword("")
+                setShowPasswordResetDialog(false);
+                setResettingPassword(false);
+                setNewPassword("");
               }}
               className="border-white/20 text-white hover:bg-white/10"
             >

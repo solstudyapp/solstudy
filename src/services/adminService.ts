@@ -27,66 +27,33 @@ export async function resetUserPassword(userId: string, newPassword: string): Pr
       };
     }
 
-    // Call database function for password reset
-    // This function will check admin status and handle the reset securely
-    const { data, error } = await supabase.rpc(
-      'admin_reset_user_password',
-      { 
-        target_user_id: userId, 
-        new_password: newPassword 
-      }
-    );
-
+    // Call the Edge Function directly
+    const { data, error } = await supabase.functions.invoke('admin-reset-password', {
+      body: { userId, newPassword }
+    });
+    
     if (error) {
-      console.error('Error calling admin_reset_user_password function:', error);
+      console.error('Error calling admin-reset-password function:', error);
       return {
         success: false,
-        error: error.message
+        error: `Failed to call password reset function: ${error.message}`
       };
     }
-
-    // If the database function was successful, call the Edge Function to actually reset the password
-    if (data && data.success) {
-      try {
-        // Call the Edge Function directly
-        const { data: edgeData, error: edgeError } = await supabase.functions.invoke('admin-reset-password', {
-          body: { userId, newPassword }
-        });
-        
-        if (edgeError) {
-          console.error('Error calling admin-reset-password function:', edgeError);
-          return {
-            success: false,
-            error: edgeError.message
-          };
-        }
-        
-        if (edgeData && edgeData.error) {
-          console.error('Edge function returned error:', edgeData.error);
-          return {
-            success: false,
-            error: edgeData.error
-          };
-        }
-        
-        return {
-          success: true,
-          data: edgeData
-        };
-      } catch (edgeFunctionError) {
-        console.error('Exception in Edge Function call:', edgeFunctionError);
-        // If we can't call the Edge Function, return a clear error
-        return {
-          success: false,
-          error: edgeFunctionError instanceof Error ? edgeFunctionError.message : 'Error calling password reset function'
-        };
-      }
-    } else {
+    
+    // Check for error response from the function
+    if (data && data.error) {
+      console.error('Edge function returned error:', data.error);
       return {
         success: false,
-        error: data?.error || 'Unknown error in database function'
+        error: data.error
       };
     }
+    
+    // If we got here, the reset was successful
+    return {
+      success: true,
+      data
+    };
   } catch (error) {
     console.error('Error resetting user password:', error);
     return {
