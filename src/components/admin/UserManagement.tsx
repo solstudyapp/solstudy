@@ -38,9 +38,6 @@ import {
   Trash,
   Settings,
   CheckCircle,
-  ChevronLeft,
-  ChevronRight,
-  MoreHorizontal,
   Eye,
   Edit,
   RefreshCw,
@@ -53,6 +50,15 @@ import { supabase } from "@/lib/supabase"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { formatDistanceToNow } from "date-fns"
 import { resetUserPassword } from "@/services/adminService"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 
 interface User {
   id: string
@@ -108,13 +114,11 @@ const UserManagement = () => {
 
   const fetchUsers = async () => {
     try {
-      // Get user profiles
       const { data: profiles, error: profilesError } = await supabase
         .from("user_profiles")
         .select("*")
       if (profilesError) throw profilesError
 
-      // Transform profiles to match User interface
       const transformedUsers = (profiles || []).map((profile) => ({
         id: profile.user_id,
         name: profile.full_name || "Unknown",
@@ -199,7 +203,6 @@ const UserManagement = () => {
         description: `${currentUser.name} has been deleted.`,
       })
 
-      // Refresh users list
       fetchUsers()
     } catch (error) {
       console.error("Error deleting user:", error)
@@ -283,7 +286,6 @@ const UserManagement = () => {
         description: `${airdropAmount} points sent to ${currentUser.name}.`,
       })
 
-      // Refresh users list
       fetchUsers()
     } catch (error) {
       console.error("Error sending points:", error)
@@ -302,7 +304,6 @@ const UserManagement = () => {
     if (selectedUsers.length === 0) return
 
     try {
-      // Update points for all selected users
       const updates = selectedUsers.map((userId) => {
         const user = users.find((u) => u.id === userId)
         return supabase
@@ -320,7 +321,6 @@ const UserManagement = () => {
         description: `${airdropAmount} points sent to ${selectedUsers.length} users.`,
       })
 
-      // Refresh users list
       fetchUsers()
     } catch (error) {
       console.error("Error sending bulk points:", error)
@@ -356,7 +356,6 @@ const UserManagement = () => {
         description: `Settings for ${currentUser.name} have been updated.`,
       })
 
-      // Refresh users list
       fetchUsers()
     } catch (error) {
       console.error("Error updating user settings:", error)
@@ -369,6 +368,71 @@ const UserManagement = () => {
 
     setShowUserSettingsDialog(false)
     setCurrentUser(null)
+  }
+
+  const generatePaginationItems = () => {
+    const items = [];
+    const maxVisiblePages = 5;
+    
+    items.push(
+      <PaginationItem key="page-1">
+        <PaginationLink 
+          onClick={() => setCurrentPage(1)}
+          isActive={currentPage === 1}
+        >
+          1
+        </PaginationLink>
+      </PaginationItem>
+    );
+
+    let startPage = Math.max(2, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages - 1, startPage + maxVisiblePages - 3);
+    
+    if (endPage < startPage) endPage = startPage;
+    
+    if (startPage > 2) {
+      items.push(
+        <PaginationItem key="ellipsis-1">
+          <PaginationEllipsis />
+        </PaginationItem>
+      );
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+      items.push(
+        <PaginationItem key={`page-${i}`}>
+          <PaginationLink 
+            onClick={() => setCurrentPage(i)}
+            isActive={currentPage === i}
+          >
+            {i}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    }
+    
+    if (endPage < totalPages - 1) {
+      items.push(
+        <PaginationItem key="ellipsis-2">
+          <PaginationEllipsis />
+        </PaginationItem>
+      );
+    }
+    
+    if (totalPages > 1) {
+      items.push(
+        <PaginationItem key={`page-${totalPages}`}>
+          <PaginationLink 
+            onClick={() => setCurrentPage(totalPages)}
+            isActive={currentPage === totalPages}
+          >
+            {totalPages}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    }
+    
+    return items;
   }
 
   if (loading) {
@@ -508,30 +572,26 @@ const UserManagement = () => {
           </div>
 
           {totalPages > 1 && (
-            <div className="flex items-center justify-end space-x-2 py-4">
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-white/20 text-white hover:bg-white/10"
-                onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-                disabled={currentPage === 1}
-              >
-                <ChevronLeft size={16} />
-              </Button>
-              <span className="text-sm text-white/70">
-                Page {currentPage} of {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-white/20 text-white hover:bg-white/10"
-                onClick={() =>
-                  setCurrentPage((page) => Math.min(totalPages, page + 1))
-                }
-                disabled={currentPage === totalPages}
-              >
-                <ChevronRight size={16} />
-              </Button>
+            <div className="py-4">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                      className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                    />
+                  </PaginationItem>
+                  
+                  {generatePaginationItems()}
+                  
+                  <PaginationItem>
+                    <PaginationNext 
+                      onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
             </div>
           )}
         </CardContent>
@@ -700,7 +760,6 @@ const UserManagement = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Password Reset Dialog */}
       <Dialog 
         open={showPasswordResetDialog} 
         onOpenChange={setShowPasswordResetDialog}
