@@ -22,6 +22,8 @@ import { SocialAuthButtons } from "@/components/auth/SocialAuthButtons"
 import { FEATURES } from "@/config/features"
 import { getReferralCodeByCode } from "@/services/referralService"
 import { toast } from "@/hooks/use-toast"
+import { AdminPasswordReset } from "@/components/admin/AdminPasswordReset"
+import { isUserAdmin } from "@/services/admin"
 
 type LocationState = {
   from?: {
@@ -47,8 +49,8 @@ const AuthPage = ({ defaultTab = "signin" }: AuthPageProps) => {
   const location = useLocation()
   const [searchParams] = useSearchParams()
   const state = location.state as LocationState
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  // Check for referral code in URL
   useEffect(() => {
     const ref = searchParams.get("ref")
     if (ref) {
@@ -57,7 +59,6 @@ const AuthPage = ({ defaultTab = "signin" }: AuthPageProps) => {
     }
   }, [searchParams])
 
-  // Check if the referral code is valid
   const checkReferralCode = async (code: string) => {
     const response = await getReferralCodeByCode(code)
     if (response.success && response.data) {
@@ -75,7 +76,17 @@ const AuthPage = ({ defaultTab = "signin" }: AuthPageProps) => {
     }
   }
 
-  // Redirect if user is already logged in
+  useEffect(() => {
+    const checkAdmin = async () => {
+      if (user) {
+        const adminStatus = await isUserAdmin();
+        setIsAdmin(adminStatus);
+      }
+    };
+    
+    checkAdmin();
+  }, [user])
+
   useEffect(() => {
     if (user) {
       navigate(state?.from?.pathname || "/")
@@ -83,7 +94,7 @@ const AuthPage = ({ defaultTab = "signin" }: AuthPageProps) => {
   }, [user, navigate, state])
 
   const handleEmailAuth = async (isSignUp: boolean) => {
-    setError(null) // Clear any previous errors
+    setError(null)
 
     if (!email || !password) {
       setError("Please enter both email and password")
@@ -91,7 +102,6 @@ const AuthPage = ({ defaultTab = "signin" }: AuthPageProps) => {
     }
 
     if (isSignUp) {
-      // Pass the referral info if available
       const success = await handleSignUp(email, password, referrerInfo)
       if (success) {
         navigate("/email-confirmation")
@@ -99,7 +109,6 @@ const AuthPage = ({ defaultTab = "signin" }: AuthPageProps) => {
     } else {
       const success = await handleSignIn(email, password)
       if (success) {
-        // Redirect to the page they were trying to access or home
         navigate(state?.from?.pathname || "/")
       } else {
         setError("Invalid login credentials")
@@ -283,6 +292,12 @@ const AuthPage = ({ defaultTab = "signin" }: AuthPageProps) => {
             </Card>
           </TabsContent>
         </Tabs>
+        
+        {isAdmin && (
+          <div className="mt-8">
+            <AdminPasswordReset />
+          </div>
+        )}
       </div>
     </div>
   )
