@@ -1,3 +1,4 @@
+
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 
@@ -46,36 +47,44 @@ export async function resetUserPassword(userId: string, newPassword: string): Pr
     }
 
     // If the database function was successful, call the Edge Function to actually reset the password
-    if (data.success) {
-      const { data: edgeData, error: edgeError } = await supabase.functions.invoke('admin-reset-password', {
-        body: { userId, newPassword }
-      });
-      
-      if (edgeError) {
-        console.error('Error calling admin-reset-password function:', edgeError);
+    if (data && data.success) {
+      try {
+        const { data: edgeData, error: edgeError } = await supabase.functions.invoke('admin-reset-password', {
+          body: { userId, newPassword }
+        });
+        
+        if (edgeError) {
+          console.error('Error calling admin-reset-password function:', edgeError);
+          return {
+            success: false,
+            error: edgeError.message
+          };
+        }
+        
+        if (edgeData && edgeData.error) {
+          return {
+            success: false,
+            error: edgeData.error
+          };
+        }
+        
         return {
-          success: false,
-          error: edgeError.message
+          success: true,
+          data: edgeData
         };
-      }
-      
-      if (edgeData && edgeData.error) {
+      } catch (edgeFunctionError) {
+        console.error('Exception in Edge Function call:', edgeFunctionError);
         return {
           success: false,
-          error: edgeData.error
+          error: edgeFunctionError instanceof Error ? edgeFunctionError.message : 'Error calling password reset function'
         };
       }
     } else {
       return {
         success: false,
-        error: data.error
+        error: data?.error || 'Unknown error in database function'
       };
     }
-
-    return {
-      success: true,
-      data: data
-    };
   } catch (error) {
     console.error('Error resetting user password:', error);
     return {
