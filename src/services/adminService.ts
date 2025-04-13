@@ -1,3 +1,4 @@
+
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 
@@ -27,31 +28,48 @@ export async function resetUserPassword(userId: string, newPassword: string): Pr
       };
     }
 
-    // Instead of using Supabase's admin API directly, we'll call our Edge Function
-    // which will verify admin status and then use service role key to reset the password
-    const { data, error } = await supabase.functions.invoke('admin-reset-password', {
-      body: { userId, newPassword }
-    });
+    // Get the current user to check if they have admin privileges
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    
+    if (!currentUser) {
+      return {
+        success: false,
+        error: 'You must be logged in to perform this action'
+      };
+    }
+    
+    // Check if the current user is an admin
+    const { data: adminData, error: adminCheckError } = await supabase
+      .from('admins')
+      .select('id')
+      .eq('user_id', currentUser.id)
+      .single();
+      
+    if (adminCheckError || !adminData) {
+      console.error('User is not an admin:', adminCheckError);
+      return {
+        success: false,
+        error: 'You do not have admin privileges'
+      };
+    }
+
+    // Use the update user API directly - this works through RLS policies
+    const { data, error } = await supabase.auth.admin.updateUserById(
+      userId,
+      { password: newPassword }
+    );
 
     if (error) {
-      console.error('Error calling admin-reset-password function:', error);
+      console.error('Error updating user password:', error);
       return {
         success: false,
         error: error.message
       };
     }
 
-    // Edge function returns a standardized response
-    if (data.error) {
-      return {
-        success: false,
-        error: data.error
-      };
-    }
-
     return {
       success: true,
-      data: data
+      data
     };
   } catch (error) {
     console.error('Error resetting user password:', error);

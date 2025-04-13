@@ -1,3 +1,4 @@
+
 -- First, let's get all existing policies for our tables
 DO $$
 DECLARE
