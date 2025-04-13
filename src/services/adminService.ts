@@ -14,7 +14,8 @@ interface AdminResponse {
 }
 
 /**
- * Reset a user's password by admin
+ * Reset a user's password directly using the admin API
+ * This is a workaround until the Edge Function is fixed
  * @param userId The user ID to reset password for
  * @param newPassword The new password to set
  */
@@ -28,42 +29,66 @@ export async function resetUserPassword(userId: string, newPassword: string): Pr
       };
     }
 
-    // Get the current session for the auth header
-    const { data: sessionData } = await supabase.auth.getSession();
-    if (!sessionData.session) {
+    // Verify admin status before proceeding
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
       return {
         success: false,
-        error: 'You must be logged in to perform this action'
+        error: 'Authentication required'
+      };
+    }
+    
+    // Check if user is an admin
+    const { data: adminData, error: adminCheckError } = await supabase
+      .from('admins')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+      
+    if (adminCheckError || !adminData) {
+      return {
+        success: false,
+        error: 'You do not have admin privileges'
       };
     }
 
-    // Call the Edge Function
-    const { data, error } = await supabase.functions.invoke('admin-reset-password', {
-      body: { userId, newPassword }
-    });
+    // Update user in auth.users table with new password
+    // We need to use a database function for this since we can't directly access auth.users
+    const { data, error } = await supabase.rpc(
+      'admin_reset_user_password',
+      { 
+        target_user_id: userId,
+        new_password: newPassword
+      }
+    );
     
-    // Handle network errors
     if (error) {
-      console.error('Error calling admin-reset-password function:', error);
+      console.error('Error resetting password:', error);
       return {
         success: false,
-        error: 'Failed to connect to the password reset service'
+        error: error.message || 'Failed to reset password'
       };
     }
     
-    // The function might return { success: false, error: '...' }
     if (!data || data.success === false) {
-      console.error('Edge function returned error:', data?.error);
       return {
         success: false,
         error: data?.error || 'Password reset failed'
       };
     }
     
-    // If we got here, the reset was successful
+    // Log the password reset action
+    await supabase.from('admin_audit_log').insert({
+      admin_id: user.id,
+      action_type: 'password_reset',
+      target_user_id: userId,
+      details: { timestamp: new Date().toISOString() }
+    });
+    
     return {
       success: true,
-      data
+      data: { message: 'Password reset successfully' }
     };
   } catch (error) {
     console.error('Error resetting user password:', error);

@@ -236,7 +236,7 @@ const UserManagement = () => {
       if (result.success) {
         toast({
           title: "Password Reset",
-          description: `Password for ${currentUser.name} has been reset.`,
+          description: `Password for ${currentUser.email} has been reset successfully.`,
         });
         setShowPasswordResetDialog(false);
         setCurrentUser(null);
@@ -245,7 +245,7 @@ const UserManagement = () => {
         console.error("Password reset error:", result.error);
         toast({
           title: "Password Reset Failed",
-          description: result.error || "Failed to reset password",
+          description: result.error || "Failed to reset password. Please try again.",
           variant: "destructive",
         });
       }
@@ -253,7 +253,7 @@ const UserManagement = () => {
       console.error("Error resetting password:", error);
       toast({
         title: "Error",
-        description: "Failed to reset password",
+        description: "Failed to reset password. Please try again later.",
         variant: "destructive",
       });
     } finally {
