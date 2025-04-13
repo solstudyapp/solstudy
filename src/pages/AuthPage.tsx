@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react"
 import {
   Link,
@@ -22,7 +23,6 @@ import { SocialAuthButtons } from "@/components/auth/SocialAuthButtons"
 import { FEATURES } from "@/config/features"
 import { getReferralCodeByCode } from "@/services/referralService"
 import { toast } from "@/hooks/use-toast"
-import { AdminPasswordReset } from "@/components/admin/AdminPasswordReset"
 import { isUserAdmin } from "@/services/admin"
 
 type LocationState = {
@@ -49,7 +49,6 @@ const AuthPage = ({ defaultTab = "signin" }: AuthPageProps) => {
   const location = useLocation()
   const [searchParams] = useSearchParams()
   const state = location.state as LocationState
-  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const ref = searchParams.get("ref")
@@ -75,17 +74,6 @@ const AuthPage = ({ defaultTab = "signin" }: AuthPageProps) => {
       setReferralCode(null)
     }
   }
-
-  useEffect(() => {
-    const checkAdmin = async () => {
-      if (user) {
-        const adminStatus = await isUserAdmin();
-        setIsAdmin(adminStatus);
-      }
-    };
-    
-    checkAdmin();
-  }, [user])
 
   useEffect(() => {
     if (user) {
@@ -292,12 +280,6 @@ const AuthPage = ({ defaultTab = "signin" }: AuthPageProps) => {
             </Card>
           </TabsContent>
         </Tabs>
-        
-        {isAdmin && (
-          <div className="mt-8">
-            <AdminPasswordReset />
-          </div>
-        )}
       </div>
     </div>
   )
