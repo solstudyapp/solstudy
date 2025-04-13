@@ -236,9 +236,12 @@ const UserManagement = () => {
           title: "Password Reset",
           description: `Password for ${currentUser.name} has been reset.`,
         })
+        setShowPasswordResetDialog(false)
+        setCurrentUser(null)
+        setNewPassword("")
       } else {
         toast({
-          title: "Error",
+          title: "Password Reset Failed",
           description: result.error || "Failed to reset password",
           variant: "destructive",
         })
@@ -252,9 +255,6 @@ const UserManagement = () => {
       })
     } finally {
       setResettingPassword(false)
-      setShowPasswordResetDialog(false)
-      setCurrentUser(null)
-      setNewPassword("")
     }
   }
 

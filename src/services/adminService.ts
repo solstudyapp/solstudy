@@ -20,13 +20,32 @@ interface AdminResponse {
  */
 export async function resetUserPassword(userId: string, newPassword: string): Promise<AdminResponse> {
   try {
-    // This operation requires admin privileges through RLS policies
+    // Check if password meets requirements
+    if (newPassword.length < 6) {
+      return {
+        success: false,
+        error: 'Password must be at least 6 characters long'
+      };
+    }
+
+    // Use Supabase's updateUserById API
+    // Note: This requires that the calling user has admin privileges
     const { data, error } = await supabase.auth.admin.updateUserById(
       userId,
       { password: newPassword }
     );
 
     if (error) {
+      console.error('Error in resetUserPassword:', error);
+      
+      // Check specific error messages from Supabase
+      if (error.message.includes('not allowed')) {
+        return {
+          success: false,
+          error: 'Your account does not have admin privileges to perform this action'
+        };
+      }
+      
       return {
         success: false,
         error: error.message
