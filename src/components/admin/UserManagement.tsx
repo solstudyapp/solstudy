@@ -44,6 +44,7 @@ import {
   Loader2,
   KeyRound,
   EyeOff,
+  MoreHorizontal,
 } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import { supabase } from "@/lib/supabase"
