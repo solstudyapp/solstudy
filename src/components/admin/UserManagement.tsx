@@ -792,11 +792,13 @@ const UserManagement = () => {
                   className="bg-white/10 border-white/20 text-white pr-10"
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter new password"
+                  disabled={resettingPassword}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-white/70 hover:text-white"
+                  disabled={resettingPassword}
                 >
                   {showPassword ? (
                     <EyeOff className="h-5 w-5" />
