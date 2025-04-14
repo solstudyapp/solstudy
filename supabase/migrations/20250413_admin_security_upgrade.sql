@@ -42,6 +42,7 @@ AS $$
 DECLARE
   caller_is_admin BOOLEAN;
   result JSONB;
+  hashed_password TEXT;
 BEGIN
   -- Check if the calling user is an admin
   SELECT EXISTS (
@@ -68,16 +69,30 @@ BEGIN
     RETURN jsonb_build_object('success', false, 'error', 'Password must be at least 6 characters');
   END IF;
   
-  -- Reset the password using Supabase Auth API
-  -- Note: In actual implementation, you would use the Supabase Edge Function to do this
-  -- This will be called from your frontend
+  -- Hash the password using pgcrypto (make sure pgcrypto extension is enabled)
+  hashed_password := crypt(new_password, gen_salt('bf'));
   
-  -- Log successful password reset
-  INSERT INTO admin_audit_log (admin_id, action_type, target_user_id, details)
-  VALUES (auth.uid(), 'password_reset_success', target_user_id, 
-          jsonb_build_object('timestamp', now()));
+  -- Update the password directly in the auth.users table
+  UPDATE auth.users
+  SET encrypted_password = hashed_password
+  WHERE id = target_user_id;
   
-  RETURN jsonb_build_object('success', true);
+  -- Check if update was successful
+  IF FOUND THEN
+    -- Log successful password reset
+    INSERT INTO admin_audit_log (admin_id, action_type, target_user_id, details)
+    VALUES (auth.uid(), 'password_reset_success', target_user_id, 
+            jsonb_build_object('timestamp', now()));
+    
+    RETURN jsonb_build_object('success', true);
+  ELSE
+    -- Log failed update
+    INSERT INTO admin_audit_log (admin_id, action_type, target_user_id, details)
+    VALUES (auth.uid(), 'password_reset_failed', target_user_id, 
+            jsonb_build_object('reason', 'user_not_found', 'timestamp', now()));
+            
+    RETURN jsonb_build_object('success', false, 'error', 'User not found');
+  END IF;
 END;
 $$;
 

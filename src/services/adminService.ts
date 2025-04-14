@@ -52,7 +52,7 @@ export async function resetUserPassword(userId: string, newPassword: string): Pr
       };
     }
 
-    // Log the password reset action first
+    // Log the password reset action first (this is also done in the function)
     await supabase.from('admin_audit_log').insert({
       admin_id: user.id,
       action_type: 'password_reset',
@@ -60,7 +60,7 @@ export async function resetUserPassword(userId: string, newPassword: string): Pr
       details: { timestamp: new Date().toISOString() }
     });
     
-    // Update the user's password via RPC function instead of direct admin API
+    // Update the user's password via RPC function that directly modifies auth.users
     const { data, error } = await supabase.rpc(
       'admin_reset_user_password',
       { 

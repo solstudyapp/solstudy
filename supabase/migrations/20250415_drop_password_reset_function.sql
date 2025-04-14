@@ -1,24 +1,32 @@
 
--- This migration is no longer needed since we're using the database function approach
--- Commenting out the drop statements
+-- This migration is now repurposed to ensure pgcrypto is enabled
+-- since we need it for password hashing in the admin_reset_user_password function
 
-/*
-DROP FUNCTION IF EXISTS admin_reset_user_password_direct(UUID, UUID, TEXT);
-DROP FUNCTION IF EXISTS admin_reset_user_password(UUID, TEXT);
+-- Check if pgcrypto extension is already enabled, if not enable it
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_extension WHERE extname = 'pgcrypto'
+  ) THEN
+    CREATE EXTENSION IF NOT EXISTS pgcrypto;
+    RAISE NOTICE 'pgcrypto extension enabled';
+  ELSE
+    RAISE NOTICE 'pgcrypto extension already enabled';
+  END IF;
+END
+$$;
 
-COMMENT ON SCHEMA public IS 'Removed password reset functions as they are replaced by Supabase Admin API';
-*/
-
--- Instead, ensure our function exists (it should already be created in a previous migration)
--- This is just to make sure the migration doesn't fail if run again
+-- Ensure our function exists with proper implementation
+-- The implementation is in the 20250413_admin_security_upgrade.sql file
 DO $$
 BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_proc 
     WHERE proname = 'admin_reset_user_password'
   ) THEN
-    RAISE NOTICE 'Creating admin_reset_user_password function';
-    -- Function creation would go here if needed
+    RAISE NOTICE 'admin_reset_user_password function not found, it should be created in another migration';
+  ELSE
+    RAISE NOTICE 'admin_reset_user_password function exists';
   END IF;
 END
 $$;
