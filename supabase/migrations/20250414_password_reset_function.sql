@@ -8,7 +8,7 @@ CREATE OR REPLACE FUNCTION admin_reset_user_password_direct(
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, pgcrypto
 AS $$
 DECLARE
   is_admin BOOLEAN;
@@ -29,8 +29,8 @@ BEGIN
     RETURN jsonb_build_object('success', false, 'error', 'Password must be at least 6 characters');
   END IF;
   
-  -- Generate password hash
-  hashed_password := crypt(new_password, gen_salt('bf'));
+  -- Generate password hash with explicit schema reference
+  hashed_password := public.crypt(new_password, public.gen_salt('bf'));
   
   -- Update the user's password directly in auth.users
   -- This requires the function to have SECURITY DEFINER permissions
@@ -60,7 +60,7 @@ CREATE OR REPLACE FUNCTION admin_reset_user_password(
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, pgcrypto
 AS $$
 BEGIN
   RETURN admin_reset_user_password_direct(auth.uid(), target_user_id, new_password);
