@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 
@@ -52,13 +51,7 @@ export async function resetUserPassword(userId: string, newPassword: string): Pr
       };
     }
 
-    // Log the password reset action first (this is also done in the function)
-    await supabase.from('admin_audit_log').insert({
-      admin_id: user.id,
-      action_type: 'password_reset',
-      target_user_id: userId,
-      details: { timestamp: new Date().toISOString() }
-    });
+    console.log('About to reset password for user:', userId);
     
     // Update the user's password via RPC function that directly modifies auth.users
     const { data, error } = await supabase.rpc(
@@ -69,6 +62,8 @@ export async function resetUserPassword(userId: string, newPassword: string): Pr
       }
     );
     
+    console.log('Password reset response:', { data, error });
+    
     if (error) {
       console.error('Error resetting password:', error);
       return {
@@ -78,6 +73,7 @@ export async function resetUserPassword(userId: string, newPassword: string): Pr
     }
     
     if (!data || data.success === false) {
+      console.error('Password reset function returned failure:', data);
       return {
         success: false,
         error: data?.error || 'Password reset failed'

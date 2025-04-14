@@ -38,6 +38,7 @@ CREATE OR REPLACE FUNCTION admin_reset_user_password(
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public, auth
 AS $$
 DECLARE
   caller_is_admin BOOLEAN;
