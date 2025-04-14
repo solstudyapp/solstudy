@@ -14,7 +14,6 @@ interface AdminResponse {
 
 /**
  * Reset a user's password directly using the admin API
- * This is a workaround until the Edge Function is fixed
  * @param userId The user ID to reset password for
  * @param newPassword The new password to set
  */
@@ -52,13 +51,10 @@ export async function resetUserPassword(userId: string, newPassword: string): Pr
       };
     }
 
-    // Call the RPC function to reset the password
-    const { data, error } = await supabase.rpc(
-      'admin_reset_user_password',
-      { 
-        target_user_id: userId,
-        new_password: newPassword
-      }
+    // Use Supabase Auth Admin API to update the user's password directly
+    const { data, error } = await supabase.auth.admin.updateUserById(
+      userId,
+      { password: newPassword }
     );
     
     if (error) {
@@ -66,13 +62,6 @@ export async function resetUserPassword(userId: string, newPassword: string): Pr
       return {
         success: false,
         error: error.message || 'Failed to reset password'
-      };
-    }
-    
-    if (!data || data.success === false) {
-      return {
-        success: false,
-        error: data?.error || 'Password reset failed'
       };
     }
     
