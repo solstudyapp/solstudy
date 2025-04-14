@@ -1,3 +1,4 @@
+
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 
@@ -51,10 +52,21 @@ export async function resetUserPassword(userId: string, newPassword: string): Pr
       };
     }
 
-    // Use Supabase Auth Admin API to update the user's password directly
-    const { data, error } = await supabase.auth.admin.updateUserById(
-      userId,
-      { password: newPassword }
+    // Log the password reset action first
+    await supabase.from('admin_audit_log').insert({
+      admin_id: user.id,
+      action_type: 'password_reset',
+      target_user_id: userId,
+      details: { timestamp: new Date().toISOString() }
+    });
+    
+    // Update the user's password via RPC function instead of direct admin API
+    const { data, error } = await supabase.rpc(
+      'admin_reset_user_password',
+      { 
+        target_user_id: userId,
+        new_password: newPassword
+      }
     );
     
     if (error) {
@@ -65,13 +77,12 @@ export async function resetUserPassword(userId: string, newPassword: string): Pr
       };
     }
     
-    // Log the password reset action
-    await supabase.from('admin_audit_log').insert({
-      admin_id: user.id,
-      action_type: 'password_reset',
-      target_user_id: userId,
-      details: { timestamp: new Date().toISOString() }
-    });
+    if (!data || data.success === false) {
+      return {
+        success: false,
+        error: data?.error || 'Password reset failed'
+      };
+    }
     
     return {
       success: true,
