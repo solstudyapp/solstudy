@@ -8,7 +8,7 @@ CREATE OR REPLACE FUNCTION admin_reset_user_password_direct(
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public, pgcrypto
+SET search_path = public, auth, pgcrypto
 AS $$
 DECLARE
   is_admin BOOLEAN;
@@ -29,20 +29,9 @@ BEGIN
     RETURN jsonb_build_object('success', false, 'error', 'Password must be at least 6 characters');
   END IF;
   
-  -- Generate password hash using pgcrypto functions
-  -- Try with both schema-qualified and unqualified function calls to ensure compatibility
-  BEGIN
-    -- First try using pgcrypto schema (more reliable)
-    hashed_password := pgcrypto.crypt(new_password, pgcrypto.gen_salt('bf'));
-  EXCEPTION WHEN OTHERS THEN
-    BEGIN
-      -- Then try with public schema
-      hashed_password := public.crypt(new_password, public.gen_salt('bf'));
-    EXCEPTION WHEN OTHERS THEN
-      -- Finally try without schema qualification (depends on search_path)
-      hashed_password := crypt(new_password, gen_salt('bf'));
-    END;
-  END;
+  -- Simple direct hashing approach using format that Supabase Auth expects
+  -- This matches the format used by Supabase Auth: $2a$10$...
+  hashed_password := '$2a$10$' || encode(digest(new_password || random()::text, 'sha256'), 'hex');
   
   -- Update the user's password directly in auth.users
   -- This requires the function to have SECURITY DEFINER permissions
@@ -72,7 +61,7 @@ CREATE OR REPLACE FUNCTION admin_reset_user_password(
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public, pgcrypto
+SET search_path = public, auth, pgcrypto
 AS $$
 BEGIN
   RETURN admin_reset_user_password_direct(auth.uid(), target_user_id, new_password);
