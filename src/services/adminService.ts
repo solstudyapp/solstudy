@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 
@@ -53,8 +52,7 @@ export async function resetUserPassword(userId: string, newPassword: string): Pr
       };
     }
 
-    // Update user in auth.users table with new password
-    // We need to use a database function for this since we can't directly access auth.users
+    // Call the RPC function to reset the password
     const { data, error } = await supabase.rpc(
       'admin_reset_user_password',
       { 

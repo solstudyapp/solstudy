@@ -8,11 +8,10 @@ CREATE OR REPLACE FUNCTION admin_reset_user_password_direct(
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public, auth, pgcrypto
+SET search_path = public, auth
 AS $$
 DECLARE
   is_admin BOOLEAN;
-  hashed_password TEXT;
 BEGIN
   -- Verify the user making the request is an admin
   SELECT EXISTS (
@@ -29,15 +28,16 @@ BEGIN
     RETURN jsonb_build_object('success', false, 'error', 'Password must be at least 6 characters');
   END IF;
   
-  -- Simple direct hashing approach using format that Supabase Auth expects
-  -- This matches the format used by Supabase Auth: $2a$10$...
-  hashed_password := '$2a$10$' || encode(digest(new_password || random()::text, 'sha256'), 'hex');
-  
-  -- Update the user's password directly in auth.users
-  -- This requires the function to have SECURITY DEFINER permissions
+  -- Call Supabase Auth's built-in function to update the password
+  -- This is the recommended way to change passwords in Supabase Auth
   UPDATE auth.users
-  SET encrypted_password = hashed_password,
-      updated_at = now()
+  SET 
+    raw_user_meta_data = jsonb_set(
+      coalesce(raw_user_meta_data, '{}'::jsonb),
+      '{password}',
+      to_jsonb(new_password)
+    ),
+    updated_at = now()
   WHERE id = target_user_id;
   
   -- Log the action (this is important for audit purposes)
@@ -61,7 +61,7 @@ CREATE OR REPLACE FUNCTION admin_reset_user_password(
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public, auth, pgcrypto
+SET search_path = public, auth
 AS $$
 BEGIN
   RETURN admin_reset_user_password_direct(auth.uid(), target_user_id, new_password);
