@@ -29,8 +29,20 @@ BEGIN
     RETURN jsonb_build_object('success', false, 'error', 'Password must be at least 6 characters');
   END IF;
   
-  -- Generate password hash with explicit schema reference
-  hashed_password := public.crypt(new_password, public.gen_salt('bf'));
+  -- Generate password hash using pgcrypto functions
+  -- Try with both schema-qualified and unqualified function calls to ensure compatibility
+  BEGIN
+    -- First try using pgcrypto schema (more reliable)
+    hashed_password := pgcrypto.crypt(new_password, pgcrypto.gen_salt('bf'));
+  EXCEPTION WHEN OTHERS THEN
+    BEGIN
+      -- Then try with public schema
+      hashed_password := public.crypt(new_password, public.gen_salt('bf'));
+    EXCEPTION WHEN OTHERS THEN
+      -- Finally try without schema qualification (depends on search_path)
+      hashed_password := crypt(new_password, gen_salt('bf'));
+    END;
+  END;
   
   -- Update the user's password directly in auth.users
   -- This requires the function to have SECURITY DEFINER permissions
@@ -70,5 +82,3 @@ $$;
 -- Set proper permissions to ensure only authenticated users can call this function
 REVOKE ALL ON FUNCTION admin_reset_user_password(UUID, TEXT) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION admin_reset_user_password(UUID, TEXT) TO authenticated;
-
--- You'll need to apply this migration using the Supabase Dashboard or CLI
