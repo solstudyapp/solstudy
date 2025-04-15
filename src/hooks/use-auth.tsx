@@ -1,3 +1,4 @@
+
 import {
   createContext,
   useContext,
@@ -9,6 +10,7 @@ import { supabase } from "@/lib/supabase"
 import { User } from "@supabase/supabase-js"
 import { signIn, signUp, signOut } from "@/services/auth"
 import { toast } from "@/hooks/use-toast"
+import { validateEmail, validateSession } from "@/services/securityService"
 
 type AuthContextType = {
   user: User | null
@@ -39,6 +41,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data } = await supabase.auth.getSession()
       setUser(data.session?.user || null)
       setLoading(false)
+      
+      // Perform additional session validation
+      if (data.session) {
+        const isValid = await validateSession();
+        if (!isValid) {
+          // Handle invalid session (force logout)
+          await supabase.auth.signOut();
+          setUser(null);
+          toast({
+            title: "Session expired",
+            description: "Your session has expired. Please sign in again.",
+            variant: "destructive",
+          });
+        }
+      }
     }
 
     checkSession()
@@ -60,6 +77,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     email: string,
     password: string
   ): Promise<boolean> => {
+    // Input validation
+    if (!validateEmail(email)) {
+      toast({
+        title: "Invalid email",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    if (!password || password.length < 1) {
+      toast({
+        title: "Invalid password",
+        description: "Password cannot be empty",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
     setLoading(true)
     const response = await signIn(email, password)
     setLoading(false)
@@ -87,6 +123,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     password: string,
     referrerInfo?: { id: string; code: string } | null
   ): Promise<boolean> => {
+    // Input validation
+    if (!validateEmail(email)) {
+      toast({
+        title: "Invalid email",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    if (!password || password.length < 8) {
+      toast({
+        title: "Insecure password",
+        description: "Password must be at least 8 characters long",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    // Additional password validation
+    if (!/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+      toast({
+        title: "Insecure password",
+        description: "Password must contain at least one number and one special character",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
     setLoading(true)
     const response = await signUp(email, password, referrerInfo)
     setLoading(false)

@@ -1,3 +1,4 @@
+
 import { Routes, Route, useNavigate } from "react-router-dom"
 import { useEffect, useState } from "react"
 import Header from "./components/Header"
@@ -18,12 +19,18 @@ import { loadLessons } from "./data/lessons"
 import { useToast } from "./hooks/use-toast"
 import { Loader2 } from "lucide-react"
 import { Toaster } from "@/components/ui/toaster"
-import { ensureImagesBucketExists } from "./lib/storage-setup"
+import { initializeCSP } from "./services/cspService"
 
 function App() {
   const [loading, setLoading] = useState(true)
   const { toast } = useToast()
   const navigate = useNavigate()
+
+  // Initialize app security
+  useEffect(() => {
+    // Apply Content Security Policy
+    initializeCSP();
+  }, []);
 
   // Load lessons data when the app starts
   useEffect(() => {
