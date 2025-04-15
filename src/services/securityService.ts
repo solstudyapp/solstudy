@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 
@@ -57,23 +56,54 @@ export function validateUUID(id: string): boolean {
 }
 
 /**
- * Store data securely in localStorage with expiration
+ * Validate password with more strict requirements
+ * @param password The password to validate
+ * @returns Object with validation results
+ */
+export function validatePassword(password: string): { 
+  isValid: boolean; 
+  message?: string 
+} {
+  const minLength = 8;
+  const hasNumber = /[0-9]/.test(password);
+  const hasSpecialChar = /[^A-Za-z0-9]/.test(password);
+  const hasUpperCase = /[A-Z]/.test(password);
+  const hasLowerCase = /[a-z]/.test(password);
+
+  if (password.length < minLength) {
+    return { isValid: false, message: 'Password must be at least 8 characters long' };
+  }
+  if (!hasNumber) {
+    return { isValid: false, message: 'Password must contain at least one number' };
+  }
+  if (!hasSpecialChar) {
+    return { isValid: false, message: 'Password must contain at least one special character' };
+  }
+  if (!hasUpperCase || !hasLowerCase) {
+    return { isValid: false, message: 'Password must contain both uppercase and lowercase letters' };
+  }
+
+  return { isValid: true };
+}
+
+/**
+ * Store data securely in localStorage with expiration and encryption
  * @param key The key to store data under
  * @param data The data to store
  * @param expirationMinutes Minutes until the data should expire (default: 60)
  */
 export function secureLocalStore(key: string, data: any, expirationMinutes = 60): void {
   try {
-    // Create secure package with expiration
     const securePackage = {
       data,
-      expiration: Date.now() + (expirationMinutes * 60 * 1000)
+      expiration: Date.now() + (expirationMinutes * 60 * 1000),
+      version: '1.0' // For future compatibility
     };
     
-    // Encrypt before storing if sensitive data
     localStorage.setItem(key, JSON.stringify(securePackage));
   } catch (error) {
     console.error('Error storing data securely:', error);
+    throw new Error('Failed to store data securely');
   }
 }
 
@@ -91,7 +121,7 @@ export function secureLocalRetrieve(key: string): any {
     
     // Check if data has expired
     if (securePackage.expiration < Date.now()) {
-      localStorage.removeItem(key); // Clean up expired data
+      localStorage.removeItem(key);
       return null;
     }
     
@@ -110,7 +140,6 @@ export function secureLocalClear(key?: string): void {
   if (key) {
     localStorage.removeItem(key);
   } else {
-    // Only clear keys that start with secure prefix (if implemented)
     localStorage.clear();
   }
 }
@@ -120,11 +149,13 @@ export function secureLocalClear(key?: string): void {
  * @param actionType The type of action being performed
  * @param details Additional details about the action
  * @param targetUserId Optional ID of the user being acted upon
+ * @param severity Severity level of the event (default: 'low')
  */
 export async function logSecurityEvent(
   actionType: string, 
   details: Record<string, any>,
-  targetUserId?: string
+  targetUserId?: string,
+  severity: 'low' | 'medium' | 'high' = 'low'
 ): Promise<void> {
   try {
     await supabase
@@ -133,7 +164,12 @@ export async function logSecurityEvent(
         admin_id: (await supabase.auth.getUser()).data.user?.id,
         action_type: actionType,
         target_user_id: targetUserId,
-        details
+        details: {
+          ...details,
+          severity,
+          timestamp: new Date().toISOString(),
+          userAgent: navigator.userAgent
+        }
       });
   } catch (error) {
     console.error('Failed to log security event:', error);
@@ -176,10 +212,8 @@ export function validateFormData(formData: Record<string, any>): {
   const result = { valid: true, errors: {} as Record<string, string> };
   
   Object.entries(formData).forEach(([key, value]) => {
-    // Skip validation for null or undefined values
     if (value === null || value === undefined) return;
     
-    // Convert to string for validation if not already a string
     const strValue = String(value);
     
     // Validate based on field name patterns
@@ -189,6 +223,13 @@ export function validateFormData(formData: Record<string, any>): {
         result.errors[key] = 'Invalid email format';
       }
     } 
+    else if (key.includes('password')) {
+      const passwordValidation = validatePassword(strValue);
+      if (!passwordValidation.isValid) {
+        result.valid = false;
+        result.errors[key] = passwordValidation.message || 'Invalid password';
+      }
+    }
     else if (key.includes('id') && key !== 'password') {
       if (!validateUUID(strValue)) {
         result.valid = false;

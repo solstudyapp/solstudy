@@ -1,4 +1,3 @@
-
 /**
  * Content Security Policy (CSP) service
  * 
@@ -17,6 +16,8 @@ const defaultCSPDirectives = {
   'object-src': ["'none'"],
   'base-uri': ["'self'"],
   'form-action': ["'self'"],
+  'frame-ancestors': ["'none'"], // Prevent clickjacking
+  'upgrade-insecure-requests': [], // Force HTTPS
 };
 
 /**
@@ -97,12 +98,18 @@ export function isURLAllowedByCSP(url: string, directive: string = 'connect-src'
 }
 
 /**
- * Initialize CSP for the application
+ * Initialize CSP for the application with enhanced security
  */
 export function initializeCSP(): void {
-  // Apply default CSP
+  // Apply default CSP with additional security headers
   applyCSP();
   
+  // Add additional security headers
+  const meta = document.createElement('meta');
+  meta.httpEquiv = 'X-Content-Type-Options';
+  meta.content = 'nosniff';
+  document.head.appendChild(meta);
+  
   // Log CSP initialization
-  console.info('Content Security Policy initialized');
+  console.info('Content Security Policy initialized with enhanced security');
 }

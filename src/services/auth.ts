@@ -1,7 +1,6 @@
-
 import { supabase, supabaseConfig } from '@/lib/supabase';
 import { completeReferral } from '@/services/referralService';
-import { logSecurityEvent, validateEmail, validateSafeString } from '@/services/securityService';
+import { logSecurityEvent, validateEmail, validateSafeString, validatePassword } from '@/services/securityService';
 
 export type AuthError = {
   message: string;
@@ -33,7 +32,7 @@ export async function signUp(
   password: string, 
   referrerInfo?: { id: string; code: string } | null
 ): Promise<AuthResponse> {
-  // Validate inputs before proceeding
+  // Enhanced input validation
   if (!validateEmail(email)) {
     return {
       success: false,
@@ -43,11 +42,12 @@ export async function signUp(
     };
   }
 
-  if (!password || password.length < 8) {
+  const passwordValidation = validatePassword(password);
+  if (!passwordValidation.isValid) {
     return {
       success: false,
       error: {
-        message: 'Password must be at least 8 characters long',
+        message: passwordValidation.message || 'Invalid password format',
       },
     };
   }

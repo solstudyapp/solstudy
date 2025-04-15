@@ -1,4 +1,3 @@
-
 -- This migration applies all security enhancements in a consolidated way
 -- Run this after deploying the updated application
 
@@ -219,6 +218,53 @@ $$;
 -- Add timeout and error logging to all security-related functions
 DO $$
 BEGIN
+  -- Apply timeouts to all security-related functions
+  FOR func_rec IN 
+    SELECT proname 
+    FROM pg_proc 
+    WHERE pronamespace = 'public'::regnamespace
+    AND (proname = 'admin_reset_user_password' OR 
+         proname = 'grant_admin_privileges' OR 
+         proname = 'revoke_admin_privileges')
+  LOOP
+    EXECUTE format('ALTER FUNCTION public.%I SET statement_timeout = ''3s''', 
+                   func_rec.proname);
+    EXECUTE format('ALTER FUNCTION public.%I SET search_path = public, auth', 
+                   func_rec.proname);
+  END LOOP;
+  
+  -- Additional security enhancements
+  FOR table_rec IN 
+    SELECT table_name 
+    FROM information_schema.tables 
+    WHERE table_schema = 'public'
+  LOOP
+    -- Enable RLS for all tables
+    EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', 
+                   table_rec.table_name);
+                   
+    -- Add audit timestamps
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns 
+      WHERE table_schema = 'public' 
+      AND table_name = table_rec.table_name 
+      AND column_name = 'created_at'
+    ) THEN
+      EXECUTE format('ALTER TABLE public.%I ADD COLUMN created_at TIMESTAMPTZ DEFAULT now()', 
+                     table_rec.table_name);
+    END IF;
+    
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns 
+      WHERE table_schema = 'public' 
+      AND table_name = table_rec.table_name 
+      AND column_name = 'updated_at'
+    ) THEN
+      EXECUTE format('ALTER TABLE public.%I ADD COLUMN updated_at TIMESTAMPTZ DEFAULT now()', 
+                     table_rec.table_name);
+    END IF;
+  END LOOP;
+  
   RAISE NOTICE 'Security enhancements migration completed successfully';
 END
 $$;

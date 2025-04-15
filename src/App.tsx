@@ -1,6 +1,6 @@
-
 import { Routes, Route, useNavigate } from "react-router-dom"
 import { useEffect, useState } from "react"
+import { initializeCSP } from "./services/cspService"
 import Header from "./components/Header"
 import Footer from "./components/Footer"
 import Index from "./pages/Index"
@@ -19,7 +19,6 @@ import { loadLessons } from "./data/lessons"
 import { useToast } from "./hooks/use-toast"
 import { Loader2 } from "lucide-react"
 import { Toaster } from "@/components/ui/toaster"
-import { initializeCSP } from "./services/cspService"
 
 function App() {
   const [loading, setLoading] = useState(true)
