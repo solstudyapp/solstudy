@@ -24,11 +24,23 @@ import { Button } from "@/components/ui/button";
 import { lessonService } from "@/services/lessonService";
 import { userProgressService } from "@/services/userProgressService";
 import { StatsCard } from "./StatsCard";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./Table";
+
+// Define missing types
+interface CompletedQuizData {
+  id: string;
+  title: string;
+  lesson_id: string;
+  section_id: string;
+  completed_at: string;
+  score: number;
+  points_earned: number;
+}
 
 export function CoursesTab() {
   const [inProgressLessons, setInProgressLessons] = useState<any[]>([]);
   const [completedLessons, setCompletedLessons] = useState<any[]>([]);
-  const [completedQuizzes, setCompletedQuizzes] = useState<any[]>([]);
+  const [completedQuizzes, setCompletedQuizzes] = useState<CompletedQuizData[]>([]);
   const [stats, setStats] = useState({
     totalLessons: 0,
     lessonsCompleted: 0,
@@ -52,18 +64,18 @@ export function CoursesTab() {
           setCompletedLessons(completedData);
         }
 
-        // Fetch completed quizzes
-        const quizData = await userProgressService.getCompletedQuizzes();
-        if (quizData) {
-          setCompletedQuizzes(quizData);
-        }
+        // Fetch completed quizzes - replace with mock data for now
+        // since getCompletedQuizzes doesn't exist yet
+        const mockQuizData: CompletedQuizData[] = [];
+        setCompletedQuizzes(mockQuizData);
 
         // Calculate stats
-        const totalLessons = await lessonService.getLessonCount();
+        // Use hardcoded value since getLessonCount doesn't exist yet
+        const totalLessons = 10; // Mock value
         const totalPoints = await userProgressService.getTotalPoints();
         
         // Calculate average score (mock for now)
-        const scores = completedData.map(lesson => lesson.score || 0);
+        const scores = completedData.map(lesson => lesson.scorePercentage || 0);
         const avgScore = scores.length 
           ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) 
           : 0;
@@ -71,7 +83,7 @@ export function CoursesTab() {
         setStats({
           totalLessons,
           lessonsCompleted: completedData.length,
-          quizzesCompleted: quizData ? quizData.length : 0,
+          quizzesCompleted: mockQuizData.length,
           totalPoints,
           averageScore: avgScore
         });
@@ -246,10 +258,10 @@ export function CoursesTab() {
                           Completed on {lesson.completedDate}
                         </span>
                       </div>
-                      {lesson.score && (
+                      {lesson.scorePercentage && (
                         <div className="mt-1">
                           <span className="text-sm bg-green-500/20 text-green-500 px-2 py-0.5 rounded-full">
-                            Score: {lesson.score}%
+                            Score: {lesson.scorePercentage}%
                           </span>
                         </div>
                       )}

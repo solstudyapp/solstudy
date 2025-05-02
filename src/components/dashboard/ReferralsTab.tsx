@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { StatsCard } from "./StatsCard";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./Table";
 import { userProgressService, ReferralHistoryData } from "@/services/userProgressService";
 import { shareOnFacebook, shareOnTwitter } from "@/utils/social";
 import { useToast } from "@/hooks/use-toast";
@@ -173,7 +173,7 @@ export function ReferralsTab() {
               <Button 
                 variant="outline" 
                 className="w-full md:min-w-[180px]"
-                onClick={() => shareOnFacebook(referralLink, "Join me on SolStudy and learn about Solana!")}
+                onClick={() => shareOnFacebook(referralLink)}
               >
                 <Facebook className="h-4 w-4 mr-2" />
                 Share on Facebook
@@ -181,7 +181,7 @@ export function ReferralsTab() {
               <Button 
                 variant="outline"
                 className="w-full md:min-w-[180px]"
-                onClick={() => shareOnTwitter(referralLink, "Join me on @SolStudy and start learning about Solana blockchain! Use my referral code for bonus points:", referralCode)}
+                onClick={() => shareOnTwitter(referralLink)}
               >
                 <Twitter className="h-4 w-4 mr-2" />
                 Share on Twitter
