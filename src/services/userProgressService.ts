@@ -6,7 +6,7 @@ import { pointsService } from './pointsService';
 import { referralsService } from './referralsService';
 
 // Re-export types from the central types file
-export { 
+export type { 
   UserProgressData,
   CompletedLessonData,
   PageCompletionData,
