@@ -17,13 +17,21 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { userProgressService, ReferralHistoryData } from "@/services/userProgressService";
 import { shareOnFacebook, shareOnTwitter } from "@/utils/social";
 import { useToast } from "@/hooks/use-toast";
-import { referralService } from "@/services/referralService";
+import { 
+  referralService, 
+  getUserReferralCodes, 
+  createReferralCode
+} from "@/services/referralService";
+import { useAuth } from "@/hooks/use-auth";
 
 export function ReferralsTab() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [referrals, setReferrals] = useState<ReferralHistoryData[]>([]);
-  const [referralCode, setReferralCode] = useState("SOLSTUDY123");
+  const [referralCode, setReferralCode] = useState<string>("");
   const [referralLink, setReferralLink] = useState("");
+  const [isCreatingCode, setIsCreatingCode] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [referralStats, setReferralStats] = useState({
     total: 0,
     points: 0,
@@ -32,6 +40,9 @@ export function ReferralsTab() {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!user) return;
+      
+      setIsLoading(true);
       try {
         // Fetch referral data
         const referralHistory = await userProgressService.getReferralHistory();
@@ -49,18 +60,27 @@ export function ReferralsTab() {
           });
         }
 
-        // Get referral code and generate link
-        setReferralLink(
-          `${import.meta.env.VITE_PUBLIC_URL}/signup?ref=${referralCode}`
-        );
-
+        // Get the user's referral code
+        const referralCodesResponse = await getUserReferralCodes(user.id);
+        if (referralCodesResponse.success && referralCodesResponse.data && referralCodesResponse.data.length > 0) {
+          const code = referralCodesResponse.data[0].code;
+          setReferralCode(code);
+          setReferralLink(`${window.location.origin}/signup?ref=${code}`);
+        }
       } catch (error) {
         console.error("Error fetching referral data:", error);
+        toast({
+          title: "Error loading referrals",
+          description: "Could not load your referral data. Please try again later.",
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchData();
-  }, [referralCode]);
+  }, [user, toast]);
 
   const calculateGrowth = (data: ReferralHistoryData[]) => {
     // This is a simplified growth calculation, could be made more sophisticated
@@ -82,6 +102,14 @@ export function ReferralsTab() {
   };
 
   const handleCopyReferralCode = () => {
+    if (!referralCode) {
+      toast({
+        title: "No referral code",
+        description: "You need to create a referral code first."
+      });
+      return;
+    }
+    
     navigator.clipboard.writeText(referralCode);
     toast({
       title: "Referral code copied!",
@@ -90,11 +118,52 @@ export function ReferralsTab() {
   };
 
   const handleCopyReferralLink = () => {
+    if (!referralLink) {
+      toast({
+        title: "No referral link",
+        description: "You need to create a referral code first."
+      });
+      return;
+    }
+    
     navigator.clipboard.writeText(referralLink);
     toast({
       title: "Referral link copied!",
       description: "Your referral link has been copied to clipboard."
     });
+  };
+
+  const handleCreateReferralCode = async () => {
+    if (!user) return;
+    
+    setIsCreatingCode(true);
+    try {
+      const response = await createReferralCode(user.id);
+      if (response.success && response.data) {
+        const code = response.data.code;
+        setReferralCode(code);
+        setReferralLink(`${window.location.origin}/signup?ref=${code}`);
+        toast({
+          title: "Success!",
+          description: "Your referral code was created successfully."
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: response.error?.message || "Could not create referral code.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error("Error creating referral code:", error);
+      toast({
+        title: "Error",
+        description: "Could not create referral code. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCreatingCode(false);
+    }
   };
 
   return (
@@ -134,68 +203,91 @@ export function ReferralsTab() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 space-y-4">
-              <div className="p-4 bg-muted/10 rounded-lg border border-border">
-                <div className="text-sm text-muted-foreground mb-1">Your referral code</div>
-                <div className="flex items-center">
-                  <div className="text-xl font-mono font-bold mr-2">{referralCode}</div>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={handleCopyReferralCode}
-                  >
-                    <Copy className="h-4 w-4" />
-                    <span className="sr-only">Copy referral code</span>
-                  </Button>
+          {isLoading ? (
+            <div className="flex justify-center py-4">
+              <div className="animate-spin h-8 w-8 border-4 border-[#14F195] border-t-transparent rounded-full"></div>
+            </div>
+          ) : referralCode ? (
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1 space-y-4">
+                <div className="p-4 bg-muted/10 rounded-lg border border-border">
+                  <div className="text-sm text-muted-foreground mb-1">Your referral code</div>
+                  <div className="flex items-center">
+                    <div className="text-xl font-mono font-bold mr-2">{referralCode}</div>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={handleCopyReferralCode}
+                    >
+                      <Copy className="h-4 w-4" />
+                      <span className="sr-only">Copy referral code</span>
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="p-4 bg-muted/10 rounded-lg border border-border">
+                  <div className="text-sm text-muted-foreground mb-1">Your referral link</div>
+                  <div className="flex items-center">
+                    <div className="text-sm font-mono truncate mr-2 flex-1">{referralLink}</div>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 flex-shrink-0"
+                      onClick={handleCopyReferralLink}
+                    >
+                      <Copy className="h-4 w-4" />
+                      <span className="sr-only">Copy referral link</span>
+                    </Button>
+                  </div>
                 </div>
               </div>
               
-              <div className="p-4 bg-muted/10 rounded-lg border border-border">
-                <div className="text-sm text-muted-foreground mb-1">Your referral link</div>
-                <div className="flex items-center">
-                  <div className="text-sm font-mono truncate mr-2 flex-1">{referralLink}</div>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8 flex-shrink-0"
-                    onClick={handleCopyReferralLink}
-                  >
-                    <Copy className="h-4 w-4" />
-                    <span className="sr-only">Copy referral link</span>
-                  </Button>
-                </div>
+              <div className="flex flex-col justify-center gap-2">
+                <Button 
+                  variant="outline" 
+                  className="w-full md:min-w-[180px]"
+                  onClick={() => shareOnFacebook({ url: referralLink })}
+                >
+                  <Facebook className="h-4 w-4 mr-2" />
+                  Share on Facebook
+                </Button>
+                <Button 
+                  variant="outline"
+                  className="w-full md:min-w-[180px]"
+                  onClick={() => shareOnTwitter({ url: referralLink })}
+                >
+                  <Twitter className="h-4 w-4 mr-2" />
+                  Share on Twitter
+                </Button>
+                <Button 
+                  variant="gradient" 
+                  className="w-full md:min-w-[180px]"
+                  onClick={handleCopyReferralLink}
+                >
+                  <Globe className="h-4 w-4 mr-2" />
+                  Copy Link
+                </Button>
               </div>
             </div>
-            
-            <div className="flex flex-col justify-center gap-2">
-              <Button 
-                variant="outline" 
-                className="w-full md:min-w-[180px]"
-                onClick={() => shareOnFacebook({ url: referralLink })}
-              >
-                <Facebook className="h-4 w-4 mr-2" />
-                Share on Facebook
-              </Button>
-              <Button 
-                variant="outline"
-                className="w-full md:min-w-[180px]"
-                onClick={() => shareOnTwitter({ url: referralLink })}
-              >
-                <Twitter className="h-4 w-4 mr-2" />
-                Share on Twitter
-              </Button>
+          ) : (
+            <div className="text-center py-6">
+              <Share2 className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-xl font-medium mb-2">
+                No referral code yet
+              </h3>
+              <p className="text-muted-foreground mb-6">
+                Create a referral code to start earning points!
+              </p>
               <Button 
                 variant="gradient" 
-                className="w-full md:min-w-[180px]"
-                onClick={handleCopyReferralLink}
+                onClick={handleCreateReferralCode}
+                disabled={isCreatingCode}
               >
-                <Globe className="h-4 w-4 mr-2" />
-                Copy Link
+                {isCreatingCode ? "Creating..." : "Create Referral Code"}
               </Button>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
@@ -207,7 +299,11 @@ export function ReferralsTab() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {referrals.length > 0 ? (
+          {isLoading ? (
+            <div className="flex justify-center py-4">
+              <div className="animate-spin h-8 w-8 border-4 border-[#14F195] border-t-transparent rounded-full"></div>
+            </div>
+          ) : referrals.length > 0 ? (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -264,9 +360,15 @@ export function ReferralsTab() {
               <p className="text-muted-foreground mb-6">
                 Share your referral link with friends to start earning points!
               </p>
-              <Button variant="gradient" onClick={handleCopyReferralLink}>
-                Copy Referral Link
-              </Button>
+              {referralCode ? (
+                <Button variant="gradient" onClick={handleCopyReferralLink}>
+                  Copy Referral Link
+                </Button>
+              ) : (
+                <Button variant="gradient" onClick={handleCreateReferralCode} disabled={isCreatingCode}>
+                  {isCreatingCode ? "Creating..." : "Create Referral Code"}
+                </Button>
+              )}
             </div>
           )}
         </CardContent>

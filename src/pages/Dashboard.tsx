@@ -8,9 +8,11 @@ import { CoursesTab } from "@/components/dashboard/CoursesTab";
 import { SettingsTab } from "@/components/dashboard/SettingsTab";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/hooks/use-auth";
 
 const Dashboard = () => {
   const { toast } = useToast();
+  const { user, isLoading: authLoading } = useAuth();
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState("overview");
   const [loading, setLoading] = useState(true);
@@ -18,10 +20,22 @@ const Dashboard = () => {
   useEffect(() => {
     const initializeDashboard = async () => {
       try {
-        // Simulate loading of dashboard data
+        // Wait for auth to initialize
+        if (authLoading) return;
+        
+        if (!user) {
+          toast({
+            title: "Authentication required",
+            description: "You need to be logged in to view your dashboard.",
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        // Short delay to allow for smoother UI transition
         setTimeout(() => {
           setLoading(false);
-        }, 800);
+        }, 500);
       } catch (error) {
         console.error("Error initializing dashboard:", error);
         toast({
@@ -30,13 +44,14 @@ const Dashboard = () => {
             "There was a problem loading your dashboard data. Please try again later.",
           variant: "destructive",
         });
+        setLoading(false);
       }
     };
 
     initializeDashboard();
-  }, [toast]);
+  }, [user, authLoading, toast]);
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">

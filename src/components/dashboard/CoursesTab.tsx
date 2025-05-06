@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -15,31 +16,24 @@ import {
   BarChart,
   Sparkles,
   LineChart,
-  Wallet
+  Wallet,
+  Loader2
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { lessonService } from "@/services/lessonService";
 import { userProgressService, CompletedLessonData } from "@/services/userProgressService";
 import { StatsCard } from "./StatsCard";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./Table";
-
-// Define missing types
-interface CompletedQuizData {
-  id: string;
-  title: string;
-  lesson_id: string;
-  section_id: string;
-  completed_at: string;
-  score: number;
-  points_earned: number;
-}
+import { quizService, UserQuizCompletion } from "@/services/quizService";
+import { useToast } from "@/hooks/use-toast";
 
 export function CoursesTab() {
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
   const [inProgressLessons, setInProgressLessons] = useState<any[]>([]);
   const [completedLessons, setCompletedLessons] = useState<CompletedLessonData[]>([]);
-  const [completedQuizzes, setCompletedQuizzes] = useState<CompletedQuizData[]>([]);
+  const [completedQuizzes, setCompletedQuizzes] = useState<UserQuizCompletion[]>([]);
   const [stats, setStats] = useState({
     totalLessons: 0,
     lessonsCompleted: 0,
@@ -50,51 +44,53 @@ export function CoursesTab() {
 
   useEffect(() => {
     const fetchData = async () => {
+      setIsLoading(true);
       try {
         // Fetch courses in progress
         const inProgressData = await userProgressService.getCoursesInProgress();
-        if (inProgressData.length > 0) {
-          setInProgressLessons(inProgressData);
-        }
+        setInProgressLessons(inProgressData || []);
 
         // Fetch completed courses
         const completedData = await userProgressService.getCompletedCourses();
-        if (completedData.length > 0) {
-          setCompletedLessons(completedData);
-        }
+        setCompletedLessons(completedData || []);
 
-        // Fetch completed quizzes - replace with mock data for now
-        // since getCompletedQuizzes doesn't exist yet
-        const mockQuizData: CompletedQuizData[] = [];
-        setCompletedQuizzes(mockQuizData);
+        // Fetch completed quizzes
+        const quizzesData = await quizService.getCompletedQuizzes();
+        setCompletedQuizzes(quizzesData || []);
 
         // Calculate stats
-        // Use hardcoded value since getLessonCount doesn't exist yet
-        const totalLessons = 10; // Mock value
         const totalPoints = await userProgressService.getTotalPoints();
+        const quizPoints = await quizService.getTotalQuizPoints();
         
-        // Calculate average score (mock for now)
-        const scores = completedData
-          .filter(lesson => lesson.scorePercentage !== undefined)
-          .map(lesson => lesson.scorePercentage || 0);
+        // Calculate average score from completed quizzes
+        const scores = quizzesData
+          .map(quiz => quiz.score || 0);
         const avgScore = scores.length 
           ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) 
           : 0;
         
         setStats({
-          totalLessons,
+          // Total is in-progress + completed for now
+          totalLessons: inProgressData.length + completedData.length,
           lessonsCompleted: completedData.length,
-          quizzesCompleted: mockQuizData.length,
-          totalPoints,
+          quizzesCompleted: quizzesData.length,
+          totalPoints: totalPoints,
           averageScore: avgScore
         });
       } catch (error) {
         console.error("Error fetching courses data:", error);
+        toast({
+          title: "Error loading courses",
+          description: "Could not load your course data. Please try again later.",
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [toast]);
 
   const getLessonIcon = (lessonId: string) => {
     const iconMap: Record<string, JSX.Element> = {
@@ -111,6 +107,17 @@ export function CoursesTab() {
 
     return iconMap[lessonId] || <BookText size={24} />;
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-12">
+        <div className="text-center">
+          <Loader2 className="h-10 w-10 animate-spin text-[#14F195] mx-auto mb-4" />
+          <p className="text-foreground">Loading your courses...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -326,7 +333,7 @@ export function CoursesTab() {
                   {completedQuizzes.map((quiz) => (
                     <TableRow key={quiz.id} className="border-border">
                       <TableCell className="text-foreground">
-                        {quiz.title}
+                        {quiz.quiz?.title || "Quiz"}
                       </TableCell>
                       <TableCell className="text-foreground">
                         {new Date(quiz.completed_at).toLocaleDateString()}
@@ -355,7 +362,7 @@ export function CoursesTab() {
                           asChild
                         >
                           <Link
-                            to={`/quiz/${quiz.lesson_id}/${quiz.section_id}`}
+                            to={`/quiz/${quiz.lesson_id}/${quiz.quiz_id}`}
                           >
                             Review
                           </Link>
