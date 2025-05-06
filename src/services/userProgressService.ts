@@ -227,7 +227,7 @@ export const userProgressService = {
       
       // Convert to CompletedLessonData format
       return progressData.map(entry => {
-        // Get the lesson data
+        // Get the lesson data - ensure it's properly typed
         const lessonData = entry.lessons;
         
         if (!lessonData) {
@@ -239,17 +239,27 @@ export const userProgressService = {
         const completedDate = entry.updated_at || new Date().toISOString();
         
         // Get earned points (use points_earned if available, otherwise use lesson.points)
-        const earnedPoints = entry.points_earned || (lessonData as any).points || 0;
+        // Make sure we safely access properties that might not exist
+        const earnedPoints = entry.points_earned || 
+                            (typeof lessonData === 'object' && 'points' in lessonData ? lessonData.points : 0);
+        
+        // Extract properties safely, with fallbacks
+        const title = typeof lessonData === 'object' && 'title' in lessonData ? 
+                      lessonData.title as string : 
+                      `Lesson ${entry.lesson_id}`;
+                      
+        const difficulty = typeof lessonData === 'object' && 'difficulty' in lessonData ? 
+                          lessonData.difficulty as string : 
+                          undefined;
         
         return {
           id: entry.lesson_id,
           lessonId: entry.lesson_id,
           completedDate: new Date(completedDate).toLocaleDateString(),
           earnedPoints: earnedPoints,
-          title: lessonData.title,
-          difficulty: lessonData.difficulty,
-          scorePercentage: 0,
-          ...lessonData
+          title: title,
+          difficulty: difficulty,
+          scorePercentage: 0, // Default value
         };
       }).filter(Boolean) as CompletedLessonData[];
     } catch (error) {
