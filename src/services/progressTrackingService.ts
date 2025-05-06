@@ -1,15 +1,14 @@
-
 import { supabase } from "@/lib/supabase";
-import { UserProgressData, CompletedLessonData } from "@/types/progress";
+import type { CompletedLessonData } from "@/types/progress";
 
 /**
  * Service for tracking user progress through lessons
  */
 export const progressTrackingService = {
   /**
-   * Get courses in progress for the current user
+   * Get courses that are in progress but not completed
    */
-  getCoursesInProgress: async (): Promise<UserProgressData[]> => {
+  async getCoursesInProgress(): Promise<any[]> {
     try {
       // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
@@ -19,112 +18,62 @@ export const progressTrackingService = {
         return [];
       }
       
-      // Get all lessons with progress data
-      const { data: progressData, error: progressError } = await supabase
+      // Get user progress data that is not completed
+      const { data, error } = await supabase
         .from("user_progress")
         .select(`
-          id,
+          id, 
           lesson_id,
-          is_completed,
-          updated_at,
-          completed_sections,
-          completed_quizzes,
           current_section_id,
           current_page_id,
+          is_completed,
+          last_accessed_at,
+          updated_at,
           lessons:lesson_id (
-            id,
             title,
-            difficulty,
-            category,
-            points
+            difficulty
           )
         `)
         .eq("user_id", user.id)
-        .eq("is_completed", false) // Only get lessons not marked as completed
-        .order("updated_at", { ascending: false });
+        .eq("is_completed", false)
+        .order("last_accessed_at", { ascending: false });
       
-      if (progressError) {
-        console.error("Error fetching user progress:", progressError);
+      if (error) {
+        console.error("Error fetching in-progress courses:", error);
         return [];
       }
       
-      if (!progressData || progressData.length === 0) {
-        return [];
-      }
+      // Get sections and pages for each lesson to calculate progress
+      const inProgressCourses = [];
       
-      // Process each lesson in progress
-      const userProgressData: UserProgressData[] = [];
-      
-      for (const entry of progressData) {
-        try {
-          const lessonData = entry.lessons;
+      for (const progress of data || []) {
+        // Get total sections for this lesson
+        const { data: sections, error: sectionsError } = await supabase
+          .from("sections")
+          .select("id")
+          .eq("lesson_id", progress.lesson_id);
           
-          if (!lessonData) {
-            console.warn(`No lesson data found for lesson_id: ${entry.lesson_id}`);
-            continue;
-          }
-          
-          // Get the lesson ID
-          const lessonId = entry.lesson_id;
-          
-          // Get the most recent activity timestamp
-          const lastActivity = entry.updated_at || new Date().toISOString();
-          
-          // Safely handle potentially malformed JSON data
-          let completedSections: string[] = [];
-          if (entry.completed_sections) {
-            try {
-              // If it's already an array, use it directly
-              if (Array.isArray(entry.completed_sections)) {
-                completedSections = entry.completed_sections;
-              } 
-              // If it's a string (malformed JSON), try to parse it
-              else if (typeof entry.completed_sections === 'string') {
-                // Handle malformed JSON by extracting IDs using regex
-                const matches = entry.completed_sections.match(/"([^"]+)"/g);
-                if (matches) {
-                  completedSections = matches.map(m => m.replace(/"/g, ''));
-                }
-              }
-            } catch (e) {
-              console.error(`Error parsing completed_sections for lesson ${lessonId}:`, e);
-            }
-          }
-          
-          // Get all sections for this lesson to calculate progress
-          const { data: sectionsData, error: sectionsError } = await supabase
-            .from("sections")
-            .select("id")
-            .eq("lesson_id", lessonId);
-          
-          if (sectionsError) {
-            console.error(`Error fetching sections for lesson ${lessonId}:`, sectionsError);
-            continue;
-          }
-          
-          const totalSections = sectionsData?.length || 0;
-          if (totalSections === 0) continue; // Skip lessons with no sections
-          
-          // Calculate progress as a percentage of completed sections
-          const progress = totalSections > 0 
-            ? Math.round((completedSections.length / totalSections) * 100) 
-            : 0;
-          
-          // Only include if progress is between 0 and 99%
-          if (progress >= 0 && progress < 100) {
-            userProgressData.push({
-              lessonId,
-              progress,
-              lastActivity,
-              ...lessonData
-            });
-          }
-        } catch (error) {
-          console.error(`Error processing lesson progress for ${entry.lesson_id}:`, error);
+        if (sectionsError) {
+          console.error("Error fetching sections:", sectionsError);
+          continue;
         }
+        
+        // Calculate progress percentage
+        const completedSections = progress.completed_sections || [];
+        const progressPercentage = sections?.length 
+          ? Math.round((completedSections.length / sections.length) * 100)
+          : 0;
+          
+        inProgressCourses.push({
+          id: progress.lesson_id,
+          title: progress.lessons?.title || "Unknown Course",
+          difficulty: progress.lessons?.difficulty || "beginner",
+          progress: progressPercentage,
+          lastActivity: progress.last_accessed_at || progress.updated_at
+        });
       }
       
-      return userProgressData;
+      return inProgressCourses;
     } catch (error) {
       console.error("Error in getCoursesInProgress:", error);
       return [];
@@ -132,9 +81,9 @@ export const progressTrackingService = {
   },
   
   /**
-   * Get completed courses for the current user
+   * Get completed courses
    */
-  getCompletedCourses: async (): Promise<CompletedLessonData[]> => {
+  async getCompletedCourses(): Promise<CompletedLessonData[]> {
     try {
       // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
@@ -144,75 +93,40 @@ export const progressTrackingService = {
         return [];
       }
       
-      // Get all lessons with progress data
-      const { data: progressData, error: progressError } = await supabase
+      // Get completed user progress
+      const { data, error } = await supabase
         .from("user_progress")
         .select(`
-          id,
+          id, 
           lesson_id,
           is_completed,
-          updated_at,
-          completed_sections,
-          completed_quizzes,
+          completed_at,
           points_earned,
           lessons:lesson_id (
-            id,
             title,
-            difficulty,
-            category,
-            points
+            difficulty
           )
         `)
         .eq("user_id", user.id)
         .eq("is_completed", true)
-        .order("updated_at", { ascending: false });
+        .order("completed_at", { ascending: false });
       
-      if (progressError) {
-        console.error("Error fetching completed courses:", progressError);
+      if (error) {
+        console.error("Error fetching completed courses:", error);
         return [];
       }
       
-      if (!progressData || progressData.length === 0) {
-        return [];
-      }
+      // Format the data
+      const completedCourses: CompletedLessonData[] = (data || []).map(progress => ({
+        id: progress.lesson_id,
+        lessonId: progress.lesson_id,
+        title: progress.lessons?.title || "Unknown Course",
+        difficulty: progress.lessons?.difficulty || "beginner",
+        completedDate: new Date(progress.completed_at).toLocaleDateString(),
+        earnedPoints: progress.points_earned || 0
+      }));
       
-      // Convert to CompletedLessonData format
-      return progressData.map(entry => {
-        // Get the lesson data - ensure it's properly typed
-        const lessonData = entry.lessons;
-        
-        if (!lessonData) {
-          console.warn(`No lesson data found for lesson_id: ${entry.lesson_id}`);
-          return null;
-        }
-        
-        // Get completion date from updated_at
-        const completedDate = entry.updated_at || new Date().toISOString();
-        
-        // Get earned points (use points_earned if available, otherwise use lesson.points)
-        // Make sure we safely access properties that might not exist
-        const earnedPoints = entry.points_earned || 
-                            (typeof lessonData === 'object' && 'points' in lessonData ? lessonData.points : 0);
-        
-        // Extract properties safely, with fallbacks
-        const title = typeof lessonData === 'object' && 'title' in lessonData ? 
-                      lessonData.title as string : 
-                      `Lesson ${entry.lesson_id}`;
-                      
-        const difficulty = typeof lessonData === 'object' && 'difficulty' in lessonData ? 
-                          lessonData.difficulty as string : 
-                          undefined;
-        
-        return {
-          id: entry.lesson_id,
-          lessonId: entry.lesson_id,
-          completedDate: new Date(completedDate).toLocaleDateString(),
-          earnedPoints: earnedPoints,
-          title: title,
-          difficulty: difficulty,
-          scorePercentage: 0, // Default value
-        };
-      }).filter(Boolean) as CompletedLessonData[];
+      return completedCourses;
     } catch (error) {
       console.error("Error in getCompletedCourses:", error);
       return [];
@@ -220,11 +134,11 @@ export const progressTrackingService = {
   },
   
   /**
-   * Update user progress for a specific page
+   * Update progress for a specific page
    */
   async updateProgress(
-    lessonId: string,
-    sectionId: string,
+    lessonId: string, 
+    sectionId: string, 
     pageId: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
@@ -297,10 +211,10 @@ export const progressTrackingService = {
   },
   
   /**
-   * Mark a section as completed
+   * Complete a section
    */
   async completeSection(
-    lessonId: string,
+    lessonId: string, 
     sectionId: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
@@ -383,9 +297,11 @@ export const progressTrackingService = {
   },
   
   /**
-   * Mark a lesson as completed
+   * Complete a lesson
    */
-  async completeLesson(lessonId: string): Promise<{ success: boolean; error?: string }> {
+  async completeLesson(
+    lessonId: string
+  ): Promise<{ success: boolean; error?: string }> {
     try {
       
       // Get the current user
@@ -473,11 +389,11 @@ export const progressTrackingService = {
   /**
    * Check if a page is completed
    */
-  isPageCompleted: async (
-    lessonId: string,
-    sectionId: string,
-    pageId: string | number
-  ): Promise<boolean> => {
+  async isPageCompleted(
+    lessonId: string, 
+    sectionId: string, 
+    pageId: string
+  ): Promise<boolean> {
     try {
       // Ensure pageId is a string for consistency
       const pageIdStr = String(pageId);
@@ -523,15 +439,15 @@ export const progressTrackingService = {
       return false;
     }
   },
-
+  
   /**
-   * Mark a page as completed for the user
+   * Mark a page as completed
    */
-  markPageCompleted: async (
-    lessonId: string,
-    sectionId: string,
-    pageId: string | number
-  ): Promise<{ success: boolean; error?: string }> => {
+  async markPageCompleted(
+    lessonId: string, 
+    sectionId: string, 
+    pageId: string
+  ): Promise<{ success: boolean; error?: string }> {
     try {
       // Ensure pageId is a string for consistency
       const pageIdStr = String(pageId);
@@ -627,13 +543,11 @@ export const progressTrackingService = {
       return { success: false, error: "An unexpected error occurred" };
     }
   },
-
+  
   /**
-   * Get all completed pages for a lesson
+   * Get all completed pages
    */
-  getCompletedPages: async (
-    lessonId: string
-  ): Promise<string[]> => {
+  async getCompletedPages(): Promise<string[]> {
     try {
       // Get the current user
       const { data: { user } } = await supabase.auth.getUser();

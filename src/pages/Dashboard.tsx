@@ -12,7 +12,7 @@ import { useAuth } from "@/hooks/use-auth";
 
 const Dashboard = () => {
   const { toast } = useToast();
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState("overview");
   const [loading, setLoading] = useState(true);

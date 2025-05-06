@@ -50,7 +50,21 @@ export const pointsService = {
         return [];
       }
       
-      // Fetch course points from user_quizzes and user_progress
+      // Fetch points from various sources and combine them
+      
+      // 1. Fetch course points from user_progress
+      const { data: progressPoints, error: progressError } = await supabase
+        .from("user_progress")
+        .select("points_earned, updated_at")
+        .eq("user_id", user.id)
+        .not("points_earned", "is", null)
+        .order("updated_at", { ascending: false });
+      
+      if (progressError) {
+        console.error("Error fetching progress points:", progressError);
+      }
+      
+      // 2. Fetch quiz points from user_quizzes
       const { data: quizPoints, error: quizError } = await supabase
         .from("user_quizzes")
         .select("points_earned, completed_at")
@@ -61,29 +75,16 @@ export const pointsService = {
         console.error("Error fetching quiz points:", quizError);
       }
       
-      // Fetch progress points
-      const { data: progressPoints, error: progressError } = await supabase
-        .from("user_progress")
-        .select("points_earned, updated_at")
-        .eq("user_id", user.id)
-        .is("points_earned", 'NOT.NULL')
-        .order("updated_at", { ascending: false });
-      
-      if (progressError) {
-        console.error("Error fetching progress points:", progressError);
-      }
-      
-      // Fetch referral points
+      // 3. Fetch referral points
       const { data: referralPoints, error: referralError } = await supabase
         .from("referrals")
         .select(`
           points_earned, 
           completed_at,
-          referral_code:referral_codes!referral_code_id (
+          referral_code:referral_codes(
             referrer_id
           )
         `)
-        .eq("referral_code.referrer_id", user.id)
         .eq("status", "completed")
         .order("completed_at", { ascending: false });
       
@@ -91,21 +92,15 @@ export const pointsService = {
         console.error("Error fetching referral points:", referralError);
       }
       
+      // Filter referrals to only include those where the user is the referrer
+      const userReferrals = referralPoints?.filter(
+        ref => ref.referral_code?.referrer_id === user.id
+      ) || [];
+      
       // Combine all points data
       const pointsHistory = [];
       
-      // Add quiz points
-      if (quizPoints) {
-        for (const quiz of quizPoints) {
-          pointsHistory.push({
-            date: quiz.completed_at,
-            amount: quiz.points_earned,
-            type: 'quiz'
-          });
-        }
-      }
-      
-      // Add progress points
+      // Add course progress points
       if (progressPoints) {
         for (const progress of progressPoints) {
           if (progress.points_earned) {
@@ -118,9 +113,20 @@ export const pointsService = {
         }
       }
       
+      // Add quiz points
+      if (quizPoints) {
+        for (const quiz of quizPoints) {
+          pointsHistory.push({
+            date: quiz.completed_at,
+            amount: quiz.points_earned,
+            type: 'quiz'
+          });
+        }
+      }
+      
       // Add referral points
-      if (referralPoints) {
-        for (const referral of referralPoints) {
+      if (userReferrals) {
+        for (const referral of userReferrals) {
           pointsHistory.push({
             date: referral.completed_at,
             amount: referral.points_earned,
@@ -130,9 +136,17 @@ export const pointsService = {
       }
       
       // Sort by date (newest first)
-      pointsHistory.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      pointsHistory.sort((a, b) => 
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
       
-      return pointsHistory;
+      // Limit to last 30 days
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
+      return pointsHistory.filter(item => 
+        new Date(item.date) >= thirtyDaysAgo
+      );
     } catch (error) {
       console.error("Error in getPointsHistory:", error);
       return [];
