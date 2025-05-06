@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -22,7 +21,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { lessonService } from "@/services/lessonService";
-import { userProgressService } from "@/services/userProgressService";
+import { userProgressService, CompletedLessonData } from "@/services/userProgressService";
 import { StatsCard } from "./StatsCard";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./Table";
 
@@ -35,17 +34,6 @@ interface CompletedQuizData {
   completed_at: string;
   score: number;
   points_earned: number;
-}
-
-// Add the missing type to match the usage in the component
-interface CompletedLessonData {
-  id: string;
-  lessonId?: string;
-  title: string;
-  completedDate: string;
-  earnedPoints: number;
-  difficulty?: string;
-  scorePercentage?: number; // Make this optional since it might not exist on all items
 }
 
 export function CoursesTab() {
@@ -86,7 +74,9 @@ export function CoursesTab() {
         const totalPoints = await userProgressService.getTotalPoints();
         
         // Calculate average score (mock for now)
-        const scores = completedData.map(lesson => lesson.scorePercentage || 0);
+        const scores = completedData
+          .filter(lesson => lesson.scorePercentage !== undefined)
+          .map(lesson => lesson.scorePercentage || 0);
         const avgScore = scores.length 
           ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) 
           : 0;
