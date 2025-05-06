@@ -37,9 +37,20 @@ interface CompletedQuizData {
   points_earned: number;
 }
 
+// Add the missing type to match the usage in the component
+interface CompletedLessonData {
+  id: string;
+  lessonId?: string;
+  title: string;
+  completedDate: string;
+  earnedPoints: number;
+  difficulty?: string;
+  scorePercentage?: number; // Make this optional since it might not exist on all items
+}
+
 export function CoursesTab() {
   const [inProgressLessons, setInProgressLessons] = useState<any[]>([]);
-  const [completedLessons, setCompletedLessons] = useState<any[]>([]);
+  const [completedLessons, setCompletedLessons] = useState<CompletedLessonData[]>([]);
   const [completedQuizzes, setCompletedQuizzes] = useState<CompletedQuizData[]>([]);
   const [stats, setStats] = useState({
     totalLessons: 0,

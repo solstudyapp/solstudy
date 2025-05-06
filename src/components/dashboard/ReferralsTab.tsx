@@ -173,7 +173,7 @@ export function ReferralsTab() {
               <Button 
                 variant="outline" 
                 className="w-full md:min-w-[180px]"
-                onClick={() => shareOnFacebook(referralLink)}
+                onClick={() => shareOnFacebook({ url: referralLink })}
               >
                 <Facebook className="h-4 w-4 mr-2" />
                 Share on Facebook
@@ -181,7 +181,7 @@ export function ReferralsTab() {
               <Button 
                 variant="outline"
                 className="w-full md:min-w-[180px]"
-                onClick={() => shareOnTwitter(referralLink)}
+                onClick={() => shareOnTwitter({ url: referralLink })}
               >
                 <Twitter className="h-4 w-4 mr-2" />
                 Share on Twitter
